@@ -239,7 +239,7 @@ dataStack *destroyDataStack(dataStack *stack) {
 //////////////////////////////////////////////
 
 ///////////////////////////////////////// MAIN
-int main(void) {
+int _main(void) {
     dataStack *data;
     recordStack *records;
     //maybe doesnt need to be a pointer here
