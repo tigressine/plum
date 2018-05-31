@@ -40,17 +40,13 @@ typedef struct instruction {
     int MField;
 } instruction;
 
-typedef struct instructionContainer {
-    instruction *instructions;
-    int instructionCount;
-} instructionContainer;
-
 // CPU struct to hold registers and the current instruction.
 typedef struct CPU {
     int registers[16];
     int stackPointer;
     int basePointer;
     int programCounter;
+    int instructionCount;
     instruction instRegister;
 } CPU;
 #endif
