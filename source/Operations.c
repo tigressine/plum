@@ -1,12 +1,10 @@
 #include <stdio.h>
 #include "VirtualMachine.h"
 
-// NONE OF THESE ARE SAFE AND CAN DEREFERENCE NULL
-
-
-int opLiteral(CPU *cpu) { // DONE
+// Load a literal value into register R.
+int opLiteral(CPU *cpu) {
     cpu->registers[cpu->instRegister.RField] = cpu->instRegister.MField;
-    
+        
     return OP_SUCCESS;
 }
 
@@ -25,13 +23,15 @@ int opCall(CPU *cpu) {
 int opAllocate(CPU *cpu) {
 }
 
-int opJump(CPU *cpu) { // DONE
+// Update programCounter to value of M field.
+int opJump(CPU *cpu) {
     cpu->programCounter = cpu->instRegister.MField;
 
     return OP_SUCCESS;
 }
 
-int opConditionalJump(CPU *cpu) { // DONE
+// Update programCounter to value of M field if register R is zero.
+int opConditionalJump(CPU *cpu) {
     if (cpu->registers[cpu->instRegister.RField] == 0) {
         cpu->programCounter = cpu->instRegister.MField;
     }
@@ -39,97 +39,111 @@ int opConditionalJump(CPU *cpu) { // DONE
     return OP_SUCCESS;
 }
 
-int opSystemCall(CPU *cpu) { // DONE
+// System calls capable of printing, scanning, and ending program.
+int opSystemCall(CPU *cpu) {
     switch (cpu->instRegister.MField) {
         case 1:
             printf("%d\n", cpu->registers[cpu->instRegister.RField]);
             return OP_SUCCESS;
     
-        case 2:// not super safe oh well // might not dereference correctly
+        case 2:
             scanf("%d", &cpu->registers[cpu->instRegister.RField]);
             return OP_SUCCESS;
        
         case 3:
-            return KILL_PROGRAM;// some kill command     
+            return KILL_PROGRAM;
         
         default:
-            return OP_FAILURE;//fail
+            return OP_FAILURE;
     }
 }
 
-int opNegate(CPU *cpu) { // DONE
+// Negate register L and save in register R.
+int opNegate(CPU *cpu) {
     cpu->registers[cpu->instRegister.RField] = 0 - cpu->registers[cpu->instRegister.LField];
 
     return OP_SUCCESS;
 }
 
-int opAdd(CPU *cpu) { // DONE
+// Add registers L and M into register R.
+int opAdd(CPU *cpu) {
     cpu->registers[cpu->instRegister.RField] = cpu->registers[cpu->instRegister.LField] +
                                                cpu->registers[cpu->instRegister.MField];
     return OP_SUCCESS;
 }
 
-int opSubtract(CPU *cpu) { // DONE
+// Subract register M from register L and store in register R.
+int opSubtract(CPU *cpu) {
     cpu->registers[cpu->instRegister.RField] = cpu->registers[cpu->instRegister.LField] -
                                                cpu->registers[cpu->instRegister.MField];
     return OP_SUCCESS;
 }
 
-int opMultiply(CPU *cpu) { // DONE
+// Multiply registers L and M and store in register R.
+int opMultiply(CPU *cpu) {
     cpu->registers[cpu->instRegister.RField] = cpu->registers[cpu->instRegister.LField] *
                                                cpu->registers[cpu->instRegister.MField];
     return OP_SUCCESS;
 }
 
-int opDivide(CPU *cpu) { // DONE
+// Divide register L by register M and store in register R.
+int opDivide(CPU *cpu) {
     cpu->registers[cpu->instRegister.RField] = cpu->registers[cpu->instRegister.LField] /
                                                cpu->registers[cpu->instRegister.MField];
     return OP_SUCCESS;
 }
 
-int opIsOdd(CPU *cpu) { // DONE
+// Store 1 in register R if register R is odd, else store 0.
+int opIsOdd(CPU *cpu) {
     cpu->registers[cpu->instRegister.RField] = cpu->registers[cpu->instRegister.RField] % 2;
 
     return OP_SUCCESS;
 }
 
-int opModulus(CPU *cpu) { // DONE
+// Store remainder of division of register L by register M in register R.
+int opModulus(CPU *cpu) {
     cpu->registers[cpu->instRegister.RField] = cpu->registers[cpu->instRegister.LField] %
                                                cpu->registers[cpu->instRegister.MField];
     return OP_SUCCESS;
 }
 
-int opIsEqual(CPU *cpu) { // DONE
+// Store 1 in register R if registers L and M are equal, else store 0.
+int opIsEqual(CPU *cpu) {
     cpu->registers[cpu->instRegister.RField] = (cpu->registers[cpu->instRegister.LField] ==
                                                 cpu->registers[cpu->instRegister.MField]);
     return OP_SUCCESS;
 }
 
-int opIsNotEqual(CPU *cpu) { // DONE
+// Store 1 in register R if registers L and M are not equal, else store 0.
+int opIsNotEqual(CPU *cpu) {
     cpu->registers[cpu->instRegister.RField] = (cpu->registers[cpu->instRegister.LField] !=
                                                 cpu->registers[cpu->instRegister.MField]);
     return OP_SUCCESS;
 }
 
-int opIsLessThan(CPU *cpu) { // DONE
+// Store 1 in register R if register L is less than register M, else store 0.
+int opIsLessThan(CPU *cpu) {
     cpu->registers[cpu->instRegister.RField] = (cpu->registers[cpu->instRegister.LField] <
                                                 cpu->registers[cpu->instRegister.MField]);
     return OP_SUCCESS;
 }
 
-int opIsLessThanOrEqualTo(CPU *cpu) { // DONE
+// Store 1 in register R if register L is less than or equal to register M, else store 0.
+int opIsLessThanOrEqualTo(CPU *cpu) {
     cpu->registers[cpu->instRegister.RField] = (cpu->registers[cpu->instRegister.LField] <=
                                                 cpu->registers[cpu->instRegister.MField]);
     return OP_SUCCESS;
 }
 
-int opIsGreaterThan(CPU *cpu) { // DONE
+// Store 1 in register R if register L is greater than to register M, else store 0.
+int opIsGreaterThan(CPU *cpu) {
     cpu->registers[cpu->instRegister.RField] = (cpu->registers[cpu->instRegister.LField] >
                                                 cpu->registers[cpu->instRegister.MField]);
     return OP_SUCCESS;
 }
 
-int opIsGreaterThanOrEqualTo(CPU *cpu) { // DONE
+// Store 1 in register R if register L is greater than or equal to register M, else store 0.
+int opIsGreaterThanOrEqualTo(CPU *cpu) {
     cpu->registers[cpu->instRegister.RField] = (cpu->registers[cpu->instRegister.LField] >=
                                                 cpu->registers[cpu->instRegister.MField]);
     return OP_SUCCESS;
