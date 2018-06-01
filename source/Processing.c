@@ -97,7 +97,7 @@ CPU *createCPU(int instructionCount) {
 }
 
 // Print contents of CPU to screen.
-void printCPU(CPU *cpu) {
+void printCPU(CPU *cpu) {         /////////PROB junk
     int i;
 
     if (cpu == NULL) {
@@ -200,6 +200,10 @@ int processInstructions(instruction *instructions, int instructionCount) {
     int i;
     CPU *cpu;
     int executeReturn;
+
+    if (instructions == NULL || instructionCount == 0) {
+        return OP_FAILURE;
+    }
 
     // If CPU can't be allocated, return OP_FAILURE.
     if ((cpu = createCPU(instructionCount)) == NULL) {
