@@ -192,7 +192,7 @@ int processInstructions(instruction *instructions, int instructionCount) {
         return OP_FAILURE;
     }
    
-    //need to push inital record
+    pushRecord(cpu, stack);
 
     // Perform successive fetches and executes for the array of instructions
     // until an error occurs or a KILL_PROGRAM system call is made.
@@ -213,10 +213,13 @@ int processInstructions(instruction *instructions, int instructionCount) {
         }
 
         printStackTraceLine(cpu, stack);
+        printRegisters(cpu);
+        printf("\n");
     }
 
     // Stay memory safe!
     freeCPU(cpu);
+    destroyRecordStack(stack);
 
     return OP_SUCCESS;
 }
@@ -251,11 +254,11 @@ int executeInstruction(CPU *cpu, recordStack *stack) {
     // instRegister. Instruction opCodes are #defined for readability.
     switch (cpu->instRegister.opCode) {
         case LIT: return opLiteral(cpu);
-        case RTN: return opReturn(cpu);
-        case LOD: return opLoad(cpu);
-        case STO: return opStore(cpu);
+        case RTN: return opReturn(cpu, stack);
+        case LOD: return opLoad(cpu, stack);
+        case STO: return opStore(cpu, stack);
         case CAL: return opCall(cpu, stack);
-        case INC: return opAllocate(cpu);
+        case INC: return opAllocate(cpu, stack);
         case JMP: return opJump(cpu);
         case JPC: return opConditionalJump(cpu);
         case SIO: return opSystemCall(cpu);
@@ -283,6 +286,19 @@ int freeInstructions(instruction *instructions) {
     free(instructions);
 
     return OP_SUCCESS;
+}
+
+void printRegisters(CPU *cpu) {
+    int i;
+    
+    if (cpu == NULL) {
+        return;
+    }
+    
+    printf("Registers: ");
+    for (i = 0; i < REGISTER_COUNT; i++) {
+        printf("%d%s", cpu->registers[i], (i < REGISTER_COUNT - 1) ? " " : "\n");
+    }
 }
 
 void printStackTraceLine(CPU *cpu, recordStack *stack) {

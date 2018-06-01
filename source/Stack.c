@@ -131,4 +131,3 @@ recordStack *destroyRecordStack(recordStack *stack) {
 
     return NULL;
 }
-

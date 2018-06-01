@@ -24,13 +24,85 @@ int opLiteral(CPU *cpu) {
     return OP_SUCCESS;
 }
 
-int opReturn(CPU *cpu) {
+int opReturn(CPU *cpu, recordStack *stack) {
+    if (cpu == NULL || stack == NULL || stack->currentRecord == NULL) {
+        return OP_FAILURE;
+    }
+
+    cpu->programCounter = stack->currentRecord->returnAddress;
+    
+    return popRecord(stack);
 }
 
-int opLoad(CPU *cpu) {
+int opLoad(CPU *cpu, recordStack *stack) {
+    recordStackItem *desiredRecord;
+    int index;
+
+    if (cpu == NULL ||
+        stack == NULL ||
+        cpu->registers == NULL ||
+        invalidRegister(cpu->instRegister.RField)) {
+        
+        return OP_FAILURE;
+    }
+
+    if ((desiredRecord = getStaticParent(stack, cpu->instRegister.LField)) == NULL) {
+        return OP_FAILURE;
+    }
+
+    index = cpu->instRegister.MField;
+    if (index == 0) {
+        cpu->registers[cpu->instRegister.RField] = desiredRecord->returnValue;
+    }
+    else {
+        index -= INT_OFFSET;
+        
+        if (index >= 0 && index < desiredRecord->localCount) {
+            cpu->registers[cpu->instRegister.RField] = desiredRecord->locals[index];
+        }
+        else {
+            return OP_FAILURE;
+        }
+    }
+    
+    return OP_SUCCESS;
 }
 
-int opStore(CPU *cpu) {
+int opStore(CPU *cpu, recordStack *stack) {
+    recordStackItem *desiredRecord;
+    int index;
+
+    if (cpu == NULL ||
+        stack == NULL ||
+        cpu->registers == NULL ||
+        invalidRegister(cpu->instRegister.RField)) {
+        
+        return OP_FAILURE;
+    }
+
+    if ((desiredRecord = getStaticParent(stack, cpu->instRegister.LField)) == NULL) {
+        return OP_FAILURE;
+    }
+
+    index = cpu->instRegister.MField;
+    if (index == 0) {
+        desiredRecord->returnValue = cpu->registers[cpu->instRegister.RField];
+    }
+    else {
+        index -= INT_OFFSET;
+        
+        if (index >= 0 && index < desiredRecord->localCount) {
+            desiredRecord->locals[index] = cpu->registers[cpu->instRegister.RField];
+        }
+        // The index is either out of bounds of the locals array, or the user is
+        // trying to override some of the other activation record fields (like the
+        // dynamic link) and this isn't allowed.
+        else {
+            return OP_FAILURE;
+        }
+    }
+
+    return OP_SUCCESS;
 }
 
 int opCall(CPU *cpu, recordStack *stack) {
@@ -45,7 +117,12 @@ int opCall(CPU *cpu, recordStack *stack) {
     return OP_SUCCESS;
 }
 
-int opAllocate(CPU *cpu) {
+int opAllocate(CPU *cpu, recordStack *stack) {
+    if (cpu == NULL || stack == NULL) {
+        return OP_FAILURE;
+    }
+
+    return allocateLocals(stack->currentRecord, cpu->instRegister.MField - INT_OFFSET);
 }
 
 // Update programCounter to value of M field.
