@@ -1,5 +1,5 @@
-// Tiger Sachse
 #include <limits.h>
+
 #ifndef VIRTUALMACHINE_HEADER
 #define VIRTUALMACHINE_HEADER
 
@@ -27,7 +27,7 @@
 #define GTR 21
 #define GEQ 22
 
-#define MAX_LINES 8
+#define MAX_LINES 100
 #define OP_FAILURE INT_MIN
 #define OP_SUCCESS INT_MIN + 1
 #define KILL_PROGRAM INT_MIN + 2
@@ -40,7 +40,9 @@ typedef struct instruction {
     int MField;
 } instruction;
 
-// CPU struct to hold registers and the current instruction.
+// CPU struct to hold registers and the current instruction. Both the
+// basePointer and stackPointer are uneccessary using the implemented
+// activation stack method, but they are included for now for legacy purposes.
 typedef struct CPU {
     int registers[16];
     int stackPointer;
@@ -49,4 +51,14 @@ typedef struct CPU {
     int instructionCount;
     instruction instRegister;
 } CPU;
+
+CPU *createCPU(int);
+void printCPU(CPU*);
+int freeCPU(CPU*);
+int countInstructions(char*);
+instruction *loadInstructions(char*, int);
+int processInstructions(instruction*, int);
+int fetchInstruction(CPU*, instruction*);
+int executeInstruction(CPU*);
+int freeInstructions(instruction*);
 #endif

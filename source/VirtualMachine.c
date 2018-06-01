@@ -1,17 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include "Operations.c"
+#include "Stack.h"
+#include "Operations.h"
 #include "VirtualMachine.h"
-
-CPU *createCPU(int);
-void printCPU(CPU*);
-int freeCPU(CPU*);
-int countInstructions(char*);
-instruction *loadInstructions(char*, int);
-int processInstructions(instruction*, int);
-int fetchInstruction(CPU*, instruction*);
-int executeInstruction(CPU*);
-int freeInstructions(instruction*);
 
 // Main function and machine entry point.
 int main(int argsCount, char **argsVector) {

@@ -95,8 +95,13 @@ int opDivide(CPU *cpu) {
 
 // Store 1 in register R if register R is odd, else store 0.
 int opIsOdd(CPU *cpu) {
-    cpu->registers[cpu->instRegister.RField] = cpu->registers[cpu->instRegister.RField] % 2;
-
+    if ((cpu->registers[cpu->instRegister.RField] % 2) != 0) {
+        cpu->registers[cpu->instRegister.RField] = 1;
+    }
+    else {
+        cpu->registers[cpu->instRegister.RField] = 0;
+    }
+    
     return OP_SUCCESS;
 }
 
