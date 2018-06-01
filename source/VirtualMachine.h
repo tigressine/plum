@@ -28,6 +28,7 @@
 #define GEQ 22
 
 // Constants.
+#define INT_OFFSET 4
 #define MAX_LINES 100
 #define REGISTER_COUNT 16
 #define OP_FAILURE INT_MIN
@@ -84,16 +85,17 @@ int processInstructions(instruction*, int);
 int fetchInstruction(CPU*, instruction*);
 int executeInstruction(CPU*, recordStack*);
 int freeInstructions(instruction*);
+void printRegisters(CPU*);
 void printStackTraceLine(CPU*, recordStack*);
 void printRecords(recordStackItem*);
 
 // Operations functional prototypes.
 int opLiteral(CPU*);
-int opReturn(CPU*);
-int opLoad(CPU*);
-int opStore(CPU*);
+int opReturn(CPU*, recordStack*);
+int opLoad(CPU*, recordStack*);
+int opStore(CPU*, recordStack*);
 int opCall(CPU*, recordStack*);
-int opAllocate(CPU*);
+int opAllocate(CPU*, recordStack*);
 int opJump(CPU*);
 int opConditionalJump(CPU*);
 int opSystemCall(CPU*);
