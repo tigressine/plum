@@ -15,7 +15,7 @@ int invalidCPU(CPU *cpu) {
 
 // Load a literal value into register R.
 int opLiteral(CPU *cpu) {
-    if (invalidCPU(cpu)) {
+    if (cpu == NULL || cpu->registers == NULL || invalidRegister(cpu->instRegister.RField)) {
         return OP_FAILURE;
     }
     
@@ -33,7 +33,16 @@ int opLoad(CPU *cpu) {
 int opStore(CPU *cpu) {
 }
 
-int opCall(CPU *cpu) {
+int opCall(CPU *cpu, recordStack *stack) {
+    if (cpu == NULL || stack == NULL) {
+        return OP_FAILURE;
+    }
+
+    pushRecord(cpu, stack);
+    cpu->basePointer = cpu->stackPointer + 1;//
+    cpu->programCounter = cpu->instRegister.MField;
+
+    return OP_SUCCESS;
 }
 
 int opAllocate(CPU *cpu) {

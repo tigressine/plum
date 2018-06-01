@@ -62,6 +62,8 @@ typedef struct recordStackItem {
     int localCount;
     int returnAddress;
     int returnValue;
+    int dynamicLinkValue;
+    int staticLinkValue;
     struct recordStackItem *dynamicLink;
     struct recordStackItem *staticLink;
 } recordStackItem;
@@ -75,13 +77,12 @@ typedef struct recordStack {
 
 // Processing functional prototypes.
 CPU *createCPU(int);
-void printCPU(CPU*);
 int freeCPU(CPU*);
 int countInstructions(char*);
 instruction *loadInstructions(char*, int);
 int processInstructions(instruction*, int);
 int fetchInstruction(CPU*, instruction*);
-int executeInstruction(CPU*);
+int executeInstruction(CPU*, recordStack*);
 int freeInstructions(instruction*);
 void printStackTraceLine(CPU*, recordStack*);
 void printRecords(recordStackItem*);
@@ -91,7 +92,7 @@ int opLiteral(CPU*);
 int opReturn(CPU*);
 int opLoad(CPU*);
 int opStore(CPU*);
-int opCall(CPU*);
+int opCall(CPU*, recordStack*);
 int opAllocate(CPU*);
 int opJump(CPU*);
 int opConditionalJump(CPU*);
@@ -116,8 +117,8 @@ int pushRecord(CPU*, recordStack*);
 int popRecord(recordStack*);
 recordStackItem *peekRecord(recordStack*);
 int allocateLocals(recordStackItem*, int);
-//int storeValue(recordStack*, int, int, int);
-recordStackItem *findRecord(recordStack*, int);
+recordStackItem *getDynamicParent(recordStack*, int);
+recordStackItem *getStaticParent(recordStack*, int);
 int isEmpty(recordStack*);
 recordStack *destroyRecordStack(recordStack*);
 #endif
