@@ -22,13 +22,16 @@ int pushRecord(CPU *cpu, recordStack *stack) {
     newRecord->locals = NULL;
     newRecord->localCount = 0;
     newRecord->returnValue = 0;
+    newRecord->dynamicLinkValue = 0;//still unknown //
+    newRecord->staticLinkValue = 0;//sstill unkown //
     newRecord->returnAddress = cpu->programCounter;
     newRecord->dynamicLink = stack->currentRecord;
-    newRecord->staticLink = NULL;
+    newRecord->staticLink = getStaticParent(stack, cpu->instRegister.LField);//
     
     // Set the top of the stack to be newRecord.
     stack->currentRecord = newRecord;
     stack->records++;
+    cpu->stackPointer += 4;//
 
     return OP_SUCCESS;
 }
@@ -78,20 +81,35 @@ int allocateLocals(recordStackItem *record, int localCount) {
     return OP_SUCCESS;
 }
 
-recordStackItem *findRecord(recordStack *stack, int levels) {
+recordStackItem *getDynamicParent(recordStack *stack, int levels) {
     recordStackItem *desiredRecord;
-    int i;
 
     if (stack == NULL) {
         return NULL;
     }
     
     desiredRecord = stack->currentRecord;
-    for (i = 0; i < levels; i++) {
+   
+    while (levels > 0 && desiredRecord != NULL) {
         desiredRecord = desiredRecord->dynamicLink;
-        if (desiredRecord == NULL) {
-            return NULL;
-        }
+        levels--;
+    }
+
+    return desiredRecord;
+}
+
+recordStackItem *getStaticParent(recordStack *stack, int levels) {
+    recordStackItem *desiredRecord;
+
+    if (stack == NULL) {
+        return NULL;
+    }
+
+    desiredRecord = stack->currentRecord;
+    
+    while (levels > 0 && desiredRecord != NULL) {
+        desiredRecord = desiredRecord->staticLink;
+        levels--;
     }
 
     return desiredRecord;
@@ -113,3 +131,4 @@ recordStack *destroyRecordStack(recordStack *stack) {
 
     return NULL;
 }
+
