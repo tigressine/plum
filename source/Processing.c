@@ -58,7 +58,23 @@ int main(int argsCount, char **argsVector) {
     allocateLocals(stack->currentRecord, 5);
     printStackTraceLine(cpu, stack);
 
+    popRecord(stack); 
+    popRecord(stack);
+    printStackTraceLine(cpu, stack);
 
+    pushRecord(cpu, stack);
+    pushRecord(cpu, stack);
+    pushRecord(cpu, stack);
+    allocateLocals(stack->currentRecord, 6);
+    allocateLocals(findRecord(stack, 1), 3);
+    allocateLocals(findRecord(stack, 2), 1);
+    printStackTraceLine(cpu, stack);
+
+    findRecord(stack, 1)->locals[1] = 100;
+    printStackTraceLine(cpu, stack);
+
+    freeCPU(cpu);
+    destroyRecordStack(stack);
     //////////////////////////////////////////////////////////////////////
 
     // Don't forget to be memory safe!
@@ -281,9 +297,6 @@ int freeInstructions(instruction *instructions) {
 }
 
 void printStackTraceLine(CPU *cpu, recordStack *stack) {
-    recordStackItem *currentRecord;
-    int i;
-    
     if (cpu == NULL || stack == NULL) {
         return;
     }
