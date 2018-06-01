@@ -19,6 +19,8 @@ int pushRecord(CPU *cpu, recordStack *stack) {
         return OP_FAILURE;
     }
 
+    newRecord->localCount = 0;
+    newRecord->locals = NULL;
     newRecord->returnAddress = cpu->programCounter;//
     newRecord->returnValue = 0;//
     newRecord->dynamicLink = stack->currentRecord;
