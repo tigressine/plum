@@ -27,6 +27,7 @@
 #define GTR 21
 #define GEQ 22
 
+// Constants.
 #define MAX_LINES 100
 #define OP_FAILURE INT_MIN
 #define OP_SUCCESS INT_MIN + 1
@@ -52,6 +53,26 @@ typedef struct CPU {
     instruction instRegister;
 } CPU;
 
+// An item in an activation record stack. Also serves as a node in
+// a linked list (that's how the stack is implemented). Many of these
+// members are unneccesary except for the project specifications.
+typedef struct recordStackItem {
+    int *locals;
+    int localCount;
+    int returnAddress;
+    int returnValue;
+    struct recordStackItem *dynamicLink;
+    struct recordStackItem *staticLink;
+} recordStackItem;
+
+// Container struct for a record linked list struct. Also keeps track
+// of the number of nodes in the stack.
+typedef struct recordStack {
+    int records;
+    recordStackItem *currentRecord;
+} recordStack;
+
+// Processing functional prototypes.
 CPU *createCPU(int);
 void printCPU(CPU*);
 int freeCPU(CPU*);
@@ -61,4 +82,41 @@ int processInstructions(instruction*, int);
 int fetchInstruction(CPU*, instruction*);
 int executeInstruction(CPU*);
 int freeInstructions(instruction*);
+void printStackTraceLine(CPU*, recordStack*);
+void printRecords(recordStackItem*);
+
+// Operations functional prototypes.
+int opLiteral(CPU*);
+int opReturn(CPU*);
+int opLoad(CPU*);
+int opStore(CPU*);
+int opCall(CPU*);
+int opAllocate(CPU*);
+int opJump(CPU*);
+int opConditionalJump(CPU*);
+int opSystemCall(CPU*);
+int opNegate(CPU*);
+int opAdd(CPU*);
+int opSubtract(CPU*);
+int opMultiply(CPU*);
+int opDivide(CPU*);
+int opIsOdd(CPU*);
+int opModulus(CPU*);
+int opIsEqual(CPU*);
+int opIsNotEqual(CPU*);
+int opIsLessThan(CPU*);
+int opIsLessThanOrEqualTo(CPU*);
+int opIsGreaterThan(CPU*);
+int opIsGreaterThanOrEqualTo(CPU*);
+
+// Stack functional prototypes.
+recordStack *initializeRecordStack(void);
+int pushRecord(CPU*, recordStack*);
+int popRecord(recordStack*);
+recordStackItem *peekRecord(recordStack*);
+int allocateLocals(recordStackItem*, int);
+//int storeValue(recordStack*, int, int, int);
+recordStackItem *findRecord(recordStack*, int);
+int isEmpty(recordStack*);
+recordStack *destroyRecordStack(recordStack*);
 #endif

@@ -1,12 +1,9 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include "Stack.h"
-#include "Operations.h"
 #include "VirtualMachine.h"
 
 // Main function and machine entry point.
 int main(int argsCount, char **argsVector) {
-    int i;
     int instructionCount;
     instruction *instructions;
 
@@ -31,11 +28,38 @@ int main(int argsCount, char **argsVector) {
         return 0;
     }
 
+    /*
     // Attempt to process the instructions. If the instructions are not processed
     // correctly, yell about it.
     if ((processInstructions(instructions, instructionCount)) == OP_FAILURE) {
         printf("An error occurred during execution.\n");
     }
+    */
+    /////////////////////////////////////////////////////////////////////
+    recordStack *stack;
+    CPU *cpu;
+
+    stack = initializeRecordStack();
+    popRecord(stack);
+    popRecord(stack);
+    printf("size %d\n", stack->records);
+    cpu = createCPU(instructionCount);
+    fetchInstruction(cpu, instructions);
+    executeInstruction(cpu);
+    printCPU(cpu);
+
+    pushRecord(cpu, stack);
+    printf("OP R L M PC BP SP RV SL DY RA\n");
+    printStackTraceLine(cpu, stack);
+    allocateLocals(stack->currentRecord, 3);
+    printStackTraceLine(cpu, stack);
+
+    pushRecord(cpu, stack);
+    allocateLocals(stack->currentRecord, 5);
+    printStackTraceLine(cpu, stack);
+
+
+    //////////////////////////////////////////////////////////////////////
 
     // Don't forget to be memory safe!
     freeInstructions(instructions);
@@ -254,4 +278,44 @@ int freeInstructions(instruction *instructions) {
     free(instructions);
 
     return OP_SUCCESS;
+}
+
+void printStackTraceLine(CPU *cpu, recordStack *stack) {
+    recordStackItem *currentRecord;
+    int i;
+    
+    if (cpu == NULL || stack == NULL) {
+        return;
+    }
+    
+    printf("%-2d %-2d %-2d %-4d %-4d %-3d %-4d", cpu->instRegister.opCode,
+                                   cpu->instRegister.RField,
+                                   cpu->instRegister.LField,
+                                   cpu->instRegister.MField,
+                                   cpu->programCounter,
+                                   cpu->basePointer,
+                                   cpu->stackPointer);
+
+    printRecords(stack->currentRecord);
+    printf("\n");
+}
+
+void printRecords(recordStackItem *record) {
+    int i;
+    
+    if (record == NULL) {
+        return;
+    }
+    
+    printRecords(record->dynamicLink);
+    printf(" %d %d %d %d", record->returnValue,
+                          0,// this will be the static link representation,
+                          0,//this will be the dynamic link representation,
+                          record->returnAddress);
+
+    for (i = 0; i < record->localCount; i++) {
+        printf(" %d", record->locals[i]);
+    }
+
+    printf(" |");
 }
