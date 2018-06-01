@@ -29,6 +29,7 @@
 
 // Constants.
 #define MAX_LINES 100
+#define REGISTER_COUNT 16
 #define OP_FAILURE INT_MIN
 #define OP_SUCCESS INT_MIN + 1
 #define KILL_PROGRAM INT_MIN + 2
@@ -45,7 +46,7 @@ typedef struct instruction {
 // basePointer and stackPointer are uneccessary using the implemented
 // activation stack method, but they are included for now for legacy purposes.
 typedef struct CPU {
-    int registers[16];
+    int registers[REGISTER_COUNT];
     int stackPointer;
     int basePointer;
     int programCounter;
