@@ -10,7 +10,7 @@ recordStack *initializeRecordStack(void) {
 int pushRecord(CPU *cpu, recordStack *stack) {
     recordStackItem *newRecord;
     
-    if (stack == NULL) {
+    if (cpu == NULL || stack == NULL) {
         return OP_FAILURE;
     }
 
@@ -19,13 +19,13 @@ int pushRecord(CPU *cpu, recordStack *stack) {
         return OP_FAILURE;
     }
 
-    newRecord->localCount = 0;
     newRecord->locals = NULL;
-    newRecord->returnAddress = cpu->programCounter;//
-    newRecord->returnValue = 0;//
+    newRecord->localCount = 0;
+    newRecord->returnValue = 0;
+    newRecord->returnAddress = cpu->programCounter;
     newRecord->dynamicLink = stack->currentRecord;
-    // Static links are not implemented yet.
     newRecord->staticLink = NULL;
+    
     // Set the top of the stack to be newRecord.
     stack->currentRecord = newRecord;
     stack->records++;
@@ -46,6 +46,7 @@ int popRecord(recordStack *stack) {
     returnValue = stack->currentRecord->returnValue;
     free(stack->currentRecord->locals);
     free(stack->currentRecord);
+    
     stack->currentRecord = nextRecord;
     stack->records--;
 
@@ -53,10 +54,14 @@ int popRecord(recordStack *stack) {
 }
 
 recordStackItem *peekRecord(recordStack *stack) {
-    return stack->currentRecord;
+    return (stack == NULL) ? NULL : stack->currentRecord;
 }
 
 int allocateLocals(recordStackItem *record, int localCount) {
+    if (record == NULL || record->locals != NULL) {
+        return OP_FAILURE;
+    }
+
     record->localCount = localCount;
     
     // Set locals to NULL if there aren't any parameters.
