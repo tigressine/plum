@@ -4,10 +4,12 @@
 #include "Stack.h"
 #include "VirtualMachine.h"
 
+// Return an empty record stack.
 recordStack *initializeRecordStack(void) {
     return calloc(1, sizeof(recordStack));
 }
 
+// Push a new record onto the stack.
 int pushRecord(recordStack *stack,
                int parameterCount,
                int localCount,
@@ -19,19 +21,23 @@ int pushRecord(recordStack *stack,
         return OP_FAILURE;
     }
 
+    // If there is not enough memory for a new record, returns OP_FAILURE.
     if ((newRecord = malloc(sizeof(recordStackItem))) == NULL) {
         return OP_FAILURE;
     }
 
+    // Set parameters member to NULL if there aren't any parameters.
     if (parameterCount < 1) {
         newRecord->parameters = NULL;
     }
+    // Otherwise allocate an array for parameters.
     else if ((newRecord->parameters = calloc(1, sizeof(int) * parameterCount)) == NULL) {
         free(newRecord);
 
         return OP_FAILURE;
     }
 
+    // Do the same process but for local variables.
     if (localCount < 1) {
         newRecord->locals = NULL;
     }
@@ -47,12 +53,15 @@ int pushRecord(recordStack *stack,
     newRecord->returnAddress = returnAddress;
     newRecord->functionalValue = functionalValue;
     newRecord->dynamicLink = stack->currentRecord;
-    newRecord->staticLink = NULL; // Need function to resolve static links
+    // Static links are not implemented yet.
+    newRecord->staticLink = NULL;
+    // Set the top of the stack to be newRecord.
     stack->currentRecord = newRecord;
 
     return OP_SUCCESS;
 }
 
+// Remove the top record from the stack and any associated dynamic memory.
 int popRecord(recordStack *stack) {
     recordStackItem *nextItem;
     int returnValue;
@@ -108,9 +117,12 @@ int storeValue(recordStack *stack, int depth, int index, int value) {
     }
 }
 
+// Destroy the record stack.
 recordStack *destroyRecordStack(recordStack *stack) {
+    // Pop all records out of the stack.
     while (popRecord(stack) != OP_FAILURE);
 
+    // Free the stack container.
     free(stack);
 
     return NULL;
