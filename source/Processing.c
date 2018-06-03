@@ -28,55 +28,11 @@ int main(int argsCount, char **argsVector) {
         return 0;
     }
 
-    ///*
     // Attempt to process the instructions. If the instructions are not processed
     // correctly, yell about it.
     if ((processInstructions(instructions, instructionCount)) == OP_FAILURE) {
         printf("An error occurred during execution.\n");
     }
-    //*/
-    /*
-    /////////////////////////////////////////////////////////////////////
-    recordStack *stack;
-    CPU *cpu;
-
-    stack = initializeRecordStack();
-    popRecord(stack);
-    popRecord(stack);
-    printf("size %d\n", stack->records);
-    cpu = createCPU(instructionCount);
-    fetchInstruction(cpu, instructions);
-    //executeInstruction(cpu);
-
-    pushRecord(cpu, stack);
-    printf("OP R L M PC BP SP RV SL DY RA\n");
-    printStackTraceLine(cpu, stack);
-    allocateLocals(stack->currentRecord, 3);
-    printStackTraceLine(cpu, stack);
-
-    pushRecord(cpu, stack);
-    allocateLocals(stack->currentRecord, 5);
-    printStackTraceLine(cpu, stack);
-
-    popRecord(stack); 
-    popRecord(stack);
-    printStackTraceLine(cpu, stack);
-
-    pushRecord(cpu, stack);
-    pushRecord(cpu, stack);
-    pushRecord(cpu, stack);
-    allocateLocals(stack->currentRecord, 6);
-    allocateLocals(getDynamicParent(stack, 1), 3);
-    allocateLocals(getDynamicParent(stack, 2), 1);
-    printStackTraceLine(cpu, stack);
-
-    getDynamicParent(stack, 1)->locals[0] = 200;
-    getStaticParent(stack, 0)->locals[0] = 400;
-    printStackTraceLine(cpu, stack);
-
-    freeCPU(cpu);
-    destroyRecordStack(stack);*/
-    //////////////////////////////////////////////////////////////////////
 
     // Don't forget to be memory safe!
     freeInstructions(instructions);
@@ -89,7 +45,6 @@ CPU *createCPU(int instructionCount) {
     CPU *cpu;
 
     if ((cpu = calloc(1, sizeof(CPU))) != NULL) {
-        cpu->basePointer = 1;
         cpu->instructionCount = instructionCount;
     }
 
@@ -191,12 +146,14 @@ int processInstructions(instruction *instructions, int instructionCount) {
 
         return OP_FAILURE;
     }
-   
+  
+    // Push an initial record onto the stack for the main environment.
     pushRecord(cpu, stack);
 
     // Perform successive fetches and executes for the array of instructions
     // until an error occurs or a KILL_PROGRAM system call is made.
     executeReturn = OP_SUCCESS;
+    printf("OP R L M PC RV RA LOC... | RV RA LOC... |\n");
     while (executeReturn != KILL_PROGRAM) {
         // Check that fetchInstruction is successful.
         if (fetchInstruction(cpu, instructions) == OP_FAILURE) {
@@ -213,8 +170,6 @@ int processInstructions(instruction *instructions, int instructionCount) {
         }
 
         printStackTraceLine(cpu, stack);
-        printRegisters(cpu);
-        printf("\n");
     }
 
     // Stay memory safe!
@@ -288,6 +243,20 @@ int freeInstructions(instruction *instructions) {
     return OP_SUCCESS;
 }
 
+// Print out all associated objects with the program.
+void printStackTraceLine(CPU *cpu, recordStack *stack) {
+    if (cpu == NULL || stack == NULL) {
+        return;
+    }
+    
+    printCPU(cpu);
+    printRecords(stack->currentRecord);
+    printf("\n");
+    printRegisters(cpu);
+    //printf("\n");
+}
+
+// Print registers of a CPU.
 void printRegisters(CPU *cpu) {
     int i;
     
@@ -301,39 +270,34 @@ void printRegisters(CPU *cpu) {
     }
 }
 
-void printStackTraceLine(CPU *cpu, recordStack *stack) {
-    if (cpu == NULL || stack == NULL) {
+// Print CPU instruction and program counter.
+void printCPU(CPU *cpu) {
+    if (cpu == NULL) {
         return;
     }
-    
-    printf("%-2d %-2d %-2d %-4d %-4d %-3d %-4d", cpu->instRegister.opCode,
-                                   cpu->instRegister.RField,
-                                   cpu->instRegister.LField,
-                                   cpu->instRegister.MField,
-                                   cpu->programCounter,
-                                   cpu->basePointer,//
-                                   cpu->stackPointer);//
 
-    printRecords(stack->currentRecord);
-    printf("\n");
+    printf("%-2d %-2d %-2d %-5d %-5d", cpu->instRegister.opCode,
+                                       cpu->instRegister.RField,
+                                       cpu->instRegister.LField,
+                                       cpu->instRegister.MField,
+                                       cpu->programCounter);
 }
 
+// Recursively print a stack of records.
 void printRecords(recordStackItem *record) {
     int i;
     
     if (record == NULL) {
         return;
     }
-    
+   
+    // Recursively print the rest of the stack first.
     printRecords(record->dynamicLink);
-    printf(" %d %d %d %d", record->returnValue,
-                          0,// this will be the static link representation, //
-                          0,//this will be the dynamic link representation, //
-                          record->returnAddress);
+    printf("%d %d", record->returnValue, record->returnAddress);
 
     for (i = 0; i < record->localCount; i++) {
         printf(" %d", record->locals[i]);
     }
 
-    printf(" |");
+    printf(" | ");
 }

@@ -43,30 +43,23 @@ typedef struct instruction {
     int MField;
 } instruction;
 
-// CPU struct to hold registers and the current instruction. Both the
-// basePointer and stackPointer are uneccessary using the implemented
-// activation stack method, but they are included for now for legacy purposes.
+// CPU struct to hold registers and the current instruction.
 typedef struct CPU {
     int registers[REGISTER_COUNT];
-    int stackPointer;
-    int basePointer;
     int programCounter;
     int instructionCount;
     instruction instRegister;
 } CPU;
 
 // An item in an activation record stack. Also serves as a node in
-// a linked list (that's how the stack is implemented). Many of these
-// members are unneccesary except for the project specifications.
+// a linked list (that's how the stack is implemented).
 typedef struct recordStackItem {
     int *locals;
     int localCount;
-    int returnAddress;
     int returnValue;
-    int dynamicLinkValue;
-    int staticLinkValue;
-    struct recordStackItem *dynamicLink;
+    int returnAddress;
     struct recordStackItem *staticLink;
+    struct recordStackItem *dynamicLink;
 } recordStackItem;
 
 // Container struct for a record linked list struct. Also keeps track
@@ -85,8 +78,9 @@ int processInstructions(instruction*, int);
 int fetchInstruction(CPU*, instruction*);
 int executeInstruction(CPU*, recordStack*);
 int freeInstructions(instruction*);
-void printRegisters(CPU*);
 void printStackTraceLine(CPU*, recordStack*);
+void printRegisters(CPU*);
+void printCPU(CPU*);
 void printRecords(recordStackItem*);
 
 // Operations functional prototypes.
