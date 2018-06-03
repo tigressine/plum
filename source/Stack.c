@@ -1,3 +1,4 @@
+#include <stdio.h> //////
 #include <stdlib.h>
 #include "VirtualMachine.h"
 
@@ -14,7 +15,7 @@ int pushRecord(CPU *cpu, recordStack *stack) {
         return OP_FAILURE;
     }
 
-    // If there is not enough memory for a new record, returns OP_FAILURE.
+    // If there is not enough memory for a new record, return OP_FAILURE.
     if ((newRecord = malloc(sizeof(recordStackItem))) == NULL) {
         return OP_FAILURE;
     }
@@ -22,21 +23,20 @@ int pushRecord(CPU *cpu, recordStack *stack) {
     newRecord->locals = NULL;
     newRecord->localCount = 0;
     newRecord->returnValue = 0;
-    newRecord->dynamicLinkValue = 0;//still unknown //
-    newRecord->staticLinkValue = 0;//sstill unkown //
     newRecord->returnAddress = cpu->programCounter;
     newRecord->dynamicLink = stack->currentRecord;
-    newRecord->staticLink = getStaticParent(stack, cpu->instRegister.LField);//
+    if ((newRecord->staticLink = getStaticParent(stack, cpu->instRegister.LField)) == NULL) {
+        newRecord->staticLink = newRecord; 
+    }
     
     // Set the top of the stack to be newRecord.
     stack->currentRecord = newRecord;
     stack->records++;
-    cpu->stackPointer += 4;//
 
     return OP_SUCCESS;
 }
 
-// Remove the top record from the stack and any associated dynamic memory.
+// Remove the top record from the stack and free any associated dynamic memory.
 int popRecord(recordStack *stack) {
     recordStackItem *nextRecord;
     int returnValue;
@@ -49,17 +49,20 @@ int popRecord(recordStack *stack) {
     returnValue = stack->currentRecord->returnValue;
     free(stack->currentRecord->locals);
     free(stack->currentRecord);
-    
+   
+    // Set the top of the stack to the record below the old top.
     stack->currentRecord = nextRecord;
     stack->records--;
 
     return returnValue;
 }
 
+// Return the top record of the stack.
 recordStackItem *peekRecord(recordStack *stack) {
     return (stack == NULL) ? NULL : stack->currentRecord;
 }
 
+// Allocate the locals array in the given record.
 int allocateLocals(recordStackItem *record, int localCount) {
     if (record == NULL || record->locals != NULL) {
         return OP_FAILURE;
@@ -81,6 +84,7 @@ int allocateLocals(recordStackItem *record, int localCount) {
     return OP_SUCCESS;
 }
 
+// Seek down the stack through dynamic links (in order).
 recordStackItem *getDynamicParent(recordStack *stack, int levels) {
     recordStackItem *desiredRecord;
 
@@ -89,7 +93,9 @@ recordStackItem *getDynamicParent(recordStack *stack, int levels) {
     }
     
     desiredRecord = stack->currentRecord;
-   
+  
+    // While there are still more levels to go and desiredRecord hasn't reached
+    // the bottom of the stack, go deeper.
     while (levels > 0 && desiredRecord != NULL) {
         desiredRecord = desiredRecord->dynamicLink;
         levels--;
@@ -98,6 +104,7 @@ recordStackItem *getDynamicParent(recordStack *stack, int levels) {
     return desiredRecord;
 }
 
+// Seek down the stack through static links (in lexicographical order).
 recordStackItem *getStaticParent(recordStack *stack, int levels) {
     recordStackItem *desiredRecord;
 
@@ -107,6 +114,8 @@ recordStackItem *getStaticParent(recordStack *stack, int levels) {
 
     desiredRecord = stack->currentRecord;
     
+    // While there are still more levels to go and desiredRecord hasn't reached
+    // the bottom of the stack, go deeper.
     while (levels > 0 && desiredRecord != NULL) {
         desiredRecord = desiredRecord->staticLink;
         levels--;
@@ -115,6 +124,7 @@ recordStackItem *getStaticParent(recordStack *stack, int levels) {
     return desiredRecord;
 }
 
+// Return if stack is empty or not.
 int isEmpty(recordStack *stack) {
     return (stack == NULL || stack->records == 0) ? 1 : 0;
 }

@@ -1,10 +1,12 @@
 #include <stdio.h>
 #include "VirtualMachine.h"
 
+// Check if provided register is in bounds.
 int invalidRegister(int reg) {
     return (reg < 0 || reg >= REGISTER_COUNT);
 }
 
+// Check that all registers in provided instruction are valid and that the CPU exists.
 int invalidCPU(CPU *cpu) {
     return (cpu == NULL ||
             cpu->registers == NULL ||
@@ -24,6 +26,8 @@ int opLiteral(CPU *cpu) {
     return OP_SUCCESS;
 }
 
+// Revert programCounter to the top activation record's returnAddress, then pops
+// the top record.
 int opReturn(CPU *cpu, recordStack *stack) {
     if (cpu == NULL || stack == NULL || stack->currentRecord == NULL) {
         return OP_FAILURE;
@@ -34,10 +38,11 @@ int opReturn(CPU *cpu, recordStack *stack) {
     return popRecord(stack);
 }
 
+// Load a value from an activation record into a register.
 int opLoad(CPU *cpu, recordStack *stack) {
     recordStackItem *desiredRecord;
     int index;
-
+    
     if (cpu == NULL ||
         stack == NULL ||
         cpu->registers == NULL ||
@@ -46,20 +51,25 @@ int opLoad(CPU *cpu, recordStack *stack) {
         return OP_FAILURE;
     }
 
+    // Get the static parent of the top level record, L levels down.
     if ((desiredRecord = getStaticParent(stack, cpu->instRegister.LField)) == NULL) {
         return OP_FAILURE;
     }
 
     index = cpu->instRegister.MField;
+    // If index is zero, desired value is returnValue.
     if (index == 0) {
         cpu->registers[cpu->instRegister.RField] = desiredRecord->returnValue;
     }
     else {
+        // Adjust index by the number of static space in each activation record.
         index -= INT_OFFSET;
         
+        // If index is valid for the locals array, retrieve a value from said array.
         if (index >= 0 && index < desiredRecord->localCount) {
             cpu->registers[cpu->instRegister.RField] = desiredRecord->locals[index];
         }
+        // Otherwise value is bad, so operation fails.
         else {
             return OP_FAILURE;
         }
@@ -68,6 +78,7 @@ int opLoad(CPU *cpu, recordStack *stack) {
     return OP_SUCCESS;
 }
 
+// Load a value from a register into an activation record in the stack.
 int opStore(CPU *cpu, recordStack *stack) {
     recordStackItem *desiredRecord;
     int index;
@@ -80,6 +91,7 @@ int opStore(CPU *cpu, recordStack *stack) {
         return OP_FAILURE;
     }
 
+    // Get the static parent of the top level record, L levels down.
     if ((desiredRecord = getStaticParent(stack, cpu->instRegister.LField)) == NULL) {
         return OP_FAILURE;
     }
@@ -105,18 +117,20 @@ int opStore(CPU *cpu, recordStack *stack) {
     return OP_SUCCESS;
 }
 
+// Push a new activation record environment onto the stack.
 int opCall(CPU *cpu, recordStack *stack) {
     if (cpu == NULL || stack == NULL) {
         return OP_FAILURE;
     }
 
     pushRecord(cpu, stack);
-    cpu->basePointer = cpu->stackPointer + 1;//
+    // Program jumps to subroutine.
     cpu->programCounter = cpu->instRegister.MField;
 
     return OP_SUCCESS;
 }
 
+// Allocate locals in top level activation record.
 int opAllocate(CPU *cpu, recordStack *stack) {
     if (cpu == NULL || stack == NULL) {
         return OP_FAILURE;
@@ -156,6 +170,7 @@ int opSystemCall(CPU *cpu) {
     }
 
     switch (cpu->instRegister.MField) {
+        // System call to print from a register.
         case 1:
             if (invalidRegister(cpu->instRegister.RField)) {
                 return OP_FAILURE;
@@ -164,6 +179,7 @@ int opSystemCall(CPU *cpu) {
             printf("%d\n", cpu->registers[cpu->instRegister.RField]);
             return OP_SUCCESS;
     
+        // System call to read data from user into a register.
         case 2:
             if (invalidRegister(cpu->instRegister.RField)) {
                 return OP_FAILURE;
@@ -172,7 +188,10 @@ int opSystemCall(CPU *cpu) {
             scanf("%d", &cpu->registers[cpu->instRegister.RField]);
             return OP_SUCCESS;
        
+        // System call to terminate the program.
         case 3:
+            cpu->programCounter = 0;
+
             return KILL_PROGRAM;
         
         default:
