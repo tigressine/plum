@@ -5,7 +5,7 @@ This project is a PL/0 virtual machine and compiler. It's being built for class 
 # setup
 To download and setup for use, clone the repository and build from the source files using the following commands. Note that you will need `git` and `gcc` installed to download and build the program. It's possible that this project could be built with a different C compiler but I haven't tried it.
 ```
-git clone htttps://www.github.com/tgsachse/plomachine.git && cd plomachine
+git clone https://www.github.com/tgsachse/plomachine.git && cd plomachine
 ./Build.sh
 ```
 This produces an executable named `plomachine` that can then be used to run PL/0 btyecode. See below!
