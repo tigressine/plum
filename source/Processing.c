@@ -149,11 +149,12 @@ int processInstructions(instruction *instructions, int instructionCount) {
   
     // Push an initial record onto the stack for the main environment.
     pushRecord(cpu, stack);
+    
+    printStackTraceHeader();
 
     // Perform successive fetches and executes for the array of instructions
     // until an error occurs or a KILL_PROGRAM system call is made.
     executeReturn = OP_SUCCESS;
-    printf("OP R L M PC RV RA LOC... | RV RA LOC... |\n");
     while (executeReturn != KILL_PROGRAM) {
         // Check that fetchInstruction is successful.
         if (fetchInstruction(cpu, instructions) == OP_FAILURE) {
@@ -243,6 +244,12 @@ int freeInstructions(instruction *instructions) {
     return OP_SUCCESS;
 }
 
+void printStackTraceHeader(void) {
+    printf("Program stack trace:\n");
+    printf("OP R  L  M     PC    | RV  RA    LOCALS  |\n");
+    printf("------------------------------------------\n");
+}
+
 // Print out all associated objects with the program.
 void printStackTraceLine(CPU *cpu, recordStack *stack) {
     if (cpu == NULL || stack == NULL) {
@@ -252,8 +259,6 @@ void printStackTraceLine(CPU *cpu, recordStack *stack) {
     printCPU(cpu);
     printRecords(stack->currentRecord);
     printf("\n");
-    printRegisters(cpu);
-    //printf("\n");
 }
 
 // Print registers of a CPU.
@@ -276,7 +281,7 @@ void printCPU(CPU *cpu) {
         return;
     }
 
-    printf("%-2d %-2d %-2d %-5d %-5d", cpu->instRegister.opCode,
+    printf("%-2d %-2d %-2d %-5d %-5d | ", cpu->instRegister.opCode,
                                        cpu->instRegister.RField,
                                        cpu->instRegister.LField,
                                        cpu->instRegister.MField,
@@ -293,10 +298,10 @@ void printRecords(recordStackItem *record) {
    
     // Recursively print the rest of the stack first.
     printRecords(record->dynamicLink);
-    printf("%d %d", record->returnValue, record->returnAddress);
+    printf("%-3d %-5d", record->returnValue, record->returnAddress);
 
     for (i = 0; i < record->localCount; i++) {
-        printf(" %d", record->locals[i]);
+        printf(" %-3d", record->locals[i]);
     }
 
     printf(" | ");
