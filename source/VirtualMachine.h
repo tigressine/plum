@@ -78,6 +78,7 @@ int processInstructions(instruction*, int);
 int fetchInstruction(CPU*, instruction*);
 int executeInstruction(CPU*, recordStack*);
 int freeInstructions(instruction*);
+void printStackTraceHeader(void);
 void printStackTraceLine(CPU*, recordStack*);
 void printRegisters(CPU*);
 void printCPU(CPU*);
