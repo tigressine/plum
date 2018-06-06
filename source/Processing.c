@@ -277,7 +277,7 @@ int freeInstructions(instruction *instructions) {
 // Print out a nice header for the stack trace.
 void printStackTraceHeader(int traceToggles) {
     printf("Program stack trace:\n");
-    printf("OP R  L  M     PC    |");
+    printf("OP  R  L  M     PC    |");
 
     if (traceToggles & TRACE_RECORDS) {
         printf(" RV  RA   (LOCALS) |");
@@ -332,11 +332,36 @@ void printCPU(CPU *cpu) {
         return;
     }
 
-    printf("%-2d %-2d %-2d %-5d %-5d | ", cpu->instRegister.opCode,
-                                          cpu->instRegister.RField,
-                                          cpu->instRegister.LField,
-                                          cpu->instRegister.MField,
-                                          cpu->programCounter);
+    // Print the appropriate operation code.
+    switch (cpu->instRegister.opCode) {
+        case LIT: printf("LIT "); break; 
+        case RTN: printf("RTN "); break; 
+        case LOD: printf("LOD "); break; 
+        case STO: printf("STO "); break; 
+        case CAL: printf("CAL "); break; 
+        case INC: printf("INC "); break; 
+        case JMP: printf("JMP "); break; 
+        case JPC: printf("JPC "); break; 
+        case SIO: printf("SIO "); break; 
+        case NEG: printf("NEG "); break; 
+        case ADD: printf("ADD "); break; 
+        case SUB: printf("SUB "); break; 
+        case MUL: printf("MUL "); break; 
+        case DIV: printf("DIV "); break; 
+        case ODD: printf("ODD "); break; 
+        case MOD: printf("MOD "); break; 
+        case EQL: printf("EQL "); break; 
+        case NEQ: printf("NEQ "); break; 
+        case LSS: printf("LSS "); break; 
+        case LEQ: printf("LEQ "); break; 
+        case GTR: printf("GTR "); break; 
+        case GEQ: printf("GEQ "); break; 
+    }
+
+    printf("%-2d %-2d %-5d %-5d | ", cpu->instRegister.RField,
+                                     cpu->instRegister.LField,
+                                     cpu->instRegister.MField,
+                                     cpu->programCounter);
 }
 
 // Recursively print a stack of records.
