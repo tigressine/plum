@@ -28,10 +28,9 @@
 #define GEQ 22
 
 // Trace flag constants (defined in hexidecimal to be MLG).
-#define TRACE_ALL 0x1
-#define TRACE_CPU 0x2
-#define TRACE_RECORDS 0x4
-#define TRACE_REGISTERS 0x8
+#define TRACE_CPU 0x1
+#define TRACE_RECORDS 0x2
+#define TRACE_REGISTERS 0x4
 
 // Constants.
 #define INT_OFFSET 4
