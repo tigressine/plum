@@ -27,6 +27,12 @@
 #define GTR 21
 #define GEQ 22
 
+// Trace flag constants (defined in hexidecimal to be MLG).
+#define TRACE_ALL 0x1
+#define TRACE_CPU 0x2
+#define TRACE_RECORDS 0x4
+#define TRACE_REGISTERS 0x8
+
 // Constants.
 #define INT_OFFSET 4
 #define MAX_LINES 100
@@ -74,12 +80,12 @@ CPU *createCPU(int);
 int freeCPU(CPU*);
 int countInstructions(char*);
 instruction *loadInstructions(char*, int);
-int processInstructions(instruction*, int, int, int, int);
+int processInstructions(instruction*, int, int);
 int fetchInstruction(CPU*, instruction*);
 int executeInstruction(CPU*, recordStack*);
 int freeInstructions(instruction*);
-void printStackTraceHeader(int, int);
-void printStackTraceLine(CPU*, recordStack*, int, int);
+void printStackTraceHeader(int);
+void printStackTraceLine(CPU*, recordStack*, int);
 void printRegisters(CPU*);
 void printCPU(CPU*);
 void printRecords(recordStackItem*);
