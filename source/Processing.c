@@ -1,9 +1,14 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include "VirtualMachine.h"
 
 // Main function and machine entry point.
 int main(int argsCount, char **argsVector) {
+    int i;
+    int traceToggle;
+    int recordsToggle;
+    int registersToggle;
     int instructionCount;
     instruction *instructions;
 
@@ -28,9 +33,38 @@ int main(int argsCount, char **argsVector) {
         return 0;
     }
 
+    traceToggle = 0;
+    recordsToggle = 0;
+    registersToggle = 0;
+   
+    // Scan extra arguments for tracing flags.
+    for (i = 2; i < argsCount; i++) {
+        if (strcmp(argsVector[i], "--trace_cpu") == 0) {
+            traceToggle = 1;
+        }
+        else if (strcmp(argsVector[i], "--trace_all") == 0) {
+            traceToggle = 1;
+            recordsToggle = 1;
+            registersToggle = 1;
+        }
+        else if (strcmp(argsVector[i], "--trace_records") == 0) {
+            traceToggle = 1;
+            recordsToggle = 1;
+        }
+        else if (strcmp(argsVector[i], "--trace_registers") == 0) {
+            traceToggle = 1;
+            registersToggle = 1;
+        }
+    }
+    
     // Attempt to process the instructions. If the instructions are not processed
-    // correctly, yell about it.
-    if ((processInstructions(instructions, instructionCount)) == OP_FAILURE) {
+    // correctly, yell about it. 
+    if ((processInstructions(instructions,
+                             instructionCount,
+                             traceToggle,
+                             recordsToggle,
+                             registersToggle)) == OP_FAILURE) {
+        
         printf("An error occurred during execution.\n");
     }
 
@@ -126,7 +160,11 @@ instruction *loadInstructions(char *path, int instructionCount) {
 }
 
 // Process the provided instructions using a CPU.
-int processInstructions(instruction *instructions, int instructionCount) {
+int processInstructions(instruction *instructions,
+                        int instructionCount,
+                        int traceToggle,
+                        int recordsToggle,
+                        int registersToggle) {
     int i;
     CPU *cpu;
     int executeReturn;
@@ -150,7 +188,9 @@ int processInstructions(instruction *instructions, int instructionCount) {
     // Push an initial record onto the stack for the main environment.
     pushRecord(cpu, stack);
     
-    printStackTraceHeader();
+    if (traceToggle) {
+        printStackTraceHeader(recordsToggle, registersToggle);
+    }
 
     // Perform successive fetches and executes for the array of instructions
     // until an error occurs or a KILL_PROGRAM system call is made.
@@ -170,7 +210,9 @@ int processInstructions(instruction *instructions, int instructionCount) {
             return OP_FAILURE;
         }
 
-        printStackTraceLine(cpu, stack);
+        if (traceToggle) {
+            printStackTraceLine(cpu, stack, recordsToggle, registersToggle);
+        }
     }
 
     // Stay memory safe!
@@ -244,20 +286,45 @@ int freeInstructions(instruction *instructions) {
     return OP_SUCCESS;
 }
 
-void printStackTraceHeader(void) {
+// Print out a nice header for the stack trace.
+void printStackTraceHeader(int recordsToggle, int registersToggle) {
     printf("Program stack trace:\n");
-    printf("OP R  L  M     PC    | RV  RA    LOCALS  |\n");
-    printf("------------------------------------------\n");
+    printf("OP R  L  M     PC    |");
+    if (recordsToggle) {
+        printf(" RV  RA   (LOCALS) |");
+    }
+    if (registersToggle) {
+        printf(" REGS");
+    }
+    printf("\n");
+
+    printf("----------------------");
+    if (recordsToggle) {
+        printf("--------------------");
+    }
+    if (registersToggle) {
+        printf("-------");
+    }
+    printf("\n");
 }
 
 // Print out all associated objects with the program.
-void printStackTraceLine(CPU *cpu, recordStack *stack) {
+void printStackTraceLine(CPU *cpu,
+                         recordStack *stack,
+                         int recordsToggle,
+                         int registersToggle) {
+
     if (cpu == NULL || stack == NULL) {
         return;
     }
     
     printCPU(cpu);
-    printRecords(stack->currentRecord);
+    if (recordsToggle) {
+        printRecords(stack->currentRecord);
+    }
+    if (registersToggle) {
+        printRegisters(cpu);
+    }
     printf("\n");
 }
 
@@ -269,9 +336,8 @@ void printRegisters(CPU *cpu) {
         return;
     }
     
-    printf("Registers: ");
     for (i = 0; i < REGISTER_COUNT; i++) {
-        printf("%d%s", cpu->registers[i], (i < REGISTER_COUNT - 1) ? " " : "\n");
+        printf("%d%s", cpu->registers[i], (i < REGISTER_COUNT - 1) ? " " : "");
     }
 }
 
@@ -282,7 +348,7 @@ void printCPU(CPU *cpu) {
     }
 
     printf("%-2d %-2d %-2d %-5d %-5d | ", cpu->instRegister.opCode,
-                                       cpu->instRegister.RField,
+                                          cpu->instRegister.RField,
                                        cpu->instRegister.LField,
                                        cpu->instRegister.MField,
                                        cpu->programCounter);
