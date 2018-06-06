@@ -6,9 +6,7 @@
 // Main function and machine entry point.
 int main(int argsCount, char **argsVector) {
     int i;
-    int traceToggle;
-    int recordsToggle;
-    int registersToggle;
+    int traceToggles;
     int instructionCount;
     instruction *instructions;
 
@@ -32,39 +30,33 @@ int main(int argsCount, char **argsVector) {
     
         return 0;
     }
-
-    traceToggle = 0;
-    recordsToggle = 0;
-    registersToggle = 0;
    
-    // Scan extra arguments for tracing flags.
+    // Scan extra arguments for tracing flags. Use the magic of bit fiddling to cram
+    // all the flags into a single integer. This is more so I don't have to pass multiple
+    // integers to my print functions--not so much a space thing.
+    traceToggles = 0;
     for (i = 2; i < argsCount; i++) {
         if (strcmp(argsVector[i], "--trace_cpu") == 0) {
-            traceToggle = 1;
+            traceToggles |= TRACE_CPU;
         }
         else if (strcmp(argsVector[i], "--trace_all") == 0) {
-            traceToggle = 1;
-            recordsToggle = 1;
-            registersToggle = 1;
+            traceToggles |= TRACE_CPU;
+            traceToggles |= TRACE_RECORDS;
+            traceToggles |= TRACE_REGISTERS;
         }
         else if (strcmp(argsVector[i], "--trace_records") == 0) {
-            traceToggle = 1;
-            recordsToggle = 1;
+            traceToggles |= TRACE_CPU;
+            traceToggles |= TRACE_RECORDS;
         }
         else if (strcmp(argsVector[i], "--trace_registers") == 0) {
-            traceToggle = 1;
-            registersToggle = 1;
+            traceToggles |= TRACE_CPU;
+            traceToggles |= TRACE_REGISTERS;
         }
     }
     
     // Attempt to process the instructions. If the instructions are not processed
     // correctly, yell about it. 
-    if ((processInstructions(instructions,
-                             instructionCount,
-                             traceToggle,
-                             recordsToggle,
-                             registersToggle)) == OP_FAILURE) {
-        
+    if ((processInstructions(instructions, instructionCount, traceToggles)) == OP_FAILURE) {
         printf("An error occurred during execution.\n");
     }
 
@@ -160,11 +152,7 @@ instruction *loadInstructions(char *path, int instructionCount) {
 }
 
 // Process the provided instructions using a CPU.
-int processInstructions(instruction *instructions,
-                        int instructionCount,
-                        int traceToggle,
-                        int recordsToggle,
-                        int registersToggle) {
+int processInstructions(instruction *instructions, int instructionCount, int traceToggles) {
     int i;
     CPU *cpu;
     int executeReturn;
@@ -188,8 +176,8 @@ int processInstructions(instruction *instructions,
     // Push an initial record onto the stack for the main environment.
     pushRecord(cpu, stack);
     
-    if (traceToggle) {
-        printStackTraceHeader(recordsToggle, registersToggle);
+    if (traceToggles) {
+        printStackTraceHeader(traceToggles);
     }
 
     // Perform successive fetches and executes for the array of instructions
@@ -210,8 +198,8 @@ int processInstructions(instruction *instructions,
             return OP_FAILURE;
         }
 
-        if (traceToggle) {
-            printStackTraceLine(cpu, stack, recordsToggle, registersToggle);
+        if (traceToggles) {
+            printStackTraceLine(cpu, stack, traceToggles);
         }
     }
 
@@ -287,42 +275,39 @@ int freeInstructions(instruction *instructions) {
 }
 
 // Print out a nice header for the stack trace.
-void printStackTraceHeader(int recordsToggle, int registersToggle) {
+void printStackTraceHeader(int traceToggles) {
     printf("Program stack trace:\n");
     printf("OP R  L  M     PC    |");
-    if (recordsToggle) {
+
+    if (traceToggles & TRACE_RECORDS) {
         printf(" RV  RA   (LOCALS) |");
     }
-    if (registersToggle) {
+    if (traceToggles & TRACE_REGISTERS) {
         printf(" REGS");
     }
     printf("\n");
 
     printf("----------------------");
-    if (recordsToggle) {
+    if (traceToggles & TRACE_RECORDS) {
         printf("--------------------");
     }
-    if (registersToggle) {
+    if (traceToggles & TRACE_REGISTERS) {
         printf("-------");
     }
     printf("\n");
 }
 
 // Print out all associated objects with the program.
-void printStackTraceLine(CPU *cpu,
-                         recordStack *stack,
-                         int recordsToggle,
-                         int registersToggle) {
-
+void printStackTraceLine(CPU *cpu, recordStack *stack, int traceToggles) {
     if (cpu == NULL || stack == NULL) {
         return;
     }
     
     printCPU(cpu);
-    if (recordsToggle) {
+    if (traceToggles & TRACE_RECORDS) {
         printRecords(stack->currentRecord);
     }
-    if (registersToggle) {
+    if (traceToggles & TRACE_REGISTERS) {
         printRegisters(cpu);
     }
     printf("\n");
@@ -349,9 +334,9 @@ void printCPU(CPU *cpu) {
 
     printf("%-2d %-2d %-2d %-5d %-5d | ", cpu->instRegister.opCode,
                                           cpu->instRegister.RField,
-                                       cpu->instRegister.LField,
-                                       cpu->instRegister.MField,
-                                       cpu->programCounter);
+                                          cpu->instRegister.LField,
+                                          cpu->instRegister.MField,
+                                          cpu->programCounter);
 }
 
 // Recursively print a stack of records.
@@ -369,6 +354,5 @@ void printRecords(recordStackItem *record) {
     for (i = 0; i < record->localCount; i++) {
         printf(" %-3d", record->locals[i]);
     }
-
     printf(" | ");
 }
