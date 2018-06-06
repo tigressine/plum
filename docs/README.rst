@@ -17,17 +17,17 @@ Using plomachine is easy! Simply pass your bytecode to the machine as the first 
 ::
   ./plomachine yourbytecode.plc
 
-Note that ``yourbytecode.plc`` can be named anything you want. I also made up the file extension (**PL**\\0 **C**ompiled) and for all I know PL/0 bytecode has a different extension. If I ever find out what it is I'll make the appropriate change here.
+Note that ``yourbytecode.plc`` can be named anything you want. I also made up the file extension (**PL**\\0 **C**\ ompiled) and for all I know PL/0 bytecode has a different extension. If I ever find out what it is I'll make the appropriate change here.
 
 example
 -------
-The format for PL/0 bytecode is 4 integers in a row, followed by a newline. It looks like this:
+The format for PL/0 bytecode is 4 integers in a row, followed by a newline character. It looks like this:
 ::
   2 2 12 180
 
 The first number is that line's operation code (opcode). The second number is typically the primary register for the instruction and the third number is either the lexicographical level for some operations or the secondary register for others. The last number can be either a constant, a register, or a few other things. These 4 numbers are labeled ``OP R L M`` respectively.
 
-Here's the code for a compiled example program, a factorial function that finds the factorial value of 3:
+Here's the code for a compiled example program--a factorial function that finds the factorial value of 3:
 ::
   6 0 0 6
   1 0 0 3
@@ -107,10 +107,10 @@ This is the produced stack trace when the command ``./plomachine TestFactorial.p
   SIO 0  0  1     21    | 
   SIO 0  0  3     0     |
 
-If you're curious give the other flags a try and see what happens!
+If you're curious, give the other flags a try and see what happens!
 
 bugs
 ----
-Please file an `issue report`_ if you find any bugs. I want this software to be extremely memory-safe and highly stable.
+Please file an `issue report`_ if you find any bugs. My goal is  make this software extremely memory-safe and highly stable.
 
 .. _`issue report`: https://github.com/tgsachse/plomachine/issues
