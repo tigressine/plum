@@ -1,4 +1,8 @@
+#include <limits.h>
+
 #define DEFAULT_OUTFILE "ff.out"
+#define OP_FAILURE INT_MIN
+#define OP_SUCCESS INT_MIN + 1
 
 enum {
     NUL = 1, IDENTIFIER,
@@ -14,5 +18,6 @@ enum {
     PROCEDURE, WRITE, READ, ELSE
 } TokenTypes;
 
-void skipComment(FILE*);
+int skipComment(FILE*);
 int analyzeSource(char*, char*);
+void skipUnknownCharacter(char);

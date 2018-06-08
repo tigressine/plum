@@ -45,53 +45,56 @@ int main(int argsCount, char **argsVector) {
     }
     
     // Analyze the provided source and print to an output file.
-    analyzeSource(argsVector[1], (outFile == NULL) ? DEFAULT_OUTFILE : outFile);
+    if (analyzeSource(argsVector[1],
+                      (outFile == NULL) ? DEFAULT_OUTFILE : outFile) == OP_FAILURE) {
+        printf("Something went wrong while analyzing source.\n");
 
-    /*
-    FILE *f;
-    char buff;
-    printf("here\n");
-    //fscanf(NULL, "%c", &buff);
-    f = fopen("hello.txt", "r");
-    fscanf(f, "%c", &buff);
-    fscanf(f, "%c", &buff);
-    fscanf(f, "%c", &buff);
-    fscanf(f, "%c", &buff);
-    fclose(f);
-    */
+        return 0;
+    }
 
     return 0;
 }
 
 // Skip past a comment in the source file.
-void skipComment(FILE *f) {
+int skipComment(FILE *f) {
     char buffer;
 
-    if (f == NULL) {// necessary i believe
-        return;
+    // Make sure we aren't passing NULL to fscanf.
+    if (f == NULL) {
+        return OP_FAILURE;
     }
 
-    // test all this
+    // Assumes that the "/*" characters have already been consumed by the
+    // file pointer. Scans through the file until "*/" is found or the end
+    // of the file is reached.
     while(fscanf(f, "%c", &buffer) != EOF) {
         if (buffer == '*') {
             fscanf(f, "%c", &buffer);
             if (buffer == '/') {
-                return;
+                return OP_SUCCESS;
             }
         }
     }
+
+    return OP_FAILURE;
 }
 
 int analyzeSource(char *sourceFile, char *outFile) {
-    FILE *fin, *fout;
-    int skip;
+    FILE *fin;
+    FILE *fout;
     char buffer;
 
-    fin = fopen(sourceFile, "r");//null checks kiddo
-    fout = fopen(outFile, "w");
+    // If the input file can't be opened, return failure.
+    if ((fin = fopen(sourceFile, "r")) == NULL) {
+        return OP_FAILURE;
+    }
+
+    // If the output file can't be created, return failure.
+    if ((fout = fopen(outFile, "w")) == NULL) {
+        return OP_FAILURE;
+    }
 
     while (fscanf(fin, "%c", &buffer) != EOF) {
-        printf("main buffer %c\n", buffer);
         switch (buffer) {
             case '+':
                 fprintf(fout, "%d ", PLUS);
@@ -105,27 +108,24 @@ int analyzeSource(char *sourceFile, char *outFile) {
                 fprintf(fout, "%d ", MULTIPLY);
                 break;
                 
-            case '/'://not done
+            case '/':
+                // Check the next character in the file.
                 if (fscanf(fin, "%c", &buffer) != EOF) {
+                    // If the character is an '*', a comment block has begun.
+                    // Use the skipComment() function to skip ahead.
                     if (buffer == '*') {
                         skipComment(fin);
-                        //printf("skipping %d\n", skip);
-                        //if (skip >= 0) {
-                            //fscanf(fin, "%c", &buffer);
-                            //printf("last item %c\n", buffer);
-                            //fseek(fin, skip-4, SEEK_CUR);
-                        //}
-                        //else {
-                            //explode cuz skip went wrong
-                        //}
                     }
+                    // Else the next character was something else. Rewind the
+                    // file pointer back one and print the SLASH code to the
+                    // output file.
                     else {
                         fseek(fin, -1, SEEK_CUR);
                         fprintf(fout, "%d ", SLASH);
                     }
                 }
                 else {
-                    // end of file calamety
+                    fprintf(fout, "%d", SLASH);
                 }
                 
                 break;
@@ -155,34 +155,33 @@ int analyzeSource(char *sourceFile, char *outFile) {
             case ':':
                 if (fscanf(fin, "%c", &buffer) != EOF) {
                     if (buffer == '=') {
-                        fprintf(fout, "%d ", EQUAL);
+                        fprintf(fout, "%d ", BECOME);
                     }
                     else {
                         fseek(fin, -1, SEEK_CUR);
-                        // : isn't valid alone RIP
-                        printf("what do : is alone\n");
+                        skipUnknownCharacter(':');
                     }
                 }
                 else {
-                    printf("ran outta file\n");
-                    // this probably cant happen cuz files end with \n so itll
-                    // always have an extra character to read
-                    //explode cuz end of file
-                    //might need to seek back one to not kaboom the loop
+                    skipUnknownCharacter(':');
                 }
 
                 break;
 
             default:
-                printf("unknown charavter %c\n", buffer);
-                //prints this too many times probably something weird with rewinding
+                skipUnknownCharacter(buffer);
                 break;
                 
         }
     }
 
+    // Don't leave files open like a lunatic.
     fclose(fin);
     fclose(fout);
     
-    return 0;
+    return OP_SUCCESS;
+}
+
+void skipUnknownCharacter(char unknown) {
+    printf("Skipping unknown character '%c'.\n", unknown);
 }
