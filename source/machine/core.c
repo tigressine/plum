@@ -3,6 +3,9 @@
 #include <string.h>
 #include "machine.h"
 
+// TODO
+// fix case of all names based on structs
+
 // Main function and machine entry point.
 int main(int argsCount, char **argsVector) {
     int i;
