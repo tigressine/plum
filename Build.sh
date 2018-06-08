@@ -1,1 +1,1 @@
-gcc source/*.c -o plomachine
+gcc source/VirtualMachine/*.c -o plomachine
