@@ -4,9 +4,15 @@
 
 // Check if character is alpabetic or numeric.
 int isAlphanumeric(char character) {
-    return ((character >= 'a' && character <= 'z') ||
-            (character >= 'A' && character <= 'Z') ||
-            (character >= '0' && character <= '9'));
+    return (isAlphabetic(character) || isDigit(character));
+}
+
+int isAlphabetic(char character) {
+    return ((character >= 'a' && character <= 'z') || (character >= 'A' && character <= 'Z'));
+}
+
+int isDigit(char character) {
+    return (character >= '0' && character <= '9');
 }
 
 // Check if word is a keyword.
@@ -141,7 +147,7 @@ int handleWord(FILE *fin, FILE *fout, char first) {
     while(index < IDENTIFIER_LEN && fscanf(fin, "%c", &buffer) != EOF) { // add for too many
         // If it is a valid character for an identifier,
         // add it to the word.
-        if (isAlphanumeric(buffer))  {
+        if (isAlphanumeric(buffer)) {
             word[index++] = buffer;
         }
         // Else rewind the file because the end of the
@@ -161,6 +167,42 @@ int handleWord(FILE *fin, FILE *fout, char first) {
     if (checkKeywords(fout, word) == OP_FAILURE) {
         fprintf(fout, "%d %s ", IDENTIFIER, word);
     }
+
+    return OP_SUCCESS;
+}
+
+int handleNumber(FILE *fin, FILE *fout, char first) {
+    int index;
+    char buffer;
+    char number[NUMBER_LEN + 1];
+    
+    if (fin == NULL || fout == NULL) {
+        return OP_FAILURE;
+    }
+
+    index = 0;
+    number[index++] = first;
+
+    // Eat up more digits!
+    while(index < NUMBER_LEN && fscanf(fin, "%c", &buffer) != EOF) { // add for too many
+        // If it is a valid digit for a number,
+        // add it to the number.
+        if (isDigit(buffer)) {
+            number[index++] = buffer;
+        }
+        // Else rewind the file because the end of the
+        // number has been reached.
+        else {
+            fseek(fin, -1, SEEK_CUR);
+            
+            break;
+        }
+    }
+
+    number[index] = '\0';
+
+    // Print the number and it's lexeme value to the output file.
+    fprintf(fout, "%d %s ", NUMBER, number);
 
     return OP_SUCCESS;
 }

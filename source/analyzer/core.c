@@ -73,7 +73,7 @@ int analyzeSource(char *sourceFile, char *outFile) {
 
     // Read through the characters in a file and match them to their
     // appropriate lexeme values using handler functions.
-    while (fscanf(fin, "%c", &buffer) != EOF) {
+    while (fscanf(fin, " %c", &buffer) != EOF) {
         switch (buffer) {
             case '+': handleDirectMappedSymbol(fout, PLUS); break;
             case '-': handleDirectMappedSymbol(fout, MINUS); break;
@@ -88,14 +88,11 @@ int analyzeSource(char *sourceFile, char *outFile) {
             case ':': handlePair(fin, fout, buffer, '=', BECOME, UNKNOWN); break;
             case '/': handlePair(fin, fout, buffer, '*', COMMENT, SLASH); break;
             default:
-                if (buffer >= 'a' && buffer <= 'z') {
+                if (isAlphabetic(buffer)) {
                     handleWord(fin, fout, buffer); 
                 }
-                else if (buffer >= 'A' && buffer <= 'Z') {
-                    handleWord(fin, fout, buffer);
-                }
-                else if (buffer >= '0' && buffer <= '9') {
-                    //handleNumber();
+                else if (isDigit(buffer)) {
+                    handleNumber(fin, fout, buffer);
                 }
                 else {
                     skipUnknownCharacter(buffer);
