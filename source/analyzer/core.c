@@ -89,13 +89,13 @@ int analyzeSource(char *sourceFile, char *outFile) {
             case '/': handlePair(fin, fout, buffer, '*', COMMENT, SLASH); break;
             default:
                 if (buffer >= 'a' && buffer <= 'z') {
-                    handleWord(); 
+                    handleWord(fin, fout, buffer); 
                 }
                 else if (buffer >= 'A' && buffer <= 'Z') {
-                    handleWord();
+                    handleWord(fin, fout, buffer);
                 }
                 else if (buffer >= '0' && buffer <= '9') {
-                    handleNumber();
+                    //handleNumber();
                 }
                 else {
                     skipUnknownCharacter(buffer);

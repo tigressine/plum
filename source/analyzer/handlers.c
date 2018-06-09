@@ -1,21 +1,83 @@
 #include <stdio.h>
+#include <string.h>
 #include "analyzer.h"
 
-// Send a directly-mapped symbol's lexeme value to the output file.
-int handleDirectMappedSymbol(FILE *f, int symbol) {
-    if (f == NULL) {
+// Check if character is alpabetic or numeric.
+int isAlphanumeric(char character) {
+    return ((character >= 'a' && character <= 'z') ||
+            (character >= 'A' && character <= 'Z') ||
+            (character >= '0' && character <= '9'));
+}
+
+// Check if word is a keyword.
+int isKeyword(FILE *fout, char *word, KeywordValuePair keyword) {
+    if (fout == NULL || word == NULL) {
+        return 0;
+    }
+
+    // If keyword and word match, print keyword's lexeme value to output file.
+    if (strcmp(word, keyword.string) == 0) {
+        fprintf(fout, "%d ", keyword.value);
+
+        return 1;
+    }
+    else {
+        return 0;
+    }
+}
+
+// Check word against all keywords for matches.
+int checkKeywords(FILE *fout, char *word) {
+    int i;
+   
+    // An array of keywords and their associated LexemeValues.
+    const KeywordValuePair keywords[] = {
+        { "begin", BEGIN },
+        { "call", CALL },
+        { "const", CONSTANT },
+        { "do", DO },
+        { "else", ELSE },
+        { "end", END },
+        { "if", IF },
+        { "procedure", PROCEDURE },
+        { "then", THEN },
+        { "read", READ },
+        { "var", VARIABLE },
+        { "while", WHILE },
+        { "write", WRITE }
+    };
+   
+    if (fout == NULL || word == NULL) {
         return OP_FAILURE;
     }
 
-    fprintf(f, "%d ", symbol);
+    // For each keyword, check if word matches. If so, return success.
+    for (i = 0; i < KEYWORDS; i++) {
+        if (isKeyword(fout, word, keywords[i])) {
+            return OP_SUCCESS;
+        }
+    }
+   
+    // No keywords matched word, return failure.
+    return OP_FAILURE;
+}
+
+// Send a directly-mapped symbol's lexeme value to the output file.
+int handleDirectMappedSymbol(FILE *fout, int lexemeValue) {
+    if (fout == NULL) {
+        return OP_FAILURE;
+    }
+
+    fprintf(fout, "%d ", lexemeValue);
     
     return OP_SUCCESS;
 }
 
-int handlePair(FILE *fin, FILE *fout, char first, char second, char pairValue, char soloValue) {
+// Print appropriate lexeme value to output file, based on presence of pair
+// in the input file.
+int handlePair(FILE *fin, FILE *fout, char first, char second, int pairValue, int soloValue) {
     char buffer;
     
-    // Protect fprintf from NULL file pointers.
     if (fin == NULL || fout == NULL) {
         return OP_FAILURE;
     }
@@ -34,8 +96,7 @@ int handlePair(FILE *fin, FILE *fout, char first, char second, char pairValue, c
             }
         }
         // Else the next character was something else. Rewind the
-        // file pointer back one and print the soloValue to the
-        // output file.
+        // file pointer and print the soloValue to the output file.
         else {
             fseek(fin, -1, SEEK_CUR);
 
@@ -49,7 +110,9 @@ int handlePair(FILE *fin, FILE *fout, char first, char second, char pairValue, c
             }
         }
     }
-    else {// try these as ternaries/////////////////////////////////
+    else {
+        // If the solo value indicates the symbol is unknown, skip the
+        // character, else print it to the output file.
         if (soloValue == UNKNOWN) {
             skipUnknownCharacter(first);
         }
@@ -61,16 +124,41 @@ int handlePair(FILE *fin, FILE *fout, char first, char second, char pairValue, c
     return OP_SUCCESS;
 }
 
+// Handle words (and possible keywords) in the input file.
 int handleWord(FILE *fin, FILE *fout, char first) {
+    int index;
     char buffer;
-    char word[IDENTIFIER_LEN + 1];//
+    char word[IDENTIFIER_LEN + 1];
     
-    //use loop, read characters until either length cap or non alphanumeric
-    //once done compare? to all reserved words? oof seems like the monkaS way
-    //if not a keyword then save buffer to fout with whatever value
-    //
     if (fin == NULL || fout == NULL) {
         return OP_FAILURE;
     }
 
+    index = 0;
+    word[index++] = first;
+
+    // Eat up more characters!
+    while(fscanf(fin, "%c", &buffer) != EOF && index < IDENTIFIER_LEN) {
+        // If it is a valid character for an identifier,
+        // add it to the word.
+        if (isAlphanumeric(buffer))  {
+            word[index++] = buffer;
+        }
+        // Else rewind the file because the end of the
+        // identifier/keyword has been reached.
+        else {
+            fseek(fin, -1, SEEK_CUR);
+            
+            break;
+        }
+    }
+
+    // Make the word a bonafide string.
+    word[index] = '\0';
+
+    // If the word doesn't match any keywords, treat it
+    // like an identifier.
+    if (checkKeywords(fout, word) == OP_FAILURE) {
+        //then it's just a word
+    }
 }
