@@ -1,0 +1,7 @@
+/* Start of the program. */
+var x, y;
+begin
+    y := 3;
+    x := y + 56;
+end.
+/* End of the program. */
