@@ -16,7 +16,7 @@ typedef struct KeywordValuePair {
 } KeywordValuePair;
 
 // Enumeration of lexeme values.
-enum {
+enum LexemeValues {
     UNKNOWN, NUL, IDENTIFIER,
     NUMBER, PLUS, MINUS,
     MULTIPLY, SLASH, ODD,
@@ -39,9 +39,7 @@ void skipUnknownCharacter(char);
 int isAlphanumeric(char);
 int isAlphabetic(char);
 int isDigit(char);
-int isKeyword(FILE*, char*, KeywordValuePair);
 int checkKeywords(FILE*, char*);
 int handleDirectMappedSymbol(FILE*, int);
 int handlePair(FILE*, FILE*, char, char, int, int);
-int handleWord(FILE*, FILE*, char);
-int handleNumber(FILE*, FILE*, char);
+int handleLongToken(FILE*, FILE*, char, int, int);
