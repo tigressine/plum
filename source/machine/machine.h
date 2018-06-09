@@ -74,7 +74,7 @@ typedef struct recordStack {
     recordStackItem *currentRecord;
 } recordStack;
 
-// Processing functional prototypes.
+// Core functional prototypes.
 CPU *createCPU(int);
 int freeCPU(CPU*);
 int countInstructions(char*);
