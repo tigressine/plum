@@ -54,6 +54,7 @@ int main(int argsCount, char **argsVector) {
         return 0;
     }
 
+    printLexemeTable((outFile == NULL) ? DEFAULT_OUTFILE : outFile);
     printLexemeList((outFile == NULL) ? DEFAULT_OUTFILE : outFile);
 
     return 0;
