@@ -43,7 +43,9 @@ int main(int argsCount, char **argsVector) {
             return 0;
         }
     }
-    
+
+    printSource(argsVector[1]);
+
     // Analyze the provided source and print to an output file.
     if (analyzeSource(argsVector[1],
                       (outFile == NULL) ? DEFAULT_OUTFILE : outFile) == OP_FAILURE) {
@@ -51,6 +53,8 @@ int main(int argsCount, char **argsVector) {
 
         return 0;
     }
+
+    printLexemeList((outFile == NULL) ? DEFAULT_OUTFILE : outFile);
 
     return 0;
 }
