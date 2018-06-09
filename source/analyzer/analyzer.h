@@ -43,3 +43,9 @@ int checkKeywords(FILE*, char*);
 int handleDirectMappedSymbol(FILE*, int);
 int handlePair(FILE*, FILE*, char, char, int, int);
 int handleLongToken(FILE*, FILE*, char, int, int);
+
+// Printer functional prototypes.
+void printSource(char*);
+void printLexemeTable(char*);
+void printLexemeList(char*);
+void printFile(char*, char*);
