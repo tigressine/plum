@@ -138,7 +138,7 @@ int handleWord(FILE *fin, FILE *fout, char first) {
     word[index++] = first;
 
     // Eat up more characters!
-    while(fscanf(fin, "%c", &buffer) != EOF && index < IDENTIFIER_LEN) {
+    while(index < IDENTIFIER_LEN && fscanf(fin, "%c", &buffer) != EOF) { // add for too many
         // If it is a valid character for an identifier,
         // add it to the word.
         if (isAlphanumeric(buffer))  {
@@ -159,6 +159,8 @@ int handleWord(FILE *fin, FILE *fout, char first) {
     // If the word doesn't match any keywords, treat it
     // like an identifier.
     if (checkKeywords(fout, word) == OP_FAILURE) {
-        //then it's just a word
+        fprintf(fout, "%d %s ", IDENTIFIER, word);
     }
+
+    return OP_SUCCESS;
 }
