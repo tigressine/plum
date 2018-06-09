@@ -2,41 +2,26 @@
 #include <string.h>
 #include "analyzer.h"
 
-// Check if character is alpabetic or numeric.
+// Return if the character is alpabetic or numeric.
 int isAlphanumeric(char character) {
     return (isAlphabetic(character) || isDigit(character));
 }
 
+// Return if the character is alphabetic.
 int isAlphabetic(char character) {
     return ((character >= 'a' && character <= 'z') || (character >= 'A' && character <= 'Z'));
 }
 
+// Return if the character is a digit.
 int isDigit(char character) {
     return (character >= '0' && character <= '9');
-}
-
-// Check if word is a keyword.
-int isKeyword(FILE *fout, char *word, KeywordValuePair keyword) {
-    if (fout == NULL || word == NULL) {
-        return 0;
-    }
-
-    // If keyword and word match, print keyword's lexeme value to output file.
-    if (strcmp(word, keyword.string) == 0) {
-        fprintf(fout, "%d ", keyword.value);
-
-        return 1;
-    }
-    else {
-        return 0;
-    }
 }
 
 // Check word against all keywords for matches.
 int checkKeywords(FILE *fout, char *word) {
     int i;
    
-    // An array of keywords and their associated LexemeValues.
+    // An array of keywords and their associated lexeme values.
     const KeywordValuePair keywords[] = {
         { "begin", BEGIN },
         { "call", CALL },
@@ -57,9 +42,11 @@ int checkKeywords(FILE *fout, char *word) {
         return OP_FAILURE;
     }
 
-    // For each keyword, check if word matches. If so, return success.
+    // If any of the keywords match the word, return success.
     for (i = 0; i < KEYWORDS; i++) {
-        if (isKeyword(fout, word, keywords[i])) {
+        if (strcmp(word, keywords[i].string) == 0) {
+            fprintf(fout, "%d ", keywords[i].value);
+
             return OP_SUCCESS;
         }
     }
@@ -130,28 +117,31 @@ int handlePair(FILE *fin, FILE *fout, char first, char second, int pairValue, in
     return OP_SUCCESS;
 }
 
-// Handle words (and possible keywords) in the input file.
-int handleWord(FILE *fin, FILE *fout, char first) {
+// Handle long tokens like words and numbers in the input file.
+int handleLongToken(FILE *fin, FILE *fout, char first, int lexemeValue, int len) {
     int index;
     char buffer;
-    char word[IDENTIFIER_LEN + 1];
+    char token[len + 1];
     
     if (fin == NULL || fout == NULL) {
         return OP_FAILURE;
     }
 
     index = 0;
-    word[index++] = first;
+    token[index++] = first;
 
     // Eat up more characters!
-    while(index < IDENTIFIER_LEN && fscanf(fin, "%c", &buffer) != EOF) { // add for too many
-        // If it is a valid character for an identifier,
-        // add it to the word.
-        if (isAlphanumeric(buffer)) {
-            word[index++] = buffer;
+    while(index < len && fscanf(fin, "%c", &buffer) != EOF) { // add for too many
+        // If we are building an identifier and the buffer is alphanumeric
+        // or if we are building a number and the buffer is a digit,
+        // add to the token array.
+        if ((lexemeValue == IDENTIFIER && isAlphanumeric(buffer)) ||
+            (lexemeValue == NUMBER && isDigit(buffer))) {
+            
+            token[index++] = buffer;
         }
         // Else rewind the file because the end of the
-        // identifier/keyword has been reached.
+        // token has been reached.
         else {
             fseek(fin, -1, SEEK_CUR);
             
@@ -159,50 +149,20 @@ int handleWord(FILE *fin, FILE *fout, char first) {
         }
     }
 
-    // Make the word a bonafide string.
-    word[index] = '\0';
+    // Make the token a bonafide string.
+    token[index] = '\0';
 
-    // If the word doesn't match any keywords, treat it
-    // like an identifier.
-    if (checkKeywords(fout, word) == OP_FAILURE) {
-        fprintf(fout, "%d %s ", IDENTIFIER, word);
-    }
-
-    return OP_SUCCESS;
-}
-
-int handleNumber(FILE *fin, FILE *fout, char first) {
-    int index;
-    char buffer;
-    char number[NUMBER_LEN + 1];
-    
-    if (fin == NULL || fout == NULL) {
-        return OP_FAILURE;
-    }
-
-    index = 0;
-    number[index++] = first;
-
-    // Eat up more digits!
-    while(index < NUMBER_LEN && fscanf(fin, "%c", &buffer) != EOF) { // add for too many
-        // If it is a valid digit for a number,
-        // add it to the number.
-        if (isDigit(buffer)) {
-            number[index++] = buffer;
-        }
-        // Else rewind the file because the end of the
-        // number has been reached.
-        else {
-            fseek(fin, -1, SEEK_CUR);
-            
-            break;
+    if (lexemeValue == IDENTIFIER) {
+        // If the word doesn't match any keywords,
+        // print into the output file as an identifier.
+        if (checkKeywords(fout, token) == OP_FAILURE) {
+            fprintf(fout, "%d %s ", IDENTIFIER, token);
         }
     }
-
-    number[index] = '\0';
-
-    // Print the number and it's lexeme value to the output file.
-    fprintf(fout, "%d %s ", NUMBER, number);
+    else if (lexemeValue == NUMBER){
+        // Print the token into the output file as a number.
+        fprintf(fout, "%d %s ", NUMBER, token);
+    }
 
     return OP_SUCCESS;
 }

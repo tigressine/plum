@@ -89,10 +89,10 @@ int analyzeSource(char *sourceFile, char *outFile) {
             case '/': handlePair(fin, fout, buffer, '*', COMMENT, SLASH); break;
             default:
                 if (isAlphabetic(buffer)) {
-                    handleWord(fin, fout, buffer); 
+                    handleLongToken(fin, fout, buffer, IDENTIFIER, IDENTIFIER_LEN); 
                 }
                 else if (isDigit(buffer)) {
-                    handleNumber(fin, fout, buffer);
+                    handleLongToken(fin, fout, buffer, NUMBER, NUMBER_LEN); 
                 }
                 else {
                     skipUnknownCharacter(buffer);
