@@ -25,7 +25,7 @@ int checkKeywords(FILE *fout, char *word) {
     KeywordValuePair keywords[] = {
         { "begin", BEGIN },
         { "call", CALL },
-        { "const", CONSTANT },
+        { "const", CONST },
         { "do", DO },
         { "else", ELSE },
         { "end", END },
@@ -33,7 +33,7 @@ int checkKeywords(FILE *fout, char *word) {
         { "procedure", PROCEDURE },
         { "then", THEN },
         { "read", READ },
-        { "var", VARIABLE },
+        { "var", VAR },
         { "while", WHILE },
         { "write", WRITE }
     };
