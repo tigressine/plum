@@ -9,11 +9,28 @@
 #define NUMBER_LEN 5
 #define KEYWORDS 13
 
-// Container for keyword:lexeme value mappings.
+// Options defined as bit flags.
+#define OPTION_FAIL_ON_ERROR 1
+
+// Map keywords and their values.
 typedef struct KeywordValuePair {
-    char *string;
+    char *keyword;
     int value;
 } KeywordValuePair;
+
+// Map symbols and their values.
+typedef struct SymbolValuePair {
+    char symbol;
+    int value;
+} SymbolValuePair;
+
+// Map symbol pairs and their values.
+typedef struct SymbolSymbolPair {
+    char lead;
+    char follow;
+    int soloValue;
+    int pairValue;
+} SymbolSymbolPair;
 
 // Enumeration of lexeme values.
 enum LexemeValues {
@@ -31,22 +48,25 @@ enum LexemeValues {
 } LexemeValues;
 
 // Core functional prototypes.
-int analyzeSource(char*, char*);
+int analyzeSource(char*, char*, int);
 int skipComment(FILE*);
-void skipUnknownCharacter(char);
+void errorUnknownCharacter(char);
+void errorTokenTooLong(char*, int);
+void errorBadIdentifier(char*);
 
 // Handler functional prototypes.
 int isAlphanumeric(char);
 int isAlphabetic(char);
 int isDigit(char);
+void eatCharacters(FILE*, int);
 int checkKeywords(FILE*, char*);
 int handleDirectMappedSymbol(FILE*, int);
-int handlePair(FILE*, FILE*, char, char, int, int);
+int handlePair(FILE*, FILE*, SymbolSymbolPair);
 int handleLongToken(FILE*, FILE*, char, int, int);
 
 // Printer functional prototypes.
 void printSource(char*);
-void printLexemeTableLine(const char*, int);
-void printLexemeTable(char*);
 void printLexemeList(char*);
 void printFile(char*, char*);
+void printLexemeTableLine(const char*, int);
+void printLexemeTable(char*);

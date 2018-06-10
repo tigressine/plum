@@ -1,0 +1,10 @@
+begin
+x : 1;
+y = 2;
+c / 3;
+$
+end.
+thistokenistoolong = 1234567890;
+thistoken := afinelength;
+1alpha := 0;
+1234beta := 99;
