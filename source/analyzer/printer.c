@@ -1,6 +1,36 @@
 #include <stdio.h>
 #include "analyzer.h"
 
+// Print error alerting the user of an unknown character.
+void errorUnknownCharacter(char unknown) {
+    printf("ERROR: Unknown character '%c'.\n", unknown);
+}
+
+// Print error explaining that the provided token is too long.
+void errorTokenTooLong(char *token, int length) {
+    printf("ERROR: Token beginning with '%s' is too long. Maximum length %d.\n", token, length);
+}
+
+// Print error upon detection of an identifier starting with a digit.
+void errorBadIdentifier(char *token) {
+    printf("ERROR: Identifier starting with '%s' cannot start with a digit.\n", token);
+}
+
+// Print error if no source file is provided.
+void errorNoSource(void) {
+    printf("ERROR: Please pass a PL/0 source file as your first argument.\n");
+}
+
+// Print error if a flag that requires an argument has no argument.
+void errorNoArgument(char *flag) {
+    printf("ERROR: No argument provided after '%s' flag.\n", flag);
+}
+
+// Print if unknown arguments are passed to the program.
+void errorUnknownArguments(void) {
+    printf("ERROR: Unknown arguments after initial argument.\n");
+}
+
 // Call printFile for a source file.
 void printSource(char *filename) {
     printFile(filename, "Source Program:\n---------------\n");

@@ -17,6 +17,29 @@ int isDigit(char character) {
     return (character >= '0' && character <= '9');
 }
 
+// Skip past a comment in the source file.
+int skipComment(FILE *f) {
+    char buffer;
+
+    if (f == NULL) {
+        return OP_FAILURE;
+    }
+
+    // Assumes that the "/*" characters have already been consumed by the
+    // file pointer. Scans through the file until "*/" is found or the end
+    // of the file is reached.
+    while(fscanf(f, "%c", &buffer) != EOF) {
+        if (buffer == '*') {
+            fscanf(f, "%c", &buffer);
+            if (buffer == '/') {
+                return OP_SUCCESS;
+            }
+        }
+    }
+
+    return OP_FAILURE;
+}
+
 // Eat all remaining characters in a bad token.
 void eatCharacters(FILE *fin, int lexemeValue) {
     char buffer;

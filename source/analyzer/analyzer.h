@@ -10,7 +10,10 @@
 #define KEYWORDS 13
 
 // Options defined as bit flags.
-#define OPTION_FAIL_ON_ERROR 1
+#define OPTION_SKIP_ERRORS 1
+#define OPTION_PRINT_SOURCE 2
+#define OPTION_PRINT_LEXEME_TABLE 4
+#define OPTION_PRINT_LEXEME_LIST 8
 
 // Map keywords and their values.
 typedef struct KeywordValuePair {
@@ -49,15 +52,12 @@ enum LexemeValues {
 
 // Core functional prototypes.
 int analyzeSource(char*, char*, int);
-int skipComment(FILE*);
-void errorUnknownCharacter(char);
-void errorTokenTooLong(char*, int);
-void errorBadIdentifier(char*);
 
 // Handler functional prototypes.
 int isAlphanumeric(char);
 int isAlphabetic(char);
 int isDigit(char);
+int skipComment(FILE*);
 void eatCharacters(FILE*, int);
 int checkKeywords(FILE*, char*);
 int handleDirectMappedSymbol(FILE*, int);
@@ -65,6 +65,12 @@ int handlePair(FILE*, FILE*, SymbolSymbolPair);
 int handleLongToken(FILE*, FILE*, char, int, int);
 
 // Printer functional prototypes.
+void errorUnknownCharacter(char);
+void errorTokenTooLong(char*, int);
+void errorBadIdentifier(char*);
+void errorNoSource(void);
+void errorNoArgument(char*);
+void errorUnknownArguments(void);
 void printSource(char*);
 void printLexemeList(char*);
 void printFile(char*, char*);
