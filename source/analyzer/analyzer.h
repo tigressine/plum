@@ -11,13 +11,13 @@
 
 // Container for keyword:lexeme value mappings.
 typedef struct KeywordValuePair {
-    const char *string;
-    const int value;
+    char *string;
+    int value;
 } KeywordValuePair;
 
 // Enumeration of lexeme values.
 enum LexemeValues {
-    UNKNOWN, NUL, IDENTIFIER,
+    UNKNOWN, NULL_VAL, IDENTIFIER,
     NUMBER, PLUS, MINUS,
     MULTIPLY, SLASH, ODD,
     EQUAL, NOT_EQUAL, LESS,
@@ -46,6 +46,7 @@ int handleLongToken(FILE*, FILE*, char, int, int);
 
 // Printer functional prototypes.
 void printSource(char*);
+void printLexemeTableLine(const char*, int);
 void printLexemeTable(char*);
 void printLexemeList(char*);
 void printFile(char*, char*);

@@ -45,6 +45,7 @@ int main(int argsCount, char **argsVector) {
     }
 
     printSource(argsVector[1]);
+    printf("\n");
 
     // Analyze the provided source and print to an output file.
     if (analyzeSource(argsVector[1],
@@ -55,7 +56,9 @@ int main(int argsCount, char **argsVector) {
     }
 
     printLexemeTable((outFile == NULL) ? DEFAULT_OUTFILE : outFile);
+    printf("\n");
     printLexemeList((outFile == NULL) ? DEFAULT_OUTFILE : outFile);
+    printf("\n");
 
     return 0;
 }

@@ -22,7 +22,7 @@ int checkKeywords(FILE *fout, char *word) {
     int i;
    
     // An array of keywords and their associated lexeme values.
-    const KeywordValuePair keywords[] = {
+    KeywordValuePair keywords[] = {
         { "begin", BEGIN },
         { "call", CALL },
         { "const", CONSTANT },
