@@ -2,6 +2,6 @@
 var x, y;
 begin
     y := 3;
-    x := y + 56;
+    x := yellowstars + 56992;
 end.
 /* End of the program. */

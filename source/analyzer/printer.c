@@ -6,6 +6,30 @@ void printSource(char *filename) {
     printFile(filename, "Source Program:\n---------------\n");
 }
 
+// Call printFile for a lexeme file.
+void printLexemeList(char *filename) {
+    printFile(filename, "Lexeme List:\n------------\n");
+}
+
+// Print the contents of the file, as well as a header label.
+void printFile(char *filename, char *header) {
+    FILE *f;
+    char buffer;
+
+    if ((f = fopen(filename, "r")) == NULL) {
+        return;
+    }
+
+    // Print every character in the file.
+    printf("%s", header);
+    while(fscanf(f, "%c", &buffer) != EOF) {
+        printf("%c", buffer);
+    }
+
+    // Don't leave your files open like a monkey.
+    fclose(f);
+}
+
 // Standardizing function to print line in lexeme table.
 void printLexemeTableLine(const char *lexeme, int lexemeValue) {
     printf("%12s | %d\n", lexeme, lexemeValue);
@@ -27,7 +51,6 @@ void printLexemeTable(char *filename) {
         "write", "read", "else",
     };
 
-    // If the file can't be opened, return.
     if ((f = fopen(filename, "r")) == NULL) {
         return;
     }
@@ -36,8 +59,7 @@ void printLexemeTable(char *filename) {
     printf("     :Lexeme | Value:\n");
     printf("     ----------------\n");
 
-    // For each integer in the file,
-    // print the relevant symbol and lexeme value.
+    // For each integer in the file, print the relevant symbol and lexeme value.
     while(fscanf(f, " %d", &buffer) != EOF) {
         // If the buffer is for an identifier or number, read the next
         // string in the file and then print.
@@ -53,30 +75,5 @@ void printLexemeTable(char *filename) {
         }
     }
 
-    fclose(f);
-}
-
-// Call printFile for a lexeme file.
-void printLexemeList(char *filename) {
-    printFile(filename, "Lexeme List:\n------------\n");
-}
-
-// Print the contents of the file, as well as a header label.
-void printFile(char *filename, char *header) {
-    FILE *f;
-    char buffer;
-
-    // If file cannot be opened, do nothing.
-    if ((f = fopen(filename, "r")) == NULL) {
-        return;
-    }
-
-    // Print every character in the file.
-    printf("%s", header);
-    while(fscanf(f, "%c", &buffer) != EOF) {
-        printf("%c", buffer);
-    }
-
-    // Don't leave your files open like a monkey.
     fclose(f);
 }

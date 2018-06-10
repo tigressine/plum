@@ -17,11 +17,29 @@ int isDigit(char character) {
     return (character >= '0' && character <= '9');
 }
 
+// Eat all remaining characters in a bad token.
+void eatCharacters(FILE *fin, int lexemeValue) {
+    char buffer;
+
+    if (fin == NULL) {
+        return;
+    }
+
+    while(fscanf(fin, "%c", &buffer) != EOF) {
+        // Once a non-token character is detected, break.
+        if ((lexemeValue == IDENTIFIER && !isAlphanumeric(buffer)) ||
+            (lexemeValue == NUMBER && !isDigit(buffer))) {
+            
+            fseek(fin, -1, SEEK_CUR);
+            break;
+        }
+    }
+}
+
 // Check word against all keywords for matches.
 int checkKeywords(FILE *fout, char *word) {
     int i;
    
-    // An array of keywords and their associated lexeme values.
     KeywordValuePair keywords[] = {
         { "begin", BEGIN },
         { "call", CALL },
@@ -44,14 +62,13 @@ int checkKeywords(FILE *fout, char *word) {
 
     // If any of the keywords match the word, return success.
     for (i = 0; i < KEYWORDS; i++) {
-        if (strcmp(word, keywords[i].string) == 0) {
+        if (strcmp(word, keywords[i].keyword) == 0) {
             fprintf(fout, "%d ", keywords[i].value);
 
             return OP_SUCCESS;
         }
     }
    
-    // No keywords matched word, return failure.
     return OP_FAILURE;
 }
 
@@ -68,53 +85,43 @@ int handleDirectMappedSymbol(FILE *fout, int lexemeValue) {
 
 // Print appropriate lexeme value to output file, based on presence of pair
 // in the input file.
-int handlePair(FILE *fin, FILE *fout, char first, char second, int pairValue, int soloValue) {
+int handlePair(FILE *fin, FILE *fout, SymbolSymbolPair pair) {
     char buffer;
     
     if (fin == NULL || fout == NULL) {
         return OP_FAILURE;
     }
     
-    // Check the next character in the file.
     if (fscanf(fin, "%c", &buffer) != EOF) {
-        // If the character is the expected second character, they are a pair!
-        if (buffer == second) {
-            // If the pair indicates the start of a comment block, skip the comment.
-            if (pairValue == COMMENT) {
+        // If the character is the expected follow character, they are a pair!
+        if (buffer == pair.follow) {
+            if (pair.pairValue == COMMENT) {
                 skipComment(fin);
             }
-            // Otherwise add the pair value to the output file.
             else {
-                fprintf(fout, "%d ", pairValue);
+                fprintf(fout, "%d ", pair.pairValue);
             }
+
+            return OP_SUCCESS;
         }
-        // Else the next character was something else. Rewind the
-        // file pointer and print the soloValue to the output file.
+        // Else the next character was something else. Rewind the file pointer.
         else {
             fseek(fin, -1, SEEK_CUR);
-
-            // If the solo value indicates the symbol is unknown, skip the
-            // character, else print it to the output file.
-            if (soloValue == UNKNOWN) {
-                skipUnknownCharacter(first);
-            }
-            else {
-                fprintf(fout, "%d ", soloValue);
-            }
         }
+    }
+
+    // If the solo value indicates the symbol is unknown, throw an
+    // error, else print it to the output file.
+    if (pair.soloValue == UNKNOWN) {
+        errorUnknownCharacter(pair.lead);
+
+        return OP_FAILURE;
     }
     else {
-        // If the solo value indicates the symbol is unknown, skip the
-        // character, else print it to the output file.
-        if (soloValue == UNKNOWN) {
-            skipUnknownCharacter(first);
-        }
-        else {
-            fprintf(fout, "%d ", soloValue);
-        }
+        fprintf(fout, "%d ", pair.soloValue);
+    
+        return OP_SUCCESS;
     }
-
-    return OP_SUCCESS;
 }
 
 // Handle long tokens like words and numbers in the input file.
@@ -131,22 +138,45 @@ int handleLongToken(FILE *fin, FILE *fout, char first, int lexemeValue, int len)
     token[index++] = first;
 
     // Eat up more characters!
-    while(index < len && fscanf(fin, "%c", &buffer) != EOF) { // add for too many
+    while(fscanf(fin, "%c", &buffer) != EOF) {
         // If we are building an identifier and the buffer is alphanumeric
         // or if we are building a number and the buffer is a digit,
         // add to the token array.
         if ((lexemeValue == IDENTIFIER && isAlphanumeric(buffer)) ||
             (lexemeValue == NUMBER && isDigit(buffer))) {
             
-            token[index++] = buffer;
+            token[index] = buffer;
+        }
+        // If an alphabetic character is detected in what was expected to be
+        // a number, then throw an error and return failure.
+        else if (lexemeValue == NUMBER && isAlphabetic(buffer)) {
+            eatCharacters(fin, lexemeValue);
+
+            token[index] = '\0';
+            errorBadIdentifier(token);
+
+            return OP_FAILURE;
         }
         // Else rewind the file because the end of the
         // token has been reached.
         else {
             fseek(fin, -1, SEEK_CUR);
-            
             break;
         }
+
+        // If the above conditional did not break and the index has reached
+        // the end of the array, there are too many characters for this token.
+        if (index >= len) {
+            eatCharacters(fin, lexemeValue);    
+
+            // Stringify for the error message and print the message.
+            token[index] = '\0';
+            errorTokenTooLong(token, len);
+
+            return OP_FAILURE;
+        }
+      
+        index++;
     }
 
     // Make the token a bonafide string.
@@ -160,7 +190,6 @@ int handleLongToken(FILE *fin, FILE *fout, char first, int lexemeValue, int len)
         }
     }
     else if (lexemeValue == NUMBER){
-        // Print the token into the output file as a number.
         fprintf(fout, "%d %s ", NUMBER, token);
     }
 

@@ -6,7 +6,8 @@
 // Main entry point of program.
 int main(int argsCount, char **argsVector) {
     int argIndex;
-    char *outFile;
+    
+    char *outFile = DEFAULT_OUTFILE;
     
     // If no source file is provided, scream about it.
     if (argsCount < 2) {
@@ -14,10 +15,6 @@ int main(int argsCount, char **argsVector) {
 
         return 0;
     }
-
-    // Will trigger use of DEFAULT_OUTFILE later in code if no outFile is
-    // specified in flags.
-    outFile = NULL;
 
     // Parse arguments passed after first argument for known flags.
     for (argIndex = 2; argIndex < argsCount; argIndex++) {
@@ -48,65 +45,93 @@ int main(int argsCount, char **argsVector) {
     printf("\n");
 
     // Analyze the provided source and print to an output file.
-    if (analyzeSource(argsVector[1],
-                      (outFile == NULL) ? DEFAULT_OUTFILE : outFile) == OP_FAILURE) {
+    if (analyzeSource(argsVector[1], outFile, 0) == OP_FAILURE) {
         printf("Something went wrong while analyzing source.\n");
-
-        return 0;
     }
 
-    printLexemeTable((outFile == NULL) ? DEFAULT_OUTFILE : outFile);
+    printLexemeTable(outFile);
     printf("\n");
-    printLexemeList((outFile == NULL) ? DEFAULT_OUTFILE : outFile);
+    printLexemeList(outFile);
     printf("\n");
 
     return 0;
 }
 
 // Convert the input file into lexeme values and export to an output file.
-int analyzeSource(char *sourceFile, char *outFile) {
+int analyzeSource(char *sourceFile, char *outFile, int options) {
+    int i;
     FILE *fin;
     FILE *fout;
+    int status;
     char buffer;
+    int returnStatus;
 
-    // If the input file can't be opened, return failure.
+    SymbolValuePair directMappedSymbols[] = {
+        { '+', PLUS },
+        { '-', MINUS },
+        { '*', MULTIPLY },
+        { '(', LEFT_PARENTHESIS },
+        { ')', RIGHT_PARENTHESIS },
+        { ',', COMMA },
+        { '.', PERIOD },
+        { ';', SEMICOLON }
+    };
+
+    SymbolSymbolPair pairedSymbols[] = {
+        { '<', '=', LESS, LESS_EQUAL },
+        { '>', '=', GREATER, GREATER_EQUAL },
+        { ':', '=', UNKNOWN, BECOME },
+        { '/', '*', SLASH, COMMENT }
+    };
+        
     if ((fin = fopen(sourceFile, "r")) == NULL) {
         return OP_FAILURE;
     }
 
-    // If the output file can't be created, return failure.
     if ((fout = fopen(outFile, "w")) == NULL) {
         return OP_FAILURE;
     }
 
+    returnStatus = OP_SUCCESS;
+
     // Read through the characters in a file and match them to their
     // appropriate lexeme values using handler functions.
     while (fscanf(fin, " %c", &buffer) != EOF) {
-        switch (buffer) {
-            case '+': handleDirectMappedSymbol(fout, PLUS); break;
-            case '-': handleDirectMappedSymbol(fout, MINUS); break;
-            case '*': handleDirectMappedSymbol(fout, MULTIPLY); break;
-            case '(': handleDirectMappedSymbol(fout, LEFT_PARENTHESIS); break;
-            case ')': handleDirectMappedSymbol(fout, RIGHT_PARENTHESIS); break;
-            case ',': handleDirectMappedSymbol(fout, COMMA); break;
-            case '.': handleDirectMappedSymbol(fout, PERIOD); break;
-            case ';': handleDirectMappedSymbol(fout, SEMICOLON); break;
-            case '<': handlePair(fin, fout, buffer, '=', LESS_EQUAL, LESS); break;
-            case '>': handlePair(fin, fout, buffer, '=', GREATER_EQUAL, GREATER); break;
-            case ':': handlePair(fin, fout, buffer, '=', BECOME, UNKNOWN); break;
-            case '/': handlePair(fin, fout, buffer, '*', COMMENT, SLASH); break;
-            default:
-                if (isAlphabetic(buffer)) {
-                    handleLongToken(fin, fout, buffer, IDENTIFIER, IDENTIFIER_LEN); 
+        if (isAlphabetic(buffer)) {
+            status = handleLongToken(fin, fout, buffer, IDENTIFIER, IDENTIFIER_LEN); 
+        }
+        else if (isDigit(buffer)) {
+            status = handleLongToken(fin, fout, buffer, NUMBER, NUMBER_LEN); 
+        }
+        else {
+            for (i = 0; i < 8; i++) {
+                if (buffer == directMappedSymbols[i].symbol) {
+                    status = handleDirectMappedSymbol(fout, directMappedSymbols[i].value);
+                    break;
                 }
-                else if (isDigit(buffer)) {
-                    handleLongToken(fin, fout, buffer, NUMBER, NUMBER_LEN); 
+            }
+            if (i == 8) {//
+                for (i = 0; i < 4; i++) {
+                    if (buffer == pairedSymbols[i].lead) {
+                        status = handlePair(fin, fout, pairedSymbols[i]);
+                        break;
+                    } 
                 }
-                else {
-                    skipUnknownCharacter(buffer);
-                }
+            }
+            if (i == 4) {//
+               errorUnknownCharacter(buffer);
+               status = OP_FAILURE;
+            }
+        }
 
+        // Set persistent returnStatus to failure if a handler call failed.
+        if (status == OP_FAILURE) {
+            returnStatus = OP_FAILURE;
+
+            // If FAIL_ON_ERROR is set, then break the loop.
+            if (options & OPTION_FAIL_ON_ERROR) {
                 break;
+            }
         }
     }
 
@@ -114,14 +139,13 @@ int analyzeSource(char *sourceFile, char *outFile) {
     fclose(fin);
     fclose(fout);
     
-    return OP_SUCCESS;
+    return returnStatus;
 }
 
 // Skip past a comment in the source file.
 int skipComment(FILE *f) {
     char buffer;
 
-    // Make sure we aren't passing NULL to fscanf.
     if (f == NULL) {
         return OP_FAILURE;
     }
@@ -141,7 +165,17 @@ int skipComment(FILE *f) {
     return OP_FAILURE;
 }
 
-// Print message about skipped character.
-void skipUnknownCharacter(char unknown) {
-    printf("Skipping unknown character '%c'.\n", unknown);
+// Print error alerting the user of an unknown character.
+void errorUnknownCharacter(char unknown) {
+    printf("ERROR: Unknown character '%c'.\n", unknown);
+}
+
+// Print error explaining that the provided token is too long.
+void errorTokenTooLong(char *token, int length) {
+    printf("ERROR: Token beginning with '%s' is too long. Maximum length %d.\n", token, length);
+}
+
+// Print error upon detection of an identifier starting with a digit.
+void errorBadIdentifier(char *token) {
+    printf("ERROR: Identifier starting with '%s' cannot start with a digit.\n", token);
 }
