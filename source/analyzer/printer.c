@@ -1,78 +1,67 @@
 #include <stdio.h>
 #include "analyzer.h"
 
+// Call printFile for a source file.
 void printSource(char *filename) {
-    printFile(filename, "Source program:\n");
+    printFile(filename, "Source Program:\n---------------\n");
 }
 
-void printLexemeTableLine(char *lexeme, int lexemeValue) {
-    printf("%s %d\n", lexeme, lexemeValue);
+// Standardizing function to print line in lexeme table.
+void printLexemeTableLine(const char *lexeme, int lexemeValue) {
+    printf("%12s | %d\n", lexeme, lexemeValue);
 }
 
+// Print entire lexeme table from lexeme file.
 void printLexemeTable(char *filename) {
     FILE *f;
     int buffer;
     char word[IDENTIFIER_LEN + 1];
 
+    // These lexemes directly map to the LexemeValues enumeration
+    // defined in the analyzer header (with an offset of four).
+    const char *lexemes[] = {
+        "+", "-", "*", "/", "odd", "==", "!=", "<",
+        "<=", ">", ">=", "(", ")", ",", ";", ".", ":=",
+        "begin", "end", "if", "then", "while", "do",
+        "call", "const", "var", "procedure",
+        "write", "read", "else",
+    };
+
+    // If the file can't be opened, return.
     if ((f = fopen(filename, "r")) == NULL) {
         return;
     }
 
-    printf("Lexeme table:\n");
-    printf("lexeme:      token type:\n");
-    printf("------------------------\n");
+    // Print some custom header stuff for the table.
+    printf("     :Lexeme | Value:\n");
+    printf("     ----------------\n");
+
+    // For each integer in the file,
+    // print the relevant symbol and lexeme value.
     while(fscanf(f, " %d", &buffer) != EOF) {
-        switch(buffer) {
-            case IDENTIFIER:
-                fscanf(f, "%s", word);
-                printLexemeTableLine(word, IDENTIFIER);
-                break;
-
-            case NUMBER:
-                fscanf(f, "%s", word);
-                printLexemeTableLine(word, NUMBER);
-                break;
-
-            case PLUS: printLexemeTableLine("+", PLUS); break;
-            case MINUS: printLexemeTableLine("-", MINUS); break;
-            case MULTIPLY: printLexemeTableLine("*", MULTIPLY); break;
-            case SLASH: printLexemeTableLine("/", SLASH); break;
-            case ODD: printLexemeTableLine("odd", ODD); break;
-            case EQUAL: printLexemeTableLine("==", EQUAL); break;
-            case NOT_EQUAL: printLexemeTableLine("!=", NOT_EQUAL); break;
-            case LESS: printLexemeTableLine("<", LESS); break;
-            case LESS_EQUAL: printLexemeTableLine("<=", LESS_EQUAL); break;
-            case GREATER: printLexemeTableLine(">", GREATER); break;
-            case GREATER_EQUAL: printLexemeTableLine(">=", GREATER_EQUAL); break;
-            case LEFT_PARENTHESIS: printLexemeTableLine("(", LEFT_PARENTHESIS); break;
-            case RIGHT_PARENTHESIS: printLexemeTableLine(")", RIGHT_PARENTHESIS); break;
-            case COMMA: printLexemeTableLine(",", COMMA); break;
-            case SEMICOLON: printLexemeTableLine(";", SEMICOLON); break;
-            case PERIOD: printLexemeTableLine(".", PERIOD); break;
-            case BECOME: printLexemeTableLine(":=", BECOME); break;
-            case BEGIN: printLexemeTableLine("begin", BEGIN); break;
-            case END: printLexemeTableLine("end", END); break;
-            case IF: printLexemeTableLine("if", IF); break;
-            case THEN: printLexemeTableLine("then", THEN); break;
-            case WHILE: printLexemeTableLine("while", WHILE); break;
-            case DO: printLexemeTableLine("do", DO); break;
-            case CALL: printLexemeTableLine("call", CALL); break;
-            case CONSTANT: printLexemeTableLine("const", CONSTANT); break;
-            case VARIABLE: printLexemeTableLine("var", VARIABLE); break;
-            case PROCEDURE: printLexemeTableLine("procedure", PROCEDURE); break;
-            case WRITE: printLexemeTableLine("write", WRITE); break;
-            case READ: printLexemeTableLine("read", READ); break;
-            case ELSE: printLexemeTableLine("else", ELSE); break;
-        } 
+        // If the buffer is for an identifier or number, read the next
+        // string in the file and then print.
+        if (buffer == IDENTIFIER || buffer == NUMBER) {
+            fscanf(f, "%s", word);
+            printLexemeTableLine(word, buffer);
+        }
+        // Else print the lexeme from the lexemes array, with an offset of
+        // four to account for the first four values in the enumeration not
+        // being included.
+        else {
+            printLexemeTableLine(lexemes[buffer - 4], buffer);
+        }
     }
 
     fclose(f);
 }
 
+// Call printFile for a lexeme file.
 void printLexemeList(char *filename) {
-    printFile(filename, "Lexeme list:\n");
+    printFile(filename, "Lexeme List:\n------------\n");
 }
 
+// Print the contents of the file, as well as a header label.
 void printFile(char *filename, char *header) {
     FILE *f;
     char buffer;
@@ -87,7 +76,6 @@ void printFile(char *filename, char *header) {
     while(fscanf(f, "%c", &buffer) != EOF) {
         printf("%c", buffer);
     }
-    printf("\n");
 
     // Don't leave your files open like a monkey.
     fclose(f);
