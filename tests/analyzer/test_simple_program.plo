@@ -1,0 +1,9 @@
+/* Simple PL/0 Test Program */
+begin
+    const n = 6;
+    var result;
+
+    procedure factorial;
+    begin
+        if  
+        

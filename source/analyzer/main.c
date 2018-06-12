@@ -84,11 +84,14 @@ int main(int argCount, char **argsVector) {
 
     // Analyze the provided source and print to an output file.
     if (analyzeSource(argsVector[1], outFile, options) == OP_FAILURE) {
-        printf("Something went wrong while analyzing source.\n\n");
+        printf("Something went wrong while analyzing source.\n");
+
+        return 0;
     }
 
     // Print the lexeme table if the user wants it.
     if (options & OPTION_PRINT_LEXEME_TABLE) {
+        printf("\n");
         printLexemeTable(outFile);
         printf("\n");
     }

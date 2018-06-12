@@ -1,2 +1,0 @@
-++if--end procedure begin call const do . . else /*hello*/?
-const var procedure call begin end if then else while do read write

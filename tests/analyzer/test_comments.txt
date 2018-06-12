@@ -1,4 +1,0 @@
-++--/*this here is a comment that shouldn't
-be included *** in the output*/;;;
-
-///*what follows is a comment that never ends

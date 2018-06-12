@@ -3,6 +3,13 @@
 
 // Constants.
 #define DEFAULT_OUTFILE "output.pll"
+// MAX_TOKEN_FORMAT prevents stack smashing if
+// the lexeme file contains tokens that are too long. It's
+// value relies on IDENTIFIER_LEN. The smashing happens
+// because these long tokens overflow a buffer in printLexemeTable.
+// I'd rather not make the buffer bigger, so I restrict the input
+// instead. It is obviously not an ideal solution.
+#define MAX_TOKEN_FORMAT "%11s"
 #define OP_SUCCESS INT_MIN + 1
 #define OP_FAILURE INT_MIN
 #define IDENTIFIER_LEN 11
@@ -65,6 +72,7 @@ int handlePair(FILE*, FILE*, SymbolSymbolPair);
 int handleLongToken(FILE*, FILE*, char, int, int);
 
 // Printer functional prototypes.
+void errorMissingFile(char*);
 void errorUnknownCharacter(char);
 void errorTokenTooLong(char*, int);
 void errorBadIdentifier(char*);
@@ -74,5 +82,5 @@ void errorUnknownArguments(void);
 void printSource(char*);
 void printLexemeList(char*);
 void printFile(char*, char*);
-void printLexemeTableLine(const char*, int);
+void printLexemeTableLine(char*, int);
 void printLexemeTable(char*);

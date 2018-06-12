@@ -6,9 +6,12 @@ int analyzeSource(char *sourceFile, char *outFile, int options) {
     int i;
     FILE *fin;
     FILE *fout;
-    int status;
     char buffer;
+    int singleStatus;
     int returnStatus;
+
+    const int pairedSymbolsCount = 4;
+    const int directMappedSymbolsCount = 9;
 
     SymbolValuePair directMappedSymbols[] = {
         { '+', PLUS },
@@ -18,7 +21,8 @@ int analyzeSource(char *sourceFile, char *outFile, int options) {
         { ')', RIGHT_PARENTHESIS },
         { ',', COMMA },
         { '.', PERIOD },
-        { ';', SEMICOLON }
+        { ';', SEMICOLON },
+        { '=', EQUAL }
     };
 
     SymbolSymbolPair pairedSymbols[] = {
@@ -29,10 +33,14 @@ int analyzeSource(char *sourceFile, char *outFile, int options) {
     };
         
     if ((fin = fopen(sourceFile, "r")) == NULL) {
+        errorMissingFile(sourceFile);
+        
         return OP_FAILURE;
     }
 
     if ((fout = fopen(outFile, "w")) == NULL) {
+        errorMissingFile(outFile);
+
         return OP_FAILURE;
     }
 
@@ -42,34 +50,37 @@ int analyzeSource(char *sourceFile, char *outFile, int options) {
     // appropriate lexeme values using handler functions.
     while (fscanf(fin, " %c", &buffer) != EOF) {
         if (isAlphabetic(buffer)) {
-            status = handleLongToken(fin, fout, buffer, IDENTIFIER, IDENTIFIER_LEN); 
+            singleStatus = handleLongToken(fin, fout, buffer, IDENTIFIER, IDENTIFIER_LEN); 
         }
         else if (isDigit(buffer)) {
-            status = handleLongToken(fin, fout, buffer, NUMBER, NUMBER_LEN); 
+            singleStatus = handleLongToken(fin, fout, buffer, NUMBER, NUMBER_LEN); 
         }
         else {
-            for (i = 0; i < 8; i++) {
+            for (i = 0; i < directMappedSymbolsCount; i++) {
                 if (buffer == directMappedSymbols[i].symbol) {
-                    status = handleDirectMappedSymbol(fout, directMappedSymbols[i].value);
+                    singleStatus = handleDirectMappedSymbol(fout, directMappedSymbols[i].value);
                     break;
                 }
             }
-            if (i == 8) {//
-                for (i = 0; i < 4; i++) {
+            // If the loop didn't terminate early (i.e. the buffer was not
+            // a direct-mapped symbol), loop through the paired symbols.
+            if (i == directMappedSymbolsCount) {
+                for (i = 0; i < pairedSymbolsCount; i++) {
                     if (buffer == pairedSymbols[i].lead) {
-                        status = handlePair(fin, fout, pairedSymbols[i]);
+                        singleStatus = handlePair(fin, fout, pairedSymbols[i]);
                         break;
                     } 
                 }
-            }
-            if (i == 4) {//
-               errorUnknownCharacter(buffer);
-               status = OP_FAILURE;
+                // If this loop also didn't terminate early, give up.
+                if (i == pairedSymbolsCount) {
+                   errorUnknownCharacter(buffer);
+                   singleStatus = OP_FAILURE;
+                }
             }
         }
 
         // Set persistent returnStatus to failure if a handler call failed.
-        if (status == OP_FAILURE) {
+        if (singleStatus == OP_FAILURE) {
             returnStatus = OP_FAILURE;
 
             // If OPTION_SKIP_ERRORS is off, then break the loop.
@@ -82,6 +93,7 @@ int analyzeSource(char *sourceFile, char *outFile, int options) {
     // Don't leave files open like a lunatic.
     fclose(fin);
     fclose(fout);
-    
-    return returnStatus;
+
+    // If OPTION_SKIP_ERRORS is on, pretend like everything went fine.
+    return (options & OPTION_SKIP_ERRORS) ? OP_SUCCESS : returnStatus;
 }
