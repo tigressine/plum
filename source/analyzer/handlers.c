@@ -49,10 +49,8 @@ void eatCharacters(FILE *fin, int lexemeValue) {
     }
 
     while(fscanf(fin, "%c", &buffer) != EOF) {
-        // Once a non-token character is detected, break.
-        if ((lexemeValue == IDENTIFIER && !isAlphanumeric(buffer)) ||
-            (lexemeValue == NUMBER && !isDigit(buffer))) {
-            
+        // Once a non-token character is detected, rewind and break.
+        if (!isAlphanumeric(buffer)) {
             fseek(fin, -1, SEEK_CUR);
             break;
         }
@@ -161,24 +159,14 @@ int handleLongToken(FILE *fin, FILE *fout, char first, int lexemeValue, int len)
     token[index++] = first;
 
     // Eat up more characters!
-    while(fscanf(fin, "%c", &buffer) != EOF) {
+    while(index < len && fscanf(fin, "%c", &buffer) != EOF) {
         // If we are building an identifier and the buffer is alphanumeric
         // or if we are building a number and the buffer is a digit,
         // add to the token array.
         if ((lexemeValue == IDENTIFIER && isAlphanumeric(buffer)) ||
             (lexemeValue == NUMBER && isDigit(buffer))) {
             
-            token[index] = buffer;
-        }
-        // If an alphabetic character is detected in what was expected to be
-        // a number, then throw an error and return failure.
-        else if (lexemeValue == NUMBER && isAlphabetic(buffer)) {
-            eatCharacters(fin, lexemeValue);
-
-            token[index] = '\0';
-            errorBadIdentifier(token);
-
-            return OP_FAILURE;
+            token[index++] = buffer;
         }
         // Else rewind the file because the end of the
         // token has been reached.
@@ -186,20 +174,30 @@ int handleLongToken(FILE *fin, FILE *fout, char first, int lexemeValue, int len)
             fseek(fin, -1, SEEK_CUR);
             break;
         }
+    }
 
-        // If the above conditional did not break and the index has reached
-        // the end of the array, there are too many characters for this token.
-        if (index >= len) {
-            eatCharacters(fin, lexemeValue);    
-
-            // Stringify for the error message and print the message.
+    // Check the next character.
+    if (fscanf(fin, "%c", &buffer) != EOF) {
+        fseek(fin, -1, SEEK_CUR);
+        
+        if (isAlphanumeric(buffer)) {
+            eatCharacters(fin, lexemeValue);
             token[index] = '\0';
-            errorTokenTooLong(token, len);
 
+            // If we were building a number and it's followed by a letter,
+            // this is actually an identifier with digits at the start.
+            if (lexemeValue == NUMBER && isAlphabetic(buffer)) {
+                errorBadIdentifier(token);
+            }
+            // Else we either have a number that's too long or an
+            // identifier that's too long.
+            else {
+                errorTokenTooLong(token, len);
+            }
+
+            // Explode.
             return OP_FAILURE;
         }
-      
-        index++;
     }
 
     // Make the token a bonafide string.

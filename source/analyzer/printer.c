@@ -1,6 +1,11 @@
 #include <stdio.h>
 #include "analyzer.h"
 
+// Print error if file is missing.
+void errorMissingFile(char *filename) {
+    printf("ERROR: File '%s' not found.\n", filename);
+}
+
 // Print error alerting the user of an unknown character.
 void errorUnknownCharacter(char unknown) {
     printf("ERROR: Unknown character '%c'.\n", unknown);
@@ -61,7 +66,7 @@ void printFile(char *filename, char *header) {
 }
 
 // Standardizing function to print line in lexeme table.
-void printLexemeTableLine(const char *lexeme, int lexemeValue) {
+void printLexemeTableLine(char *lexeme, int lexemeValue) {
     printf("%12s | %d\n", lexeme, lexemeValue);
 }
 
@@ -73,7 +78,7 @@ void printLexemeTable(char *filename) {
 
     // These lexemes directly map to the LexemeValues enumeration
     // defined in the analyzer header (with an offset of four).
-    const char *lexemes[] = {
+    char *lexemes[] = {
         "+", "-", "*", "/", "odd", "==", "!=", "<",
         "<=", ">", ">=", "(", ")", ",", ";", ".", ":=",
         "begin", "end", "if", "then", "while", "do",
@@ -94,7 +99,7 @@ void printLexemeTable(char *filename) {
         // If the buffer is for an identifier or number, read the next
         // string in the file and then print.
         if (buffer == IDENTIFIER || buffer == NUMBER) {
-            fscanf(f, "%s", word);
+            fscanf(f, MAX_TOKEN_FORMAT, word);
             printLexemeTableLine(word, buffer);
         }
         // Else print the lexeme from the lexemes array, with an offset of

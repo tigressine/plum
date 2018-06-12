@@ -1,7 +1,0 @@
-/* Start of the program. */
-var x, y;
-begin
-    y := 3;
-    x := yellowstars + 56992;
-end.
-/* End of the program. */
