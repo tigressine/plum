@@ -108,27 +108,28 @@ int handleDirectMappedSymbol(FILE *fout, int lexemeValue) {
 // in the input file.
 int handlePair(FILE *fin, FILE *fout, SymbolSymbolPair pair) {
     char buffer;
+    int i;
     
     if (fin == NULL || fout == NULL) {
         return OP_FAILURE;
     }
     
     if (fscanf(fin, "%c", &buffer) != EOF) {
-        // If the character is the expected follow character, they are a pair!
-        if (buffer == pair.follow) {
-            if (pair.pairValue == COMMENT) {
-                skipComment(fin);
-            }
-            else {
-                fprintf(fout, "%d ", pair.pairValue);
-            }
+        // Check all expected follow characters for pairs.
+        for (i = 0; i < pair.pairs; i++) {
+            if (buffer == pair.follows[i]) {
+                if (pair.pairValues[i] == COMMENT) {
+                    skipComment(fin);
+                }
+                else {
+                    fprintf(fout, "%d ", pair.pairValues[i]);
+                }
 
-            return OP_SUCCESS;
+                return OP_SUCCESS;
+            }
         }
         // Else the next character was something else. Rewind the file pointer.
-        else {
-            fseek(fin, -1, SEEK_CUR);
-        }
+        fseek(fin, -1, SEEK_CUR);
     }
 
     // If the solo value indicates the symbol is unknown, throw an
