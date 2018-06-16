@@ -79,7 +79,7 @@ void printLexemeTable(char *filename) {
     // These lexemes directly map to the LexemeValues enumeration
     // defined in the analyzer header (with an offset of four).
     char *lexemes[] = {
-        "+", "-", "*", "/", "odd", "==", "!=", "<",
+        "+", "-", "*", "/", "odd", "=", "<>", "<",
         "<=", ">", ">=", "(", ")", ",", ";", ".", ":=",
         "begin", "end", "if", "then", "while", "do",
         "call", "const", "var", "procedure",

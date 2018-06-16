@@ -26,10 +26,10 @@ int analyzeSource(char *sourceFile, char *outFile, int options) {
     };
 
     SymbolSymbolPair pairedSymbols[] = {
-        { '<', '=', LESS, LESS_EQUAL },
-        { '>', '=', GREATER, GREATER_EQUAL },
-        { ':', '=', UNKNOWN, BECOME },
-        { '/', '*', SLASH, COMMENT }
+        { '<', { '>', '=' }, LESS, { NOT_EQUAL, LESS_EQUAL }, 2 },
+        { '>', { '=' }, GREATER, { GREATER_EQUAL }, 1 },
+        { ':', { '=' }, UNKNOWN, { BECOME }, 1 },
+        { '/', { '*' }, SLASH, { COMMENT }, 1 }
     };
         
     if ((fin = fopen(sourceFile, "r")) == NULL) {

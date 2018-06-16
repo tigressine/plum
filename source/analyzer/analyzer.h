@@ -37,9 +37,10 @@ typedef struct SymbolValuePair {
 // Map symbol pairs and their values.
 typedef struct SymbolSymbolPair {
     char lead;
-    char follow;
+    char follows[2];
     int soloValue;
-    int pairValue;
+    int pairValues[2];
+    int pairs;
 } SymbolSymbolPair;
 
 // Enumeration of lexeme values.
