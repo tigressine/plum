@@ -1,3 +1,4 @@
+#include "../plum.h"
 #include <limits.h>
 #include <stdio.h>
 
@@ -15,12 +16,6 @@
 #define IDENTIFIER_LEN 11
 #define NUMBER_LEN 5
 #define KEYWORDS 13
-
-// Options defined as bit flags.
-#define OPTION_SKIP_ERRORS 1
-#define OPTION_PRINT_SOURCE 2
-#define OPTION_PRINT_LEXEME_TABLE 4
-#define OPTION_PRINT_LEXEME_LIST 8
 
 // Map keywords and their values.
 typedef struct KeywordValuePair {
