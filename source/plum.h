@@ -19,7 +19,10 @@ enum Errors {
     ERROR_FILE_NOT_FOUND,
     ERROR_UNKNOWN_CHARACTER,
     ERROR_MISSING_ARGUMENT,
-    ERROR_UNKNOWN_ARGUMENTS
+    ERROR_UNKNOWN_ARGUMENTS,
+    ERROR_BAD_MODE,
+    ERROR_NO_MODE,
+    ERROR_NO_SOURCE
 };
 
 enum Options {
@@ -41,5 +44,3 @@ enum Modes {
 
 // Printer prototypes.
 void printError(int, ...);
-//void printErrorWithArgument(int, char*);
-//void printErrorWithArguments(int, char*, char*);
