@@ -1,44 +1,20 @@
-#include <limits.h>
-
-#ifndef VIRTUALMACHINE_HEADER
-#define VIRTUALMACHINE_HEADER
-
-// Convenience definitions for PL/0 opcode keywords.
-#define LIT 1
-#define RTN 2
-#define LOD 3
-#define STO 4
-#define CAL 5
-#define INC 6
-#define JMP 7
-#define JPC 8
-#define SIO 9
-#define NEG 10
-#define ADD 11
-#define SUB 12
-#define MUL 13
-#define DIV 14
-#define ODD 15
-#define MOD 16
-#define EQL 17
-#define NEQ 18
-#define LSS 19
-#define LEQ 20
-#define GTR 21
-#define GEQ 22
-
-// Trace flag constants (defined in hexidecimal to be MLG).
-#define TRACE_CPU 0x1
-#define TRACE_RECORDS 0x2
-#define TRACE_REGISTERS 0x4
+#include "../plum.h"
 
 // Constants.
 #define INT_OFFSET 4
-#define MAX_LINES 100
+#define MAX_LINES 1000
 #define REGISTER_COUNT 16
-#define OP_FAILURE INT_MIN
-#define OP_SUCCESS INT_MIN + 1
-#define KILL_PROGRAM INT_MIN + 2
+
+enum Opcodes {
+    LIT = 1,
+    RTN, LOD, STO,
+    CAL, INC, JMP,
+    JPC, SIO, NEG,
+    ADD, SUB, MUL,
+    DIV, ODD, MOD,
+    EQL, NEQ, LSS,
+    LEQ, GTR, GEQ
+};
 
 // Instruction struct for each line of PL/0 code.
 typedef struct instruction {
@@ -74,20 +50,16 @@ typedef struct recordStack {
     recordStackItem *currentRecord;
 } recordStack;
 
-// Core functional prototypes.
+// Machine functional prototypes.
+int startMachine(char*, int);
 CPU *createCPU(int);
-int freeCPU(CPU*);
+int destroyCPU(CPU*);
 int countInstructions(char*);
 instruction *loadInstructions(char*, int);
 int processInstructions(instruction*, int, int);
 int fetchInstruction(CPU*, instruction*);
 int executeInstruction(CPU*, recordStack*);
-int freeInstructions(instruction*);
-void printStackTraceHeader(int);
-void printStackTraceLine(CPU*, recordStack*, int);
-void printRegisters(CPU*);
-void printCPU(CPU*);
-void printRecords(recordStackItem*);
+int destroyInstructions(instruction*);
 
 // Operations functional prototypes.
 int opLiteral(CPU*);
@@ -123,4 +95,3 @@ recordStackItem *getDynamicParent(recordStack*, int);
 recordStackItem *getStaticParent(recordStack*, int);
 int isEmpty(recordStack*);
 recordStack *destroyRecordStack(recordStack*);
-#endif

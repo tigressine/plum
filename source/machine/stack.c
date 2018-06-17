@@ -11,12 +11,16 @@ int pushRecord(CPU *cpu, recordStack *stack) {
     recordStackItem *newRecord;
     
     if (cpu == NULL || stack == NULL) {
-        return OP_FAILURE;
+        //printError(ERROR_NULL_CHECK);
+
+        return SIGNAL_FAILURE;
     }
 
-    // If there is not enough memory for a new record, return OP_FAILURE.
+    // If there is not enough memory for a new record, return SIGNAL_FAILURE.
     if ((newRecord = malloc(sizeof(recordStackItem))) == NULL) {
-        return OP_FAILURE;
+        //printError(ERROR_OUT_OF_MEMORY);
+        
+        return SIGNAL_FAILURE;
     }
 
     newRecord->locals = NULL;
@@ -32,7 +36,7 @@ int pushRecord(CPU *cpu, recordStack *stack) {
     stack->currentRecord = newRecord;
     stack->records++;
 
-    return OP_SUCCESS;
+    return SIGNAL_SUCCESS;
 }
 
 // Remove the top record from the stack and free any associated dynamic memory.
@@ -41,7 +45,9 @@ int popRecord(recordStack *stack) {
     int returnValue;
 
     if (stack == NULL || stack->currentRecord == NULL) {
-        return OP_FAILURE;
+        //printError(ERROR_NULL_CHECK);
+        
+        return SIGNAL_FAILURE;
     }
 
     nextRecord = stack->currentRecord->dynamicLink;
@@ -64,7 +70,9 @@ recordStackItem *peekRecord(recordStack *stack) {
 // Allocate the locals array in the given record.
 int allocateLocals(recordStackItem *record, int localCount) {
     if (record == NULL || record->locals != NULL) {
-        return OP_FAILURE;
+        //printError(ERROR_NULL_CHECK);
+        
+        return SIGNAL_FAILURE;
     }
 
     record->localCount = localCount;
@@ -76,11 +84,12 @@ int allocateLocals(recordStackItem *record, int localCount) {
     // Else make a new locals array in the record.
     else if ((record->locals = calloc(1, sizeof(int) * localCount)) == NULL) {
         record->localCount = 0;
-        
-        return OP_FAILURE;
+        //printError(ERROR_OUT_OF_MEMORY);
+
+        return SIGNAL_FAILURE;
     }
     
-    return OP_SUCCESS;
+    return SIGNAL_SUCCESS;
 }
 
 // Seek down the stack through dynamic links (in order).
@@ -88,6 +97,8 @@ recordStackItem *getDynamicParent(recordStack *stack, int levels) {
     recordStackItem *desiredRecord;
 
     if (stack == NULL) {
+        //printError(ERROR_NULL_CHECK);
+        
         return NULL;
     }
     
@@ -108,6 +119,8 @@ recordStackItem *getStaticParent(recordStack *stack, int levels) {
     recordStackItem *desiredRecord;
 
     if (stack == NULL) {
+        //printError(ERROR_NULL_CHECK);
+        
         return NULL;
     }
 
@@ -125,7 +138,7 @@ recordStackItem *getStaticParent(recordStack *stack, int levels) {
 
 // Return if stack is empty or not.
 int isEmpty(recordStack *stack) {
-    return (stack == NULL || stack->records == 0) ? 1 : 0;
+    return (stack == NULL || stack->records == 0);
 }
 
 // Destroy the record stack.
