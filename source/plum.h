@@ -1,12 +1,14 @@
 #include <limits.h>
 
-#define OPERATION_FAILURE INT_MIN
-#define OPERATION_SUCCESS INT_MIN + 1
-#define OPERATION_REQUIRES_RECOVERY INT_MIN + 2
-
 #define DEFAULT_OUTPUT_FILE "plum.out"
-
 #define MAX_ERROR_LENGTH 80
+
+enum Signals {
+    SIGNAL_FAILURE = INT_MIN,
+    SIGNAL_SUCCESS,
+    SIGNAL_RECOVERY,
+    SIGNAL_KILL
+};
 
 // The full collection of errors that this program can throw.
 enum Errors {

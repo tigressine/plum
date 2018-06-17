@@ -18,19 +18,23 @@ int invalidCPU(CPU *cpu) {
 // Load a literal value into register R.
 int opLiteral(CPU *cpu) {
     if (cpu == NULL || cpu->registers == NULL || invalidRegister(cpu->instRegister.RField)) {
-        return OP_FAILURE;
+        //printError(ERROR_NULL_CHECK);
+        
+        return SIGNAL_FAILURE;
     }
     
     cpu->registers[cpu->instRegister.RField] = cpu->instRegister.MField;
         
-    return OP_SUCCESS;
+    return SIGNAL_SUCCESS;
 }
 
 // Revert programCounter to the top activation record's returnAddress, then pops
 // the top record.
 int opReturn(CPU *cpu, recordStack *stack) {
     if (cpu == NULL || stack == NULL || stack->currentRecord == NULL) {
-        return OP_FAILURE;
+        //printError(ERROR_NULL_CHECK);
+        
+        return SIGNAL_FAILURE;
     }
 
     cpu->programCounter = stack->currentRecord->returnAddress;
@@ -47,13 +51,17 @@ int opLoad(CPU *cpu, recordStack *stack) {
         stack == NULL ||
         cpu->registers == NULL ||
         invalidRegister(cpu->instRegister.RField)) {
+
+        //printError(ERROR_NULL_CHECK);
         
-        return OP_FAILURE;
+        return SIGNAL_FAILURE;
     }
 
     // Get the static parent of the top level record, L levels down.
     if ((desiredRecord = getStaticParent(stack, cpu->instRegister.LField)) == NULL) {
-        return OP_FAILURE;
+        //printError(ERROR_ILLEGAL_STATIC_PARENT);
+        
+        return SIGNAL_FAILURE;
     }
 
     index = cpu->instRegister.MField;
@@ -71,11 +79,13 @@ int opLoad(CPU *cpu, recordStack *stack) {
         }
         // Otherwise value is bad, so operation fails.
         else {
-            return OP_FAILURE;
+            //printError(AN_ERROR);
+
+            return SIGNAL_FAILURE;
         }
     }
     
-    return OP_SUCCESS;
+    return SIGNAL_SUCCESS;
 }
 
 // Load a value from a register into an activation record in the stack.
@@ -88,12 +98,16 @@ int opStore(CPU *cpu, recordStack *stack) {
         cpu->registers == NULL ||
         invalidRegister(cpu->instRegister.RField)) {
         
-        return OP_FAILURE;
+        //printError(ERROR_NULL_CHECK);
+        
+        return SIGNAL_FAILURE;
     }
 
     // Get the static parent of the top level record, L levels down.
     if ((desiredRecord = getStaticParent(stack, cpu->instRegister.LField)) == NULL) {
-        return OP_FAILURE;
+        //printError(ERROR_ILLEGAL_STATIC_PARENT);
+        
+        return SIGNAL_FAILURE;
     }
 
     index = cpu->instRegister.MField;
@@ -110,30 +124,36 @@ int opStore(CPU *cpu, recordStack *stack) {
         // trying to override some of the other activation record fields (like the
         // dynamic link) and this isn't allowed.
         else {
-            return OP_FAILURE;
+            //printError(AN_ERROR);
+
+            return SIGNAL_FAILURE;
         }
     }
 
-    return OP_SUCCESS;
+    return SIGNAL_SUCCESS;
 }
 
 // Push a new activation record environment onto the stack.
 int opCall(CPU *cpu, recordStack *stack) {
     if (cpu == NULL || stack == NULL) {
-        return OP_FAILURE;
+        //printError(ERROR_NULL_CHECK);
+        
+        return SIGNAL_FAILURE;
     }
 
     pushRecord(cpu, stack);
     // Program jumps to subroutine.
     cpu->programCounter = cpu->instRegister.MField;
 
-    return OP_SUCCESS;
+    return SIGNAL_SUCCESS;
 }
 
 // Allocate locals in top level activation record.
 int opAllocate(CPU *cpu, recordStack *stack) {
     if (cpu == NULL || stack == NULL) {
-        return OP_FAILURE;
+        //printError(ERROR_NULL_CHECK);
+        
+        return SIGNAL_FAILURE;
     }
 
     return allocateLocals(stack->currentRecord, cpu->instRegister.MField - INT_OFFSET);
@@ -142,122 +162,146 @@ int opAllocate(CPU *cpu, recordStack *stack) {
 // Update programCounter to value of M field.
 int opJump(CPU *cpu) {
     if (cpu == NULL) {
-        return OP_FAILURE;
+        //printError(ERROR_NULL_CHECK);
+        
+        return SIGNAL_FAILURE;
     }
 
     cpu->programCounter = cpu->instRegister.MField;
 
-    return OP_SUCCESS;
+    return SIGNAL_SUCCESS;
 }
 
 // Update programCounter to value of M field if register R is zero.
 int opConditionalJump(CPU *cpu) {
     if (cpu == NULL || invalidRegister(cpu->instRegister.RField)) {
-        return OP_FAILURE;
+        //printError(ERROR_NULL_CHECK);
+        
+        return SIGNAL_FAILURE;
     }
 
     if (cpu->registers[cpu->instRegister.RField] == 0) {
         cpu->programCounter = cpu->instRegister.MField;
     }
 
-    return OP_SUCCESS;
+    return SIGNAL_SUCCESS;
 }
 
 // System calls capable of printing, scanning, and ending program.
 int opSystemCall(CPU *cpu) {
     if (cpu == NULL) {
-        return OP_FAILURE;
+        //printError(ERROR_NULL_CHECK);
+        
+        return SIGNAL_FAILURE;
     }
 
     switch (cpu->instRegister.MField) {
         // System call to print from a register.
         case 1:
             if (invalidRegister(cpu->instRegister.RField)) {
-                return OP_FAILURE;
+                //printError(ERROR_INVALID_REGISTER);
+                
+                return SIGNAL_FAILURE;
             }
 
             printf("%d\n", cpu->registers[cpu->instRegister.RField]);
-            return OP_SUCCESS;
+            return SIGNAL_SUCCESS;
     
         // System call to read data from user into a register.
         case 2:
             if (invalidRegister(cpu->instRegister.RField)) {
-                return OP_FAILURE;
+                //printError(ERROR_INVALID_REGISTER);
+                
+                return SIGNAL_FAILURE;
             }
             
             scanf("%d", &cpu->registers[cpu->instRegister.RField]);
-            return OP_SUCCESS;
+            return SIGNAL_SUCCESS;
        
         // System call to terminate the program.
         case 3:
             cpu->programCounter = 0;
 
-            return KILL_PROGRAM;
+            return SIGNAL_KILL;
         
         default:
-            return OP_FAILURE;
+            //printError(ERROR_ILLEGAL_SYSTEM_CALL);
+
+            return SIGNAL_FAILURE;
     }
 }
 
 // Negate register L and save in register R.
 int opNegate(CPU *cpu) {
-   if (invalidCPU(cpu)) { 
-        return OP_FAILURE;
+    if (invalidCPU(cpu)) { 
+        //printError(ERROR_NULL_CHECK);
+        
+        return SIGNAL_FAILURE;
     }
 
     cpu->registers[cpu->instRegister.RField] = 0 - cpu->registers[cpu->instRegister.LField];
 
-    return OP_SUCCESS;
+    return SIGNAL_SUCCESS;
 }
 
 // Add registers L and M into register R.
 int opAdd(CPU *cpu) {
     if (invalidCPU(cpu)) {
-        return OP_FAILURE;
+        //printError(ERROR_NULL_CHECK);
+        
+        return SIGNAL_FAILURE;
     }
     
     cpu->registers[cpu->instRegister.RField] = cpu->registers[cpu->instRegister.LField] +
                                                cpu->registers[cpu->instRegister.MField];
-    return OP_SUCCESS;
+    return SIGNAL_SUCCESS;
 }
 
 // Subract register M from register L and store in register R.
 int opSubtract(CPU *cpu) {
     if (invalidCPU(cpu)) {
-        return OP_FAILURE;
+        //printError(ERROR_NULL_CHECK);
+        
+        return SIGNAL_FAILURE;
     }
     
     cpu->registers[cpu->instRegister.RField] = cpu->registers[cpu->instRegister.LField] -
                                                cpu->registers[cpu->instRegister.MField];
-    return OP_SUCCESS;
+    return SIGNAL_SUCCESS;
 }
 
 // Multiply registers L and M and store in register R.
 int opMultiply(CPU *cpu) {
     if (invalidCPU(cpu)) {
-        return OP_FAILURE;
+        //printError(ERROR_NULL_CHECK);
+        
+        return SIGNAL_FAILURE;
     }
     
     cpu->registers[cpu->instRegister.RField] = cpu->registers[cpu->instRegister.LField] *
                                                cpu->registers[cpu->instRegister.MField];
-    return OP_SUCCESS;
+    return SIGNAL_SUCCESS;
 }
 
 // Divide register L by register M and store in register R.
 int opDivide(CPU *cpu) {
     if (invalidCPU(cpu) || cpu->registers[cpu->instRegister.MField] == 0) {
-        return OP_FAILURE;
+        //printError(ERROR_NULL_CHECK);
+        
+        return SIGNAL_FAILURE;
     }
     
     cpu->registers[cpu->instRegister.RField] = cpu->registers[cpu->instRegister.LField] /
                                                cpu->registers[cpu->instRegister.MField];
-    return OP_SUCCESS;
+    return SIGNAL_SUCCESS;
 }
 
 // Store 1 in register R if register R is odd, else store 0.
 int opIsOdd(CPU *cpu) {
     if (invalidCPU(cpu)) {
-        return OP_FAILURE;
+        //printError(ERROR_NULL_CHECK);
+        
+        return SIGNAL_FAILURE;
     }
     
     if ((cpu->registers[cpu->instRegister.RField] % 2) != 0) {
@@ -267,82 +311,96 @@ int opIsOdd(CPU *cpu) {
         cpu->registers[cpu->instRegister.RField] = 0;
     }
     
-    return OP_SUCCESS;
+    return SIGNAL_SUCCESS;
 }
 
 // Store remainder of division of register L by register M in register R.
 int opModulus(CPU *cpu) {
     if (invalidCPU(cpu)) {
-        return OP_FAILURE;
+        //printError(ERROR_NULL_CHECK);
+        
+        return SIGNAL_FAILURE;
     }
     
     cpu->registers[cpu->instRegister.RField] = cpu->registers[cpu->instRegister.LField] %
                                                cpu->registers[cpu->instRegister.MField];
-    return OP_SUCCESS;
+    return SIGNAL_SUCCESS;
 }
 
 // Store 1 in register R if registers L and M are equal, else store 0.
 int opIsEqual(CPU *cpu) {
     if (invalidCPU(cpu)) {
-        return OP_FAILURE;
+        //printError(ERROR_NULL_CHECK);
+        
+        return SIGNAL_FAILURE;
     }
     
     cpu->registers[cpu->instRegister.RField] = (cpu->registers[cpu->instRegister.LField] ==
                                                 cpu->registers[cpu->instRegister.MField]);
-    return OP_SUCCESS;
+    return SIGNAL_SUCCESS;
 }
 
 // Store 1 in register R if registers L and M are not equal, else store 0.
 int opIsNotEqual(CPU *cpu) {
     if (invalidCPU(cpu)) {
-        return OP_FAILURE;
+        //printError(ERROR_NULL_CHECK);
+        
+        return SIGNAL_FAILURE;
     }
     
     cpu->registers[cpu->instRegister.RField] = (cpu->registers[cpu->instRegister.LField] !=
                                                 cpu->registers[cpu->instRegister.MField]);
-    return OP_SUCCESS;
+    return SIGNAL_SUCCESS;
 }
 
 // Store 1 in register R if register L is less than register M, else store 0.
 int opIsLessThan(CPU *cpu) {
     if (invalidCPU(cpu)) {
-        return OP_FAILURE;
+        //printError(ERROR_NULL_CHECK);
+        
+        return SIGNAL_FAILURE;
     }
     
     cpu->registers[cpu->instRegister.RField] = (cpu->registers[cpu->instRegister.LField] <
                                                 cpu->registers[cpu->instRegister.MField]);
-    return OP_SUCCESS;
+    return SIGNAL_SUCCESS;
 }
 
 // Store 1 in register R if register L is less than or equal to register M, else store 0.
 int opIsLessThanOrEqualTo(CPU *cpu) {
     if (invalidCPU(cpu)) {
-        return OP_FAILURE;
+        //printError(ERROR_NULL_CHECK);
+        
+        return SIGNAL_FAILURE;
     }
     
     cpu->registers[cpu->instRegister.RField] = (cpu->registers[cpu->instRegister.LField] <=
                                                 cpu->registers[cpu->instRegister.MField]);
-    return OP_SUCCESS;
+    return SIGNAL_SUCCESS;
 }
 
 // Store 1 in register R if register L is greater than to register M, else store 0.
 int opIsGreaterThan(CPU *cpu) {
     if (invalidCPU(cpu)) {
-        return OP_FAILURE;
+        //printError(ERROR_NULL_CHECK);
+        
+        return SIGNAL_FAILURE;
     }
     
     cpu->registers[cpu->instRegister.RField] = (cpu->registers[cpu->instRegister.LField] >
                                                 cpu->registers[cpu->instRegister.MField]);
-    return OP_SUCCESS;
+    return SIGNAL_SUCCESS;
 }
 
 // Store 1 in register R if register L is greater than or equal to register M, else store 0.
 int opIsGreaterThanOrEqualTo(CPU *cpu) {
     if (invalidCPU(cpu)) {
-        return OP_FAILURE;
+        //printError(ERROR_NULL_CHECK);
+        
+        return SIGNAL_FAILURE;
     }
     
     cpu->registers[cpu->instRegister.RField] = (cpu->registers[cpu->instRegister.LField] >=
                                                 cpu->registers[cpu->instRegister.MField]);
-    return OP_SUCCESS;
+    return SIGNAL_SUCCESS;
 }
