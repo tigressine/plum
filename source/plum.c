@@ -2,14 +2,17 @@
 #include <string.h>
 #include "scanner/scanner.h"
 
+// Set an option flag to true in an options int.
 void setOption(int *options, int option) {
     *options |= (1 << option);
 }
 
+// See if an option is enabled in an options int.
 int checkOption(int *options, int option) {
     return (*options & (1 << option));
 }
 
+// Check if the provided file exists.
 int fileExists(char *filename) {
     FILE *f;
 
@@ -23,9 +26,10 @@ int fileExists(char *filename) {
     }
 }
 
+// Get the mode of the machine.
 int getMode(char *mode) {
     if (mode == NULL) {
-        //printError(ERROR_NO_MODE);
+        printError(ERROR_NO_MODE);
     }
     else {
         if (strcmp(mode, "run") == 0) {
@@ -94,29 +98,61 @@ int getOptions(int argCount, char **argsVector) {
     return options;
 }
 
+// Get the output file for intermediate code, if specified.
+int getOutFile(int argCount, char **argsVector) {
+    int argIndex;
+
+    for (argIndex = 3; argIndex < argCount; argIndex++) {
+        if (strcmp(argsVector[argIndex], "--output-file") == 0 ||
+            strcmp(argsVector[argIndex], "-o") == 0) {
+
+            // If the output file is found and it is followed by another
+            // argument, then return the index of that argument.
+            if (argIndex + 1 < argCount) {
+                return argIndex + 1;
+            }
+            else {
+                printError(ERROR_MISSING_ARGUMENT, argsVector[argIndex]);
+                
+                return OPERATION_FAILURE;
+            }
+        }
+    }
+
+    // Signal to the caller that there is no specified output file, so
+    // it must be set to a default.
+    return OPERATION_REQUIRES_RECOVERY;
+}
+
 // Main entry point of program.
 int main(int argCount, char **argsVector) {
     int mode;
     int options;
     char *inFile;
     char *outFile;
+    int outFileIndex;
 
+    // If there aren't enough arguments passed, scream about it.
     if (argCount < 2) {
         printError(ERROR_NO_MODE);
 
         return 0;
     }
 
+    // If an invalid mode was passed as the first argument, terminate the program.
     if ((mode = getMode(argsVector[1])) == OPERATION_FAILURE) {
         return 0;
     }
 
+    // If there aren't enough arguments passed to contain an input file,
+    // scream about it.
     if (argCount < 3) {
         printError(ERROR_NO_SOURCE);
 
         return 0;
     }
 
+    // If the input file doesn't exist, scream about it.
     inFile = argsVector[2];
     if (!fileExists(inFile)) {
         printError(ERROR_FILE_NOT_FOUND, inFile);
@@ -124,7 +160,22 @@ int main(int argCount, char **argsVector) {
         return 0;
     }
 
+    // Parse options from the argsVector.
     options = getOptions(argCount, argsVector);
+
+    // If there's something wrong with how the output file is passed to the
+    // program, terminate.
+    if ((outFileIndex = getOutFile(argCount, argsVector)) == OPERATION_FAILURE) {
+        return 0;
+    }
+    // If there was no output flag, set outFile to a default.
+    else if (outFileIndex == OPERATION_REQUIRES_RECOVERY) {
+        outFile = DEFAULT_OUTPUT_FILE;
+    }
+    // Set outFile to the array in the vector at the provided index.
+    else {
+        outFile = argsVector[outFileIndex];
+    }
 
     switch (mode) {
         case MODE_RUN:
@@ -139,9 +190,6 @@ int main(int argCount, char **argsVector) {
         case MODE_EXECUTE:
             break;
     }
-   
-    printf("mode: %d\n", mode);
-    printf("options: %d\n", options);
 
     return 0;
 }

@@ -2,8 +2,13 @@
 
 #define OPERATION_FAILURE INT_MIN
 #define OPERATION_SUCCESS INT_MIN + 1
+#define OPERATION_REQUIRES_RECOVERY INT_MIN + 2
+
+#define DEFAULT_OUTPUT_FILE "plum.out"
+
 #define MAX_ERROR_LENGTH 80
 
+// The full collection of errors that this program can throw.
 enum Errors {
     ERROR_BECOME_INSTEAD_OF_EQUAL,
     ERROR_SYMBOL_EXPECTED,
@@ -25,6 +30,7 @@ enum Errors {
     ERROR_NO_SOURCE
 };
 
+// All possible options for processing files.
 enum Options {
     OPTION_TRACE_CPU,
     OPTION_TRACE_RECORDS,
@@ -35,6 +41,7 @@ enum Options {
     OPTION_PRINT_LEXEME_LIST
 };
 
+// Different modes for the machine.
 enum Modes {
     MODE_RUN,
     MODE_SCAN,
