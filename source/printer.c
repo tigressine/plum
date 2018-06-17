@@ -1,20 +1,12 @@
 #include <stdio.h>
 #include <string.h>
+#include <stdarg.h>
 #include "plum.h"
 
-// Wrapper to print an error that requires no string arguments.
-void printError(int errorCode) {
-    printErrorWithArguments(errorCode, NULL, NULL);
-}
-
-// Wrapper to print an error that needs only one string argument.
-void printErrorWithArgument(int errorCode, char *string1) {
-    printErrorWithArguments(errorCode, string1, NULL);
-}
-
 // Print error associated with provided errorCode.
-void printErrorWithArguments(int errorCode, char *string1, char *string2) {
+void printError(int errorCode, ...) {
     char error[MAX_ERROR_LENGTH];
+    va_list arguments;
 
     // All errors in this array map to the appropriate code in
     // an enumeration defined in the plum.h header.
@@ -36,30 +28,33 @@ void printErrorWithArguments(int errorCode, char *string1, char *string2) {
         "unknown arguments passed to program"
     };
 
+    // Initialize the variadic argument list, starting after errorCode.
+    va_start(arguments, errorCode);
+
     switch (errorCode) {
-        // Errors that call for one string argument.
+        // Errors that must be formatted first.
         case ERROR_FILE_NOT_FOUND:
         case ERROR_SYMBOL_EXPECTED:
         case ERROR_NUMBER_TOO_LARGE:
         case ERROR_MISSING_ARGUMENT:
         case ERROR_UNKNOWN_CHARACTER:
-        case ERROR_UNDECLARED_IDENTIFIER:
-            snprintf(error, MAX_ERROR_LENGTH, errors[errorCode], string1);
-            break;
-
-        // Errors that call for two string arguments.
         case ERROR_ILLEGAL_TOKEN_START:
         case ERROR_ILLEGAL_FOLLOW_TOKEN:
-            snprintf(error, MAX_ERROR_LENGTH, errors[errorCode], string1, string2);
+        case ERROR_UNDECLARED_IDENTIFIER:
+            // Call a safe version of sprintf that also handles variadic lists.
+            vsnprintf(error, MAX_ERROR_LENGTH, errors[errorCode], arguments);
             break;
 
-        // Errors with no string arguments.
+        // Errors that require no formatting.
         default:
             strcpy(error, errors[errorCode]);
     }
 
     // Print the error buffer after formatting.
     printf("ERROR %s\n", error);
+
+    // Close the variadic argument list.
+    va_end(arguments);
 }
 
 /*

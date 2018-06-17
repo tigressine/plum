@@ -89,7 +89,7 @@ int main(int argCount, char **argsVector) {
     int mode;
     int options;
     char *outFile;
-   
+    
     if (argCount < 2) {
         //printError(ERROR_NO_MODE);
 
@@ -115,6 +115,6 @@ int main(int argCount, char **argsVector) {
         case MODE_EXECUTE:
             break;
     }
-
+    
     return 0;
 }
