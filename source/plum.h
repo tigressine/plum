@@ -40,6 +40,6 @@ enum Modes {
 };
 
 // Printer prototypes.
-void printError(int);
-void printErrorWithArgument(int, char*);
-void printErrorWithArguments(int, char*, char*);
+void printError(int, ...);
+//void printErrorWithArgument(int, char*);
+//void printErrorWithArguments(int, char*, char*);
