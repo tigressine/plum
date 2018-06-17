@@ -3,14 +3,24 @@
 #include "scanner/scanner.h"
 
 void setOption(int *options, int option) {
-    printf("%d\n", *options);
-    printf("shift %d\n", 1 << option);
     *options |= (1 << option);
-    printf("new %d\n", *options);
 }
 
 int checkOption(int *options, int option) {
     return (*options & (1 << option));
+}
+
+int fileExists(char *filename) {
+    FILE *f;
+
+    if ((f = fopen(filename, "r")) == NULL) {
+        return 0;
+    }
+    else {
+        fclose(f);
+    
+        return 1;
+    }
 }
 
 int getMode(char *mode) {
@@ -31,7 +41,7 @@ int getMode(char *mode) {
             return MODE_EXECUTE;
         }
         else {
-            //printError(ERROR_BAD_MODE);
+            printError(ERROR_BAD_MODE, mode);
         }
     }
     
@@ -88,15 +98,29 @@ int getOptions(int argCount, char **argsVector) {
 int main(int argCount, char **argsVector) {
     int mode;
     int options;
+    char *inFile;
     char *outFile;
-    
+
     if (argCount < 2) {
-        //printError(ERROR_NO_MODE);
+        printError(ERROR_NO_MODE);
 
         return 0;
     }
 
     if ((mode = getMode(argsVector[1])) == OPERATION_FAILURE) {
+        return 0;
+    }
+
+    if (argCount < 3) {
+        printError(ERROR_NO_SOURCE);
+
+        return 0;
+    }
+
+    inFile = argsVector[2];
+    if (!fileExists(inFile)) {
+        printError(ERROR_FILE_NOT_FOUND, inFile);
+
         return 0;
     }
 
@@ -115,6 +139,9 @@ int main(int argCount, char **argsVector) {
         case MODE_EXECUTE:
             break;
     }
-    
+   
+    printf("mode: %d\n", mode);
+    printf("options: %d\n", options);
+
     return 0;
 }

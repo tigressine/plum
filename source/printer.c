@@ -25,7 +25,10 @@ void printError(int errorCode, ...) {
         "file not found: %s",
         "unknown character: %s",
         "argument missing for flag: %s",
-        "unknown arguments passed to program"
+        "unknown arguments passed to program",
+        "bad mode specified: %s",
+        "no mode specified",
+        "input file required as second argument"
     };
 
     // Initialize the variadic argument list, starting after errorCode.
@@ -33,6 +36,7 @@ void printError(int errorCode, ...) {
 
     switch (errorCode) {
         // Errors that must be formatted first.
+        case ERROR_BAD_MODE:
         case ERROR_FILE_NOT_FOUND:
         case ERROR_SYMBOL_EXPECTED:
         case ERROR_NUMBER_TOO_LARGE:
