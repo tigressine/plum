@@ -28,7 +28,9 @@ void printError(int errorCode, ...) {
         "unknown arguments passed to program",
         "bad mode specified: %s",
         "no mode specified",
-        "input file required as second argument"
+        "input file required as second argument",
+        "attempt to dereference null",
+        "program ran out of memory"
     };
 
     // Initialize the variadic argument list, starting after errorCode.

@@ -29,7 +29,9 @@ enum Errors {
     ERROR_UNKNOWN_ARGUMENTS,
     ERROR_BAD_MODE,
     ERROR_NO_MODE,
-    ERROR_NO_SOURCE
+    ERROR_NO_SOURCE,
+    ERROR_NULL_CHECK,
+    ERROR_OUT_OF_MEMORY,
 };
 
 // All possible options for processing files.
