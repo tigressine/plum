@@ -29,7 +29,7 @@ int invalidRegisters(int count, ...) {
 }
 
 // Load a literal value into register R.
-int _operationLiteral(CPU *cpu) {
+int operationLiteral(CPU *cpu) {
     if (invalidRegisters(1, cpu->instRegister.RField)) {
         //printError(ERROR_INVALID_REGISTER);
         
@@ -43,14 +43,14 @@ int _operationLiteral(CPU *cpu) {
 
 // Revert programCounter to the top activation record's returnAddress, then pops
 // the top record.
-int _operationReturn(CPU *cpu, recordStack *stack) {
+int operationReturn(CPU *cpu, recordStack *stack) {
     cpu->programCounter = stack->currentRecord->returnAddress;
     
     return popRecord(stack);
 }
 
 // Load a value from an activation record into a register.
-int _operationLoad(CPU *cpu, recordStack *stack) {
+int operationLoad(CPU *cpu, recordStack *stack) {
     recordStackItem *desiredRecord;
     int index;
     
@@ -92,7 +92,7 @@ int _operationLoad(CPU *cpu, recordStack *stack) {
 }
 
 // Load a value from a register into an activation record in the stack.
-int _operationStore(CPU *cpu, recordStack *stack) {
+int operationStore(CPU *cpu, recordStack *stack) {
     recordStackItem *desiredRecord;
     int index;
 
@@ -133,7 +133,7 @@ int _operationStore(CPU *cpu, recordStack *stack) {
 }
 
 // Push a new activation record environment onto the stack.
-int _operationCall(CPU *cpu, recordStack *stack) {
+int operationCall(CPU *cpu, recordStack *stack) {
     pushRecord(cpu, stack);
     
     // Program jumps to subroutine.
@@ -143,19 +143,19 @@ int _operationCall(CPU *cpu, recordStack *stack) {
 }
 
 // Allocate locals in top level activation record.
-int _operationAllocate(CPU *cpu, recordStack *stack) {
+int operationAllocate(CPU *cpu, recordStack *stack) {
     return allocateLocals(stack->currentRecord, cpu->instRegister.MField - INT_OFFSET);
 }
 
 // Update programCounter to value of M field.
-int _operationJump(CPU *cpu) {
+int operationJump(CPU *cpu) {
     cpu->programCounter = cpu->instRegister.MField;
 
     return SIGNAL_SUCCESS;
 }
 
 // Update programCounter to value of M field if register R is zero.
-int _operationConditionalJump(CPU *cpu) {
+int operationConditionalJump(CPU *cpu) {
     if (invalidRegisters(1, cpu->instRegister.RField)) {
         //printError(ERROR_INVALID_REGISTERS);
         
@@ -170,7 +170,7 @@ int _operationConditionalJump(CPU *cpu) {
 }
 
 // System calls capable of printing, scanning, and ending program.
-int _operationSystemCall(CPU *cpu) {
+int operationSystemCall(CPU *cpu) {
     switch (cpu->instRegister.MField) {
         // System call to print from a register.
         case 1:
@@ -208,7 +208,7 @@ int _operationSystemCall(CPU *cpu) {
 }
 
 // Negate register L and save in register R.
-int _operationNegate(CPU *cpu) {
+int operationNegate(CPU *cpu) {
     if (invalidRegisters(3, cpu->instRegister.RField,
                             cpu->instRegister.LField,
                             cpu->instRegister.MField)) { 
@@ -223,7 +223,7 @@ int _operationNegate(CPU *cpu) {
 }
 
 // Add registers L and M into register R.
-int _operationAdd(CPU *cpu) {
+int operationAdd(CPU *cpu) {
     if (invalidRegisters(3, cpu->instRegister.RField,
                             cpu->instRegister.LField,
                             cpu->instRegister.MField)) { 
@@ -238,7 +238,7 @@ int _operationAdd(CPU *cpu) {
 }
 
 // Subract register M from register L and store in register R.
-int _operationSubtract(CPU *cpu) {
+int operationSubtract(CPU *cpu) {
     if (invalidRegisters(3, cpu->instRegister.RField,
                             cpu->instRegister.LField,
                             cpu->instRegister.MField)) { 
@@ -253,7 +253,7 @@ int _operationSubtract(CPU *cpu) {
 }
 
 // Multiply registers L and M and store in register R.
-int _operationMultiply(CPU *cpu) {
+int operationMultiply(CPU *cpu) {
     if (invalidRegisters(3, cpu->instRegister.RField,
                             cpu->instRegister.LField,
                             cpu->instRegister.MField)) { 
@@ -268,7 +268,7 @@ int _operationMultiply(CPU *cpu) {
 }
 
 // Divide register L by register M and store in register R.
-int _operationDivide(CPU *cpu) {
+int operationDivide(CPU *cpu) {
     if (invalidRegisters(3, cpu->instRegister.RField,
                             cpu->instRegister.LField,
                             cpu->instRegister.MField)) { 
@@ -289,7 +289,7 @@ int _operationDivide(CPU *cpu) {
 }
 
 // Store 1 in register R if register R is odd, else store 0.
-int _operationIsOdd(CPU *cpu) {
+int operationIsOdd(CPU *cpu) {
     if (invalidRegisters(3, cpu->instRegister.RField,
                             cpu->instRegister.LField,
                             cpu->instRegister.MField)) { 
@@ -309,7 +309,7 @@ int _operationIsOdd(CPU *cpu) {
 }
 
 // Store remainder of division of register L by register M in register R.
-int _operationModulus(CPU *cpu) {
+int operationModulus(CPU *cpu) {
     if (invalidRegisters(3, cpu->instRegister.RField,
                             cpu->instRegister.LField,
                             cpu->instRegister.MField)) { 
@@ -324,7 +324,7 @@ int _operationModulus(CPU *cpu) {
 }
 
 // Store 1 in register R if registers L and M are equal, else store 0.
-int _operationIsEqual(CPU *cpu) {
+int operationIsEqual(CPU *cpu) {
     if (invalidRegisters(3, cpu->instRegister.RField,
                             cpu->instRegister.LField,
                             cpu->instRegister.MField)) { 
@@ -339,7 +339,7 @@ int _operationIsEqual(CPU *cpu) {
 }
 
 // Store 1 in register R if registers L and M are not equal, else store 0.
-int _operationIsNotEqual(CPU *cpu) {
+int operationIsNotEqual(CPU *cpu) {
     if (invalidRegisters(3, cpu->instRegister.RField,
                             cpu->instRegister.LField,
                             cpu->instRegister.MField)) { 
@@ -354,7 +354,7 @@ int _operationIsNotEqual(CPU *cpu) {
 }
 
 // Store 1 in register R if register L is less than register M, else store 0.
-int _operationIsLessThan(CPU *cpu) {
+int operationIsLessThan(CPU *cpu) {
     if (invalidRegisters(3, cpu->instRegister.RField,
                             cpu->instRegister.LField,
                             cpu->instRegister.MField)) { 
@@ -369,7 +369,7 @@ int _operationIsLessThan(CPU *cpu) {
 }
 
 // Store 1 in register R if register L is less than or equal to register M, else store 0.
-int _operationIsLessThanOrEqualTo(CPU *cpu) {
+int operationIsLessThanOrEqualTo(CPU *cpu) {
     if (invalidRegisters(3, cpu->instRegister.RField,
                             cpu->instRegister.LField,
                             cpu->instRegister.MField)) { 
@@ -384,7 +384,7 @@ int _operationIsLessThanOrEqualTo(CPU *cpu) {
 }
 
 // Store 1 in register R if register L is greater than to register M, else store 0.
-int _operationIsGreaterThan(CPU *cpu) {
+int operationIsGreaterThan(CPU *cpu) {
     if (invalidRegisters(3, cpu->instRegister.RField,
                             cpu->instRegister.LField,
                             cpu->instRegister.MField)) { 
@@ -399,7 +399,7 @@ int _operationIsGreaterThan(CPU *cpu) {
 }
 
 // Store 1 in register R if register L is greater than or equal to register M, else store 0.
-int _operationIsGreaterThanOrEqualTo(CPU *cpu) {
+int operationIsGreaterThanOrEqualTo(CPU *cpu) {
     if (invalidRegisters(3, cpu->instRegister.RField,
                             cpu->instRegister.LField,
                             cpu->instRegister.MField)) { 
