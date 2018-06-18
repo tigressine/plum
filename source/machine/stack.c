@@ -11,14 +11,14 @@ int pushRecord(CPU *cpu, recordStack *stack) {
     recordStackItem *newRecord;
     
     if (cpu == NULL || stack == NULL) {
-        //printError(ERROR_NULL_CHECK);
+        printError(ERROR_NULL_CHECK);
 
         return SIGNAL_FAILURE;
     }
 
     // If there is not enough memory for a new record, return SIGNAL_FAILURE.
     if ((newRecord = malloc(sizeof(recordStackItem))) == NULL) {
-        //printError(ERROR_OUT_OF_MEMORY);
+        printError(ERROR_OUT_OF_MEMORY);
         
         return SIGNAL_FAILURE;
     }
@@ -45,7 +45,7 @@ int popRecord(recordStack *stack) {
     int returnValue;
 
     if (stack == NULL || stack->currentRecord == NULL) {
-        //printError(ERROR_NULL_CHECK);
+        printError(ERROR_NULL_CHECK);
         
         return SIGNAL_FAILURE;
     }
@@ -70,7 +70,7 @@ recordStackItem *peekRecord(recordStack *stack) {
 // Allocate the locals array in the given record.
 int allocateLocals(recordStackItem *record, int localCount) {
     if (record == NULL || record->locals != NULL) {
-        //printError(ERROR_NULL_CHECK);
+        printError(ERROR_NULL_CHECK);
         
         return SIGNAL_FAILURE;
     }
@@ -84,7 +84,7 @@ int allocateLocals(recordStackItem *record, int localCount) {
     // Else make a new locals array in the record.
     else if ((record->locals = calloc(1, sizeof(int) * localCount)) == NULL) {
         record->localCount = 0;
-        //printError(ERROR_OUT_OF_MEMORY);
+        printError(ERROR_OUT_OF_MEMORY);
 
         return SIGNAL_FAILURE;
     }
@@ -97,7 +97,7 @@ recordStackItem *getDynamicParent(recordStack *stack, int levels) {
     recordStackItem *desiredRecord;
 
     if (stack == NULL) {
-        //printError(ERROR_NULL_CHECK);
+        printError(ERROR_NULL_CHECK);
         
         return NULL;
     }
@@ -119,7 +119,7 @@ recordStackItem *getStaticParent(recordStack *stack, int levels) {
     recordStackItem *desiredRecord;
 
     if (stack == NULL) {
-        //printError(ERROR_NULL_CHECK);
+        printError(ERROR_NULL_CHECK);
         
         return NULL;
     }
