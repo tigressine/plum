@@ -224,7 +224,7 @@ int fetchInstruction(CPU *cpu, instruction *instructions) {
 
 // Execute instruction loaded into CPU.
 int executeInstruction(CPU *cpu, recordStack *stack) {
-    if (cpu == NULL || stack == NULL) {
+    if (cpu == NULL || stack == NULL || stack->currentRecord == NULL) {
         //printError(ERROR_NULL_CHECK);
         
         return SIGNAL_FAILURE;
@@ -233,28 +233,28 @@ int executeInstruction(CPU *cpu, recordStack *stack) {
     // Execute the corresponding function for the instruction
     // loaded into the instRegister.
     switch (cpu->instRegister.opCode) {
-        case LIT: return opLiteral(cpu);
-        case RTN: return opReturn(cpu, stack);
-        case LOD: return opLoad(cpu, stack);
-        case STO: return opStore(cpu, stack);
-        case CAL: return opCall(cpu, stack);
-        case INC: return opAllocate(cpu, stack);
-        case JMP: return opJump(cpu);
-        case JPC: return opConditionalJump(cpu);
-        case SIO: return opSystemCall(cpu);
-        case NEG: return opNegate(cpu);
-        case ADD: return opAdd(cpu);
-        case SUB: return opSubtract(cpu);
-        case MUL: return opMultiply(cpu);
-        case DIV: return opDivide(cpu);
-        case ODD: return opIsOdd(cpu);
-        case MOD: return opModulus(cpu);
-        case EQL: return opIsEqual(cpu);
-        case NEQ: return opIsNotEqual(cpu);
-        case LSS: return opIsLessThan(cpu);
-        case LEQ: return opIsLessThanOrEqualTo(cpu);
-        case GTR: return opIsGreaterThan(cpu);
-        case GEQ: return opIsGreaterThanOrEqualTo(cpu);
+        case LIT: return _operationLiteral(cpu);
+        case RTN: return _operationReturn(cpu, stack);
+        case LOD: return _operationLoad(cpu, stack);
+        case STO: return _operationStore(cpu, stack);
+        case CAL: return _operationCall(cpu, stack);
+        case INC: return _operationAllocate(cpu, stack);
+        case JMP: return _operationJump(cpu);
+        case JPC: return _operationConditionalJump(cpu);
+        case SIO: return _operationSystemCall(cpu);
+        case NEG: return _operationNegate(cpu);
+        case ADD: return _operationAdd(cpu);
+        case SUB: return _operationSubtract(cpu);
+        case MUL: return _operationMultiply(cpu);
+        case DIV: return _operationDivide(cpu);
+        case ODD: return _operationIsOdd(cpu);
+        case MOD: return _operationModulus(cpu);
+        case EQL: return _operationIsEqual(cpu);
+        case NEQ: return _operationIsNotEqual(cpu);
+        case LSS: return _operationIsLessThan(cpu);
+        case LEQ: return _operationIsLessThanOrEqualTo(cpu);
+        case GTR: return _operationIsGreaterThan(cpu);
+        case GEQ: return _operationIsGreaterThanOrEqualTo(cpu);
         
         default:
             //printError(ERROR_UNKNOWN_OPCODE);
