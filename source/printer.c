@@ -31,6 +31,11 @@ void printError(int errorCode, ...) {
         "input file required as second argument",
         "attempt to dereference null",
         "program ran out of memory"
+        "register is out of bounds: %d",
+        "static parent does not exist",
+        "local index is out of bounds: %d",
+        "illegal system call: %d",
+        "attempted dividing by zero"
     };
 
     // Initialize the variadic argument list, starting after errorCode.
@@ -43,8 +48,11 @@ void printError(int errorCode, ...) {
         case ERROR_SYMBOL_EXPECTED:
         case ERROR_NUMBER_TOO_LARGE:
         case ERROR_MISSING_ARGUMENT:
+        case ERROR_INVALID_REGISTER:
         case ERROR_UNKNOWN_CHARACTER:
         case ERROR_ILLEGAL_TOKEN_START:
+        case ERROR_LOCAL_OUT_OF_BOUNDS:
+        case ERROR_ILLEGAL_SYSTEM_CALL:
         case ERROR_ILLEGAL_FOLLOW_TOKEN:
         case ERROR_UNDECLARED_IDENTIFIER:
             // Call a safe version of sprintf that also handles variadic lists.

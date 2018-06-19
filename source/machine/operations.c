@@ -103,7 +103,7 @@ int operationLoad(CPU *cpu, recordStack *stack) {
         }
         // Otherwise value is bad, so operation fails.
         else {
-            printError(ERROR_LOCAL_OUT_OF_BOUNDS);
+            printError(ERROR_LOCAL_OUT_OF_BOUNDS, index);
 
             return SIGNAL_FAILURE;
         }
@@ -148,7 +148,7 @@ int operationStore(CPU *cpu, recordStack *stack) {
         // trying to override some of the other activation record fields (like the
         // dynamic link) and this isn't allowed.
         else {
-            printError(ERROR_LOCAL_OUT_OF_BOUNDS);
+            printError(ERROR_LOCAL_OUT_OF_BOUNDS, index);
 
             return SIGNAL_FAILURE;
         }
@@ -178,7 +178,17 @@ int operationCall(CPU *cpu, recordStack *stack) {
 }
 
 // Allocate locals in top level activation record.
-int operationAllocate(CPU *cpu, recordStack *stack) {//move errors to stack
+int operationAllocate(CPU *cpu, recordStack *stack) {
+    if (invalidCPUState(cpu, 0)) {
+        return SIGNAL_FAILURE;
+    }
+
+    if (stack == NULL) {
+        printError(ERROR_NULL_CHECK);
+
+        return SIGNAL_FAILURE;
+    }
+
     return allocateLocals(stack->currentRecord, cpu->instRegister.MField - INT_OFFSET);
 }
 
@@ -234,7 +244,7 @@ int operationSystemCall(CPU *cpu) {
         return SIGNAL_KILL;
     }
     else {
-        printError(ERROR_ILLEGAL_SYSTEM_CALL);
+        printError(ERROR_ILLEGAL_SYSTEM_CALL, cpu->instRegister.MField);
 
         return SIGNAL_FAILURE;
     }
