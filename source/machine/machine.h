@@ -62,7 +62,8 @@ int executeInstruction(CPU*, recordStack*);
 int destroyInstructions(instruction*);
 
 // Operations functional prototypes.
-int invalidRegisters(int, ...);
+int invalidRegister(int);
+int invalidCPUState(CPU*, int);
 int operationLiteral(CPU*);
 int operationReturn(CPU*, recordStack*);
 int operationLoad(CPU*, recordStack*);
