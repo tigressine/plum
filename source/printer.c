@@ -152,41 +152,43 @@ void printLexemeTable(char *filename) {
     fclose(f);
 }
 */
-/*
+
 // Print out a nice header for the stack trace.
-void printStackTraceHeader(int traceToggles) {
+void printStackTraceHeader(int options) {
     printf("Program stack trace:\n");
     printf("OP  R  L  M     PC    |");
 
-    if (traceToggles & TRACE_RECORDS) {
+    if (checkOption(&options, OPTION_TRACE_RECORDS)) {
         printf(" RV  RA   (LOCALS) |");
     }
-    if (traceToggles & TRACE_REGISTERS) {
+    if (checkOption(&options, OPTION_TRACE_REGISTERS)) {
         printf(" REGS");
     }
     printf("\n");
 
     printf("----------------------");
-    if (traceToggles & TRACE_RECORDS) {
+    if (checkOption(&options, OPTION_TRACE_RECORDS)) {
         printf("--------------------");
     }
-    if (traceToggles & TRACE_REGISTERS) {
+    if (checkOption(&options, OPTION_TRACE_REGISTERS)) {
         printf("-------");
     }
     printf("\n");
 }
 
 // Print out all associated objects with the program.
-void printStackTraceLine(CPU *cpu, recordStack *stack, int traceToggles) {
+void printStackTraceLine(CPU *cpu, recordStack *stack, int options) {
     if (cpu == NULL || stack == NULL) {
+        printError(ERROR_NULL_CHECK);
+        
         return;
     }
     
     printCPU(cpu);
-    if (traceToggles & TRACE_RECORDS) {
+    if (checkOption(&options, OPTION_TRACE_RECORDS)) {
         printRecords(stack->currentRecord);
     }
-    if (traceToggles & TRACE_REGISTERS) {
+    if (checkOption(&options, OPTION_TRACE_REGISTERS)) {
         printRegisters(cpu);
     }
     printf("\n");
@@ -197,6 +199,8 @@ void printRegisters(CPU *cpu) {
     int i;
     
     if (cpu == NULL) {
+        printError(ERROR_NULL_CHECK);
+        
         return;
     }
     
@@ -208,6 +212,8 @@ void printRegisters(CPU *cpu) {
 // Print CPU instruction and program counter.
 void printCPU(CPU *cpu) {
     if (cpu == NULL) {
+        printError(ERROR_NULL_CHECK);
+        
         return;
     }
 
@@ -248,6 +254,8 @@ void printRecords(recordStackItem *record) {
     int i;
     
     if (record == NULL) {
+        printError(ERROR_NULL_CHECK);
+        
         return;
     }
    
@@ -260,4 +268,3 @@ void printRecords(recordStackItem *record) {
     }
     printf(" | ");
 }
-*/
