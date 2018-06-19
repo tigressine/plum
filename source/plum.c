@@ -1,31 +1,7 @@
 #include <stdio.h>
 #include <string.h>
-#include "machine/machine.h"
+#include "plum.h"
 //#include "scanner/scanner.h"
-
-// Set an option flag to true in an options int.
-void setOption(int *options, int option) {
-    *options |= (1 << option);
-}
-
-// See if an option is enabled in an options int.
-int checkOption(int *options, int option) {
-    return (*options & (1 << option));
-}
-
-// Check if the provided file exists.
-int fileExists(char *filename) {
-    FILE *f;
-
-    if ((f = fopen(filename, "r")) == NULL) {
-        return 0;
-    }
-    else {
-        fclose(f);
-    
-        return 1;
-    }
-}
 
 // Get the mode of the machine.
 int getMode(char *mode) {

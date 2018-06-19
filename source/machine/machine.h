@@ -1,4 +1,5 @@
-#include "../plum.h"
+#ifndef MACHINE_H
+#define MACHINE_H
 
 // Constants.
 #define INT_OFFSET 4
@@ -97,3 +98,5 @@ recordStackItem *getDynamicParent(recordStack*, int);
 recordStackItem *getStaticParent(recordStack*, int);
 int isEmpty(recordStack*);
 recordStack *destroyRecordStack(recordStack*);
+
+#endif

@@ -1,5 +1,5 @@
 #include <stdlib.h>
-#include "machine.h"
+#include "../plum.h"
 
 // Return an empty record stack.
 recordStack *initializeRecordStack(void) {

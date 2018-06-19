@@ -1,6 +1,6 @@
 #include <stdio.h>
 #include <stdarg.h>
-#include "machine.h"
+#include "../plum.h"
 
 int invalidRegister(int index) {
     if (index < 0 || index >= REGISTER_COUNT) {

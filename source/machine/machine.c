@@ -1,6 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include "machine.h"
+#include "../plum.h"
 
 int startMachine(char *inFile, int options) {
     int instructionCount;
