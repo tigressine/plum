@@ -2,37 +2,44 @@
 #include <stdarg.h>
 #include "machine.h"
 
-// Check that provided registers are all valid for the CPU.
-int invalidRegisters(int count, ...) {
-    int currentRegister;
-    va_list registers;
-    int i;
+int invalidRegister(int index) {
+    if (index < 0 || index >= REGISTER_COUNT) {
+        printError(ERROR_INVALID_REGISTER, index);
 
-    // Initialize the arguments list of the variadic function.
-    va_start(registers, count);
+        return SIGNAL_TRUE;
+    }
+    else {
+        return SIGNAL_FALSE;
+    }
+}
 
-    for (i = 0; i < count; i++) {
-        // If the next register is out of bounds, return true.
-        currentRegister = va_arg(registers, int);
-        if (currentRegister < 0 || currentRegister >= REGISTER_COUNT) {
-            va_end(registers);
+int invalidCPUState(CPU *cpu, int registerCheck) {
+    if (cpu == NULL) {
+        printError(ERROR_NULL_CHECK);
 
-            return 1;
+        return SIGNAL_TRUE;
+    }
+
+    if (registerCheck == 1) {
+        if (invalidRegister(cpu->instRegister.RField)) {
+            return SIGNAL_TRUE;
         }
     }
-    
-    // Close the argument list for the variadic function.
-    va_end(registers);
-
-    // All the registers were inbounds. Return false.
-    return 0;
+    else if (registerCheck == 3) {
+        if (invalidRegister(cpu->instRegister.RField) ||
+            invalidRegister(cpu->instRegister.LField) ||
+            invalidRegister(cpu->instRegister.MField)) {
+       
+            return SIGNAL_TRUE;
+        }
+    }
+        
+    return SIGNAL_FALSE;
 }
 
 // Load a literal value into register R.
 int operationLiteral(CPU *cpu) {
-    if (invalidRegisters(1, cpu->instRegister.RField)) {
-        //printError(ERROR_INVALID_REGISTER);
-        
+    if (invalidCPUState(cpu, 1)) {
         return SIGNAL_FAILURE;
     }
     
@@ -44,6 +51,16 @@ int operationLiteral(CPU *cpu) {
 // Revert programCounter to the top activation record's returnAddress, then pops
 // the top record.
 int operationReturn(CPU *cpu, recordStack *stack) {
+    if (invalidCPUState(cpu, 0)) {
+        return SIGNAL_FAILURE;
+    }
+    
+    if (stack == NULL) {
+        printError(ERROR_NULL_CHECK);
+
+        return SIGNAL_FAILURE;
+    }
+
     cpu->programCounter = stack->currentRecord->returnAddress;
     
     return popRecord(stack);
@@ -54,15 +71,19 @@ int operationLoad(CPU *cpu, recordStack *stack) {
     recordStackItem *desiredRecord;
     int index;
     
-    if (invalidRegisters(1, cpu->instRegister.RField)) {
-        //printError(ERROR_INVALID_REGISTER);
-        
+    if (invalidCPUState(cpu, 1)) {
+        return SIGNAL_FAILURE;
+    }
+
+    if (stack == NULL) {
+        printError(ERROR_NULL_CHECK);
+
         return SIGNAL_FAILURE;
     }
 
     // Get the static parent of the top level record, L levels down.
     if ((desiredRecord = getStaticParent(stack, cpu->instRegister.LField)) == NULL) {
-        //printError(ERROR_ILLEGAL_STATIC_PARENT);
+        printError(ERROR_INVALID_STATIC_PARENT);
         
         return SIGNAL_FAILURE;
     }
@@ -82,7 +103,7 @@ int operationLoad(CPU *cpu, recordStack *stack) {
         }
         // Otherwise value is bad, so operation fails.
         else {
-            //printError(ERROR_OUT_OF_LOCALS);
+            printError(ERROR_LOCAL_OUT_OF_BOUNDS);
 
             return SIGNAL_FAILURE;
         }
@@ -96,15 +117,19 @@ int operationStore(CPU *cpu, recordStack *stack) {
     recordStackItem *desiredRecord;
     int index;
 
-    if (invalidRegisters(1, cpu->instRegister.RField)) {
-        //printError(ERROR_INVALID_REGISTER);
-        
+    if (invalidCPUState(cpu, 1)) {
+        return SIGNAL_FAILURE;
+    }
+    
+    if (stack == NULL) {
+        printError(ERROR_NULL_CHECK);
+
         return SIGNAL_FAILURE;
     }
 
     // Get the static parent of the top level record, L levels down.
     if ((desiredRecord = getStaticParent(stack, cpu->instRegister.LField)) == NULL) {
-        //printError(ERROR_ILLEGAL_STATIC_PARENT);
+        printError(ERROR_INVALID_STATIC_PARENT);//move to function
         
         return SIGNAL_FAILURE;
     }
@@ -123,7 +148,7 @@ int operationStore(CPU *cpu, recordStack *stack) {
         // trying to override some of the other activation record fields (like the
         // dynamic link) and this isn't allowed.
         else {
-            //printError(ERROR_OUT_OF_LOCALS);
+            printError(ERROR_LOCAL_OUT_OF_BOUNDS);
 
             return SIGNAL_FAILURE;
         }
@@ -134,6 +159,16 @@ int operationStore(CPU *cpu, recordStack *stack) {
 
 // Push a new activation record environment onto the stack.
 int operationCall(CPU *cpu, recordStack *stack) {
+    if (invalidCPUState(cpu, 0)) {
+        return SIGNAL_FAILURE;
+    }
+
+    if (stack == NULL) {
+        printError(ERROR_NULL_CHECK);
+
+        return SIGNAL_FAILURE;
+    }
+    
     pushRecord(cpu, stack);
     
     // Program jumps to subroutine.
@@ -143,12 +178,16 @@ int operationCall(CPU *cpu, recordStack *stack) {
 }
 
 // Allocate locals in top level activation record.
-int operationAllocate(CPU *cpu, recordStack *stack) {
+int operationAllocate(CPU *cpu, recordStack *stack) {//move errors to stack
     return allocateLocals(stack->currentRecord, cpu->instRegister.MField - INT_OFFSET);
 }
 
 // Update programCounter to value of M field.
 int operationJump(CPU *cpu) {
+    if (invalidCPUState(cpu, 0)) {
+        return SIGNAL_FAILURE;
+    }
+
     cpu->programCounter = cpu->instRegister.MField;
 
     return SIGNAL_SUCCESS;
@@ -156,9 +195,7 @@ int operationJump(CPU *cpu) {
 
 // Update programCounter to value of M field if register R is zero.
 int operationConditionalJump(CPU *cpu) {
-    if (invalidRegisters(1, cpu->instRegister.RField)) {
-        //printError(ERROR_INVALID_REGISTERS);
-        
+    if (invalidCPUState(cpu, 1)) {
         return SIGNAL_FAILURE;
     }
 
@@ -171,49 +208,41 @@ int operationConditionalJump(CPU *cpu) {
 
 // System calls capable of printing, scanning, and ending program.
 int operationSystemCall(CPU *cpu) {
-    switch (cpu->instRegister.MField) {
-        // System call to print from a register.
-        case 1:
-            if (invalidRegisters(1, cpu->instRegister.RField)) {
-                //printError(ERROR_INVALID_REGISTER);
-                
-                return SIGNAL_FAILURE;
-            }
-            printf("%d\n", cpu->registers[cpu->instRegister.RField]);
-            
-            return SIGNAL_SUCCESS;
-    
-        // System call to read data from user into a register.
-        case 2:
-            if (invalidRegisters(1, cpu->instRegister.RField)) {
-                //printError(ERROR_INVALID_REGISTER);
-                
-                return SIGNAL_FAILURE;
-            }
-            scanf("%d", &cpu->registers[cpu->instRegister.RField]);
-            
-            return SIGNAL_SUCCESS;
-       
-        // System call to terminate the program.
-        case 3:
-            cpu->programCounter = 0;
+    if (invalidCPUState(cpu, 0)) {
+        return SIGNAL_FAILURE;
+    }
 
-            return SIGNAL_KILL;
-        
-        default:
-            //printError(ERROR_ILLEGAL_SYSTEM_CALL);
-
+    if (cpu->instRegister.MField == CALL_PRINT) {
+        if (invalidRegister(cpu->instRegister.RField)) {
             return SIGNAL_FAILURE;
+        }
+        printf("%d\n", cpu->registers[cpu->instRegister.RField]);
+        
+        return SIGNAL_SUCCESS;
+    }
+    else if (cpu->instRegister.MField == CALL_SCAN) {
+        if (invalidRegister(cpu->instRegister.RField)) {
+            return SIGNAL_FAILURE;
+        }
+        scanf("%d", &cpu->registers[cpu->instRegister.RField]);
+        
+        return SIGNAL_SUCCESS;
+    }
+    else if (cpu->instRegister.MField == CALL_KILL) {
+        cpu->programCounter = 0;
+
+        return SIGNAL_KILL;
+    }
+    else {
+        printError(ERROR_ILLEGAL_SYSTEM_CALL);
+
+        return SIGNAL_FAILURE;
     }
 }
 
 // Negate register L and save in register R.
 int operationNegate(CPU *cpu) {
-    if (invalidRegisters(3, cpu->instRegister.RField,
-                            cpu->instRegister.LField,
-                            cpu->instRegister.MField)) { 
-        //printError(ERROR_INVALID_REGISTER);
-        
+    if (invalidCPUState(cpu, 3)) {
         return SIGNAL_FAILURE;
     }
 
@@ -224,11 +253,7 @@ int operationNegate(CPU *cpu) {
 
 // Add registers L and M into register R.
 int operationAdd(CPU *cpu) {
-    if (invalidRegisters(3, cpu->instRegister.RField,
-                            cpu->instRegister.LField,
-                            cpu->instRegister.MField)) { 
-        //printError(ERROR_INVALID_REGISTER);
-        
+    if (invalidCPUState(cpu, 3)) {
         return SIGNAL_FAILURE;
     }
     
@@ -239,11 +264,7 @@ int operationAdd(CPU *cpu) {
 
 // Subract register M from register L and store in register R.
 int operationSubtract(CPU *cpu) {
-    if (invalidRegisters(3, cpu->instRegister.RField,
-                            cpu->instRegister.LField,
-                            cpu->instRegister.MField)) { 
-        //printError(ERROR_INVALID_REGISTER);
-        
+    if (invalidCPUState(cpu, 3)) {
         return SIGNAL_FAILURE;
     }
     
@@ -254,11 +275,7 @@ int operationSubtract(CPU *cpu) {
 
 // Multiply registers L and M and store in register R.
 int operationMultiply(CPU *cpu) {
-    if (invalidRegisters(3, cpu->instRegister.RField,
-                            cpu->instRegister.LField,
-                            cpu->instRegister.MField)) { 
-        //printError(ERROR_INVALID_REGISTER);
-        
+    if (invalidCPUState(cpu, 3)) {
         return SIGNAL_FAILURE;
     }
     
@@ -269,16 +286,12 @@ int operationMultiply(CPU *cpu) {
 
 // Divide register L by register M and store in register R.
 int operationDivide(CPU *cpu) {
-    if (invalidRegisters(3, cpu->instRegister.RField,
-                            cpu->instRegister.LField,
-                            cpu->instRegister.MField)) { 
-        //printError(ERROR_INVALID_REGISTER);
-        
+    if (invalidCPUState(cpu, 3)) {
         return SIGNAL_FAILURE;
     }
     
     if (cpu->registers[cpu->instRegister.MField] == 0) {
-        //printError(ERROR_DIVIDE_BY_ZERO);
+        printError(ERROR_DIVIDE_BY_ZERO);
         
         return SIGNAL_FAILURE;
     }
@@ -290,11 +303,7 @@ int operationDivide(CPU *cpu) {
 
 // Store 1 in register R if register R is odd, else store 0.
 int operationIsOdd(CPU *cpu) {
-    if (invalidRegisters(3, cpu->instRegister.RField,
-                            cpu->instRegister.LField,
-                            cpu->instRegister.MField)) { 
-        //printError(ERROR_INVALID_REGISTER);
-        
+    if (invalidCPUState(cpu, 3)) {
         return SIGNAL_FAILURE;
     }
     
@@ -310,11 +319,7 @@ int operationIsOdd(CPU *cpu) {
 
 // Store remainder of division of register L by register M in register R.
 int operationModulus(CPU *cpu) {
-    if (invalidRegisters(3, cpu->instRegister.RField,
-                            cpu->instRegister.LField,
-                            cpu->instRegister.MField)) { 
-        //printError(ERROR_INVALID_REGISTER);
-        
+    if (invalidCPUState(cpu, 3)) {
         return SIGNAL_FAILURE;
     }
     
@@ -325,11 +330,7 @@ int operationModulus(CPU *cpu) {
 
 // Store 1 in register R if registers L and M are equal, else store 0.
 int operationIsEqual(CPU *cpu) {
-    if (invalidRegisters(3, cpu->instRegister.RField,
-                            cpu->instRegister.LField,
-                            cpu->instRegister.MField)) { 
-        //printError(ERROR_INVALID_REGISTER);
-        
+    if (invalidCPUState(cpu, 3)) {
         return SIGNAL_FAILURE;
     }
     
@@ -340,11 +341,7 @@ int operationIsEqual(CPU *cpu) {
 
 // Store 1 in register R if registers L and M are not equal, else store 0.
 int operationIsNotEqual(CPU *cpu) {
-    if (invalidRegisters(3, cpu->instRegister.RField,
-                            cpu->instRegister.LField,
-                            cpu->instRegister.MField)) { 
-        //printError(ERROR_INVALID_REGISTER);
-        
+    if (invalidCPUState(cpu, 3)) {
         return SIGNAL_FAILURE;
     }
     
@@ -355,11 +352,7 @@ int operationIsNotEqual(CPU *cpu) {
 
 // Store 1 in register R if register L is less than register M, else store 0.
 int operationIsLessThan(CPU *cpu) {
-    if (invalidRegisters(3, cpu->instRegister.RField,
-                            cpu->instRegister.LField,
-                            cpu->instRegister.MField)) { 
-        //printError(ERROR_INVALID_REGISTER);
-        
+    if (invalidCPUState(cpu, 3)) {
         return SIGNAL_FAILURE;
     }
     
@@ -370,11 +363,7 @@ int operationIsLessThan(CPU *cpu) {
 
 // Store 1 in register R if register L is less than or equal to register M, else store 0.
 int operationIsLessThanOrEqualTo(CPU *cpu) {
-    if (invalidRegisters(3, cpu->instRegister.RField,
-                            cpu->instRegister.LField,
-                            cpu->instRegister.MField)) { 
-        //printError(ERROR_INVALID_REGISTER);
-        
+    if (invalidCPUState(cpu, 3)) {
         return SIGNAL_FAILURE;
     }
     
@@ -385,11 +374,7 @@ int operationIsLessThanOrEqualTo(CPU *cpu) {
 
 // Store 1 in register R if register L is greater than to register M, else store 0.
 int operationIsGreaterThan(CPU *cpu) {
-    if (invalidRegisters(3, cpu->instRegister.RField,
-                            cpu->instRegister.LField,
-                            cpu->instRegister.MField)) { 
-        //printError(ERROR_INVALID_REGISTER);
-        
+    if (invalidCPUState(cpu, 3)) {
         return SIGNAL_FAILURE;
     }
     
@@ -400,11 +385,7 @@ int operationIsGreaterThan(CPU *cpu) {
 
 // Store 1 in register R if register L is greater than or equal to register M, else store 0.
 int operationIsGreaterThanOrEqualTo(CPU *cpu) {
-    if (invalidRegisters(3, cpu->instRegister.RField,
-                            cpu->instRegister.LField,
-                            cpu->instRegister.MField)) { 
-        //printError(ERROR_INVALID_REGISTER);
-        
+    if (invalidCPUState(cpu, 3)) {
         return SIGNAL_FAILURE;
     }
     
