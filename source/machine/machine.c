@@ -161,11 +161,13 @@ int processInstructions(instruction *instructions, int instructionCount, int opt
   
     // Push an initial record onto the stack for the main environment.
     pushRecord(cpu, stack);
-   
-    /*
-    if (options) {//this will be wrong, need to use checks
+  
+    if (checkOption(&options, OPTION_TRACE_CPU) ||
+        checkOption(&options, OPTION_TRACE_RECORDS) ||
+        checkOption(&options, OPTION_TRACE_REGISTERS)) {
+    
         printStackTraceHeader(options);
-    }*/
+    }
 
     // Perform successive fetches and executes for the array of instructions
     // until an error occurs or a SIGNAL_KILL system call is made.
@@ -185,10 +187,12 @@ int processInstructions(instruction *instructions, int instructionCount, int opt
             return SIGNAL_FAILURE;
         }
 
-        /*
-        if (options) {///again this will be wrong
+        if (checkOption(&options, OPTION_TRACE_CPU) ||
+            checkOption(&options, OPTION_TRACE_RECORDS) ||
+            checkOption(&options, OPTION_TRACE_REGISTERS)) {
+        
             printStackTraceLine(cpu, stack, options);
-        }*/
+        }
     }
 
     // Stay memory safe!
