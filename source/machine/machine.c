@@ -7,7 +7,7 @@ int startMachine(char *inFile, int options) {
     instruction *instructions;
 
     if (inFile == NULL) {
-        //printError(ERROR_NULL_CHECK);
+        printError(ERROR_NULL_CHECK);
 
         return SIGNAL_FAILURE;
     }
@@ -57,7 +57,7 @@ int countInstructions(char *filename) {
     char buffer;
 
     if (filename == NULL) {
-        //printError(ERROR_NULL_CHECK);
+        printError(ERROR_NULL_CHECK);
         
         return SIGNAL_FAILURE;
     }
@@ -78,7 +78,7 @@ int countInstructions(char *filename) {
             // file and return SIGNAL_FAILURE.
             else {
                 fclose(f);
-                //printError(ERROR_FILE_TOO_LONG, filename);
+                printError(ERROR_FILE_TOO_LONG, filename);
 
                 return SIGNAL_FAILURE;
             }
@@ -97,14 +97,14 @@ instruction *loadInstructions(char *filename, int instructionCount) {
     instruction *instructions;
 
     if (filename == NULL) {
-        //printError(ERROR_NULL_CHECK);
+        printError(ERROR_NULL_CHECK);
         
         return NULL;
     }
 
     // If the file can't be opened, return NULL.
     if ((f = fopen(filename, "r")) == NULL) {
-        //printError(ERROR_FILE_NOT_FOUND, filename);
+        printError(ERROR_FILE_NOT_FOUND, filename);
         
         return NULL;
     }
@@ -113,7 +113,7 @@ instruction *loadInstructions(char *filename, int instructionCount) {
     // close the file and return NULL.
     if ((instructions = malloc(sizeof(instruction) * instructionCount)) == NULL) {
         fclose(f);
-        //printError(ERROR_OUT_OF_MEMORY);
+        printError(ERROR_OUT_OF_MEMORY);
 
         return NULL;
     }
@@ -140,21 +140,21 @@ int processInstructions(instruction *instructions, int instructionCount, int opt
     recordStack *stack;
 
     if (instructions == NULL || instructionCount == 0) {
-        //printError(ERROR_NULL_CHECK);
+        printError(ERROR_NULL_CHECK);
 
         return SIGNAL_FAILURE;
     }
 
     // If CPU can't be allocated, return SIGNAL_FAILURE.
     if ((cpu = createCPU(instructionCount)) == NULL) {
-        //printError(ERROR_OUT_OF_MEMORY);
+        printError(ERROR_OUT_OF_MEMORY);
         
         return SIGNAL_FAILURE;
     }
 
     if ((stack = initializeRecordStack()) == NULL) {
         destroyCPU(cpu);
-        //printError(ERROR_OUT_OF_MEMORY);
+        printError(ERROR_OUT_OF_MEMORY);
         
         return SIGNAL_FAILURE;
     }
@@ -201,7 +201,7 @@ int processInstructions(instruction *instructions, int instructionCount, int opt
 // Fetch next instruction from instructions and place in the CPU instRegister.
 int fetchInstruction(CPU *cpu, instruction *instructions) {
     if (cpu == NULL || instructions == NULL) {
-        //printError(ERROR_NULL_CHECK);
+        printError(ERROR_NULL_CHECK);
         
         return SIGNAL_FAILURE;
     }
@@ -216,7 +216,7 @@ int fetchInstruction(CPU *cpu, instruction *instructions) {
         return SIGNAL_SUCCESS;
     }
     else {
-        //printError(ERROR_PROGRAM_COUNTER_OUT_OF_BOUNDS);
+        printError(ERROR_PROGRAM_COUNTER_OUT_OF_BOUNDS, cpu->programCounter);
 
         return SIGNAL_FAILURE;
     }
@@ -225,7 +225,7 @@ int fetchInstruction(CPU *cpu, instruction *instructions) {
 // Execute instruction loaded into CPU.
 int executeInstruction(CPU *cpu, recordStack *stack) {
     if (cpu == NULL || stack == NULL || stack->currentRecord == NULL) {
-        //printError(ERROR_NULL_CHECK);
+        printError(ERROR_NULL_CHECK);
         
         return SIGNAL_FAILURE;
     }
@@ -257,7 +257,7 @@ int executeInstruction(CPU *cpu, recordStack *stack) {
         case GEQ: return operationIsGreaterThanOrEqualTo(cpu);
         
         default:
-            //printError(ERROR_UNKNOWN_OPCODE);
+            printError(ERROR_ILLEGAL_OPCODE, cpu->instRegister.opCode);
             
             return SIGNAL_FAILURE;
     }
