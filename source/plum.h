@@ -7,7 +7,9 @@ enum Signals {
     SIGNAL_FAILURE = INT_MIN,
     SIGNAL_SUCCESS,
     SIGNAL_RECOVERY,
-    SIGNAL_KILL
+    SIGNAL_KILL,
+    SIGNAL_FALSE = 0,
+    SIGNAL_TRUE = 1
 };
 
 // The full collection of errors that this program can throw.
@@ -32,6 +34,17 @@ enum Errors {
     ERROR_NO_SOURCE,
     ERROR_NULL_CHECK,
     ERROR_OUT_OF_MEMORY,
+    ERROR_INVALID_REGISTER,//
+    ERROR_INVALID_STATIC_PARENT,//
+    ERROR_LOCAL_OUT_OF_BOUNDS,//
+    ERROR_ILLEGAL_SYSTEM_CALL,//
+    ERROR_DIVIDE_BY_ZERO
+};
+
+enum SystemCalls {
+    CALL_PRINT = 1,
+    CALL_SCAN,
+    CALL_KILL
 };
 
 // All possible options for processing files.
