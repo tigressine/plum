@@ -254,8 +254,6 @@ void printRecords(recordStackItem *record) {
     int i;
     
     if (record == NULL) {
-        printError(ERROR_NULL_CHECK);
-        
         return;
     }
    
