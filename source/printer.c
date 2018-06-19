@@ -36,6 +36,9 @@ void printError(int errorCode, ...) {
         "local index is out of bounds: %d",
         "illegal system call: %d",
         "attempted dividing by zero"
+        "file too long: %s",
+        "program counter out of bounds: %d",
+        "illegal operation code: %d"
     };
 
     // Initialize the variadic argument list, starting after errorCode.

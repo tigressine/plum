@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <string.h>
-#include "scanner/scanner.h"
+#include "machine/machine.h"
+//#include "scanner/scanner.h"
 
 // Set an option flag to true in an options int.
 void setOption(int *options, int option) {
@@ -49,7 +50,7 @@ int getMode(char *mode) {
         }
     }
     
-    return OPERATION_FAILURE;
+    return SIGNAL_FAILURE;
 }
 
 // Process all arguments and flags for the program.
@@ -114,14 +115,14 @@ int getOutFile(int argCount, char **argsVector) {
             else {
                 printError(ERROR_MISSING_ARGUMENT, argsVector[argIndex]);
                 
-                return OPERATION_FAILURE;
+                return SIGNAL_FAILURE;
             }
         }
     }
 
     // Signal to the caller that there is no specified output file, so
     // it must be set to a default.
-    return OPERATION_REQUIRES_RECOVERY;
+    return SIGNAL_RECOVERY;
 }
 
 // Main entry point of program.
@@ -140,7 +141,7 @@ int main(int argCount, char **argsVector) {
     }
 
     // If an invalid mode was passed as the first argument, terminate the program.
-    if ((mode = getMode(argsVector[1])) == OPERATION_FAILURE) {
+    if ((mode = getMode(argsVector[1])) == SIGNAL_FAILURE) {
         return 0;
     }
 
@@ -165,11 +166,11 @@ int main(int argCount, char **argsVector) {
 
     // If there's something wrong with how the output file is passed to the
     // program, terminate.
-    if ((outFileIndex = getOutFile(argCount, argsVector)) == OPERATION_FAILURE) {
+    if ((outFileIndex = getOutFile(argCount, argsVector)) == SIGNAL_FAILURE) {
         return 0;
     }
     // If there was no output flag, set outFile to a default.
-    else if (outFileIndex == OPERATION_REQUIRES_RECOVERY) {
+    else if (outFileIndex == SIGNAL_RECOVERY) {
         outFile = DEFAULT_OUTPUT_FILE;
     }
     // Set outFile to the array in the vector at the provided index.
@@ -188,6 +189,7 @@ int main(int argCount, char **argsVector) {
             break;
 
         case MODE_EXECUTE:
+            startMachine(inFile, options);
             break;
     }
 
