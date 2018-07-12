@@ -1,6 +1,5 @@
 // Part of Plum by Tiger Sachse.
 
-#include <limits.h>
 #include <stdio.h>
 #include "../plum.h"
 

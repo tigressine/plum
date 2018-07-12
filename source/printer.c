@@ -25,23 +25,23 @@ void printError(int errorCode, ...) {
         "call of constant or variable is meaningless",
         "expression must not contain a procedure identifier",
         "%s cannot begin with %s",
-        "number too large: %s",
-        "file not found: %s",
-        "unknown character: %c",
-        "argument missing for flag: %s",
+        "number too large: %s",//
+        "file not found: %s",//
+        "unknown character: %c",//
+        "argument missing for flag: %s",//
         "unknown arguments passed to program",
-        "bad mode specified: %s",
-        "no mode specified",
-        "input file required as second argument",
-        "attempt to dereference null",
-        "program ran out of memory"
+        "bad mode specified: %s",//
+        "no mode specified",//
+        "input file required as second argument",//
+        "attempt to dereference null",//
+        "program ran out of memory",
         "register is out of bounds: %d",
         "static parent does not exist",
         "dynamic parent does not exist",
         "local index is out of bounds: %d",
         "illegal system call: %d",
-        "attempted dividing by zero"
-        "file too long: %s",
+        "attempted dividing by zero",
+        "file too long: %s",//
         "program counter out of bounds: %d",
         "illegal operation code: %d"
     };
@@ -52,6 +52,8 @@ void printError(int errorCode, ...) {
     switch (errorCode) {
         // Errors that must be formatted first.
         case ERROR_BAD_MODE:
+        case ERROR_FILE_TOO_LONG:
+        case ERROR_ILLEGAL_OPCODE:
         case ERROR_TOKEN_TOO_LONG:
         case ERROR_FILE_NOT_FOUND:
         case ERROR_SYMBOL_EXPECTED:
@@ -65,6 +67,7 @@ void printError(int errorCode, ...) {
         case ERROR_ILLEGAL_SYSTEM_CALL:
         case ERROR_ILLEGAL_FOLLOW_TOKEN:
         case ERROR_UNDECLARED_IDENTIFIER:
+        case ERROR_PROGRAM_COUNTER_OUT_OF_BOUNDS:
             // Call a safe version of sprintf that also handles variadic lists.
             vsnprintf(error, MAX_ERROR_LENGTH, errors[errorCode], arguments);
             break;
