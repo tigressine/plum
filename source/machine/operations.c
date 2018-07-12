@@ -1,6 +1,6 @@
 #include <stdio.h>
 #include <stdarg.h>
-#include "../plum.h"
+#include "machine.h"
 
 // Return the validity of a particular register.
 int invalidRegister(int index) {

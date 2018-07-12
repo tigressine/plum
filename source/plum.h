@@ -2,8 +2,6 @@
 #define PLUM_H
 
 #include <limits.h>
-#include "machine/machine.h"
-//#include "generator/generator.h"
 
 #define DEFAULT_OUTPUT_FILE "plum.out"
 #define MAX_ERROR_LENGTH 80
@@ -80,17 +78,12 @@ enum Modes {
     MODE_EXECUTE
 };
 
-// Printer prototypes.
-void printError(int, ...);
-void printStackTraceHeader(int);
-void printStackTraceLine(CPU*, recordStack*, int);
-void printRegisters(CPU*);
-void printCPU(CPU*);
-void printRecords(recordStackItem*);
-
 // Utilities prototypes.
 void setOption(int*, int);
 int checkOption(int*, int);
 int fileExists(char*);
+
+// Printer prototypes.
+void printError(int, ...);
 
 #endif

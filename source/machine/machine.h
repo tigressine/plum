@@ -1,6 +1,8 @@
 #ifndef MACHINE_H
 #define MACHINE_H
 
+#include "../plum.h"
+
 // Constants.
 #define INT_OFFSET 4
 #define MAX_LINES 1000
@@ -98,5 +100,12 @@ recordStackItem *getDynamicParent(recordStack*, int);
 recordStackItem *getStaticParent(recordStack*, int);
 int isEmpty(recordStack*);
 recordStack *destroyRecordStack(recordStack*);
+
+// Printer prototypes.
+void printStackTraceHeader(int);
+void printStackTraceLine(CPU*, recordStack*, int);
+void printRegisters(CPU*);
+void printCPU(CPU*);
+void printRecords(recordStackItem*);
 
 #endif
