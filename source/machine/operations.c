@@ -2,6 +2,7 @@
 #include <stdarg.h>
 #include "../plum.h"
 
+// Return the validity of a particular register.
 int invalidRegister(int index) {
     if (index < 0 || index >= REGISTER_COUNT) {
         printError(ERROR_INVALID_REGISTER, index);
@@ -13,6 +14,7 @@ int invalidRegister(int index) {
     }
 }
 
+// Return validity of CPU.
 int invalidCPUState(CPU *cpu, int registerCheck) {
     if (cpu == NULL) {
         printError(ERROR_NULL_CHECK);
@@ -20,6 +22,7 @@ int invalidCPUState(CPU *cpu, int registerCheck) {
         return SIGNAL_TRUE;
     }
 
+    // Check either only the RField or all three fields.
     if (registerCheck == 1) {
         if (invalidRegister(cpu->instRegister.RField)) {
             return SIGNAL_TRUE;

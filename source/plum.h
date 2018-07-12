@@ -3,9 +3,16 @@
 
 #include <limits.h>
 #include "machine/machine.h"
+//#include "generator/generator.h"
 
 #define DEFAULT_OUTPUT_FILE "plum.out"
 #define MAX_ERROR_LENGTH 80
+#define IDENTIFIER_LEN 11
+
+enum Status {
+    STATUS_ACTIVE,
+    STATUS_INACTIVE
+};
 
 enum Signals {
     SIGNAL_FAILURE = INT_MIN,
