@@ -1,3 +1,5 @@
+// Part of Plum by Tiger Sachse.
+
 #ifndef MACHINE_H
 #define MACHINE_H
 
@@ -8,6 +10,7 @@
 #define MAX_LINES 1000
 #define REGISTER_COUNT 16
 
+// Operation codes for each assembly instruction.
 enum Opcodes {
     LIT = 1,
     RTN, LOD, STO,
@@ -20,59 +23,59 @@ enum Opcodes {
 };
 
 // Instruction struct for each line of PL/0 code.
-typedef struct instruction {
+typedef struct Instruction {
     int opCode;
     int RField;
     int LField;
     int MField;
-} instruction;
+} Instruction;
 
 // CPU struct to hold registers and the current instruction.
 typedef struct CPU {
     int registers[REGISTER_COUNT];
     int programCounter;
     int instructionCount;
-    instruction instRegister;
+    Instruction instRegister;
 } CPU;
 
 // An item in an activation record stack. Also serves as a node in
 // a linked list (that's how the stack is implemented).
-typedef struct recordStackItem {
+typedef struct RecordStackItem {
     int *locals;
     int localCount;
     int returnValue;
     int returnAddress;
-    struct recordStackItem *staticLink;
-    struct recordStackItem *dynamicLink;
-} recordStackItem;
+    struct RecordStackItem *staticLink;
+    struct RecordStackItem *dynamicLink;
+} RecordStackItem;
 
 // Container struct for a record linked list struct. Also keeps track
 // of the number of nodes in the stack.
-typedef struct recordStack {
+typedef struct RecordStack {
     int records;
-    recordStackItem *currentRecord;
-} recordStack;
+    RecordStackItem *currentRecord;
+} RecordStack;
 
 // Machine functional prototypes.
 int startMachine(char*, int);
 CPU *createCPU(int);
 int destroyCPU(CPU*);
 int countInstructions(char*);
-instruction *loadInstructions(char*, int);
-int processInstructions(instruction*, int, int);
-int fetchInstruction(CPU*, instruction*);
-int executeInstruction(CPU*, recordStack*);
-int destroyInstructions(instruction*);
+Instruction *loadInstructions(char*, int);
+int processInstructions(Instruction*, int, int);
+int fetchInstruction(CPU*, Instruction*);
+int executeInstruction(CPU*, RecordStack*);
+int destroyInstructions(Instruction*);
 
 // Operations functional prototypes.
 int invalidRegister(int);
 int invalidCPUState(CPU*, int);
 int operationLiteral(CPU*);
-int operationReturn(CPU*, recordStack*);
-int operationLoad(CPU*, recordStack*);
-int operationStore(CPU*, recordStack*);
-int operationCall(CPU*, recordStack*);
-int operationAllocate(CPU*, recordStack*);
+int operationReturn(CPU*, RecordStack*);
+int operationLoad(CPU*, RecordStack*);
+int operationStore(CPU*, RecordStack*);
+int operationCall(CPU*, RecordStack*);
+int operationAllocate(CPU*, RecordStack*);
 int operationJump(CPU*);
 int operationConditionalJump(CPU*);
 int operationSystemCall(CPU*);
@@ -91,21 +94,21 @@ int operationIsGreaterThan(CPU*);
 int operationIsGreaterThanOrEqualTo(CPU*);
 
 // Stack functional prototypes.
-recordStack *initializeRecordStack(void);
-int pushRecord(CPU*, recordStack*);
-int popRecord(recordStack*);
-recordStackItem *peekRecord(recordStack*);
-int allocateLocals(recordStackItem*, int);
-recordStackItem *getDynamicParent(recordStack*, int);
-recordStackItem *getStaticParent(recordStack*, int);
-int isEmpty(recordStack*);
-recordStack *destroyRecordStack(recordStack*);
+RecordStack *initializeRecordStack(void);
+int pushRecord(CPU*, RecordStack*);
+int popRecord(RecordStack*);
+RecordStackItem *peekRecord(RecordStack*);
+int allocateLocals(RecordStackItem*, int);
+RecordStackItem *getDynamicParent(RecordStack*, int);
+RecordStackItem *getStaticParent(RecordStack*, int);
+int isEmpty(RecordStack*);
+RecordStack *destroyRecordStack(RecordStack*);
 
-// Printer prototypes.
+// Printer functional prototypes.
 void printStackTraceHeader(int);
-void printStackTraceLine(CPU*, recordStack*, int);
+void printStackTraceLine(CPU*, RecordStack*, int);
 void printRegisters(CPU*);
 void printCPU(CPU*);
-void printRecords(recordStackItem*);
+void printRecords(RecordStackItem*);
 
 #endif

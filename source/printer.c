@@ -33,6 +33,7 @@ void printError(int errorCode, ...) {
         "program ran out of memory"
         "register is out of bounds: %d",
         "static parent does not exist",
+        "dynamic parent does not exist",
         "local index is out of bounds: %d",
         "illegal system call: %d",
         "attempted dividing by zero"

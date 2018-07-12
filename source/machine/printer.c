@@ -1,3 +1,5 @@
+// Part of Plum by Tiger Sachse.
+
 #include <stdio.h>
 #include "machine.h"
 
@@ -25,7 +27,7 @@ void printStackTraceHeader(int options) {
 }
 
 // Print out all associated objects with the program.
-void printStackTraceLine(CPU *cpu, recordStack *stack, int options) {
+void printStackTraceLine(CPU *cpu, RecordStack *stack, int options) {
     if (cpu == NULL || stack == NULL) {
         printError(ERROR_NULL_CHECK);
         
@@ -98,7 +100,7 @@ void printCPU(CPU *cpu) {
 }
 
 // Recursively print a stack of records.
-void printRecords(recordStackItem *record) {
+void printRecords(RecordStackItem *record) {
     int i;
     
     if (record == NULL) {

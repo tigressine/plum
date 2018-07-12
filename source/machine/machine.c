@@ -1,10 +1,13 @@
+// Part of Plum by Tiger Sachse.
+
 #include <stdio.h>
 #include <stdlib.h>
 #include "machine.h"
 
+// Start the machine.
 int startMachine(char *inFile, int options) {
     int instructionCount;
-    instruction *instructions;
+    Instruction *instructions;
 
     if (inFile == NULL) {
         printError(ERROR_NULL_CHECK);
@@ -12,19 +15,23 @@ int startMachine(char *inFile, int options) {
         return SIGNAL_FAILURE;
     }
 
+    // If the instructions could not be counted, return SIGNAL_FAILURE.
     if ((instructionCount = countInstructions(inFile)) == SIGNAL_FAILURE) {
         return SIGNAL_FAILURE;
     }
     
+    // If the instructions could not be loaded, return SIGNAL_FAILURE.
     if ((instructions = loadInstructions(inFile, instructionCount)) == NULL) {
         return SIGNAL_FAILURE;
     }
     
+    // If something goes wrong while processing the instructions, return SIGNAL_FAILURE.
     if ((processInstructions(instructions, instructionCount, options)) == SIGNAL_FAILURE) {
         destroyInstructions(instructions);
 
         return SIGNAL_FAILURE;
     }
+    // Else everything worked!
     else {
         destroyInstructions(instructions);
 
@@ -32,6 +39,7 @@ int startMachine(char *inFile, int options) {
     }
 }
 
+// Create a CPU for the machine.
 CPU *createCPU(int instructionCount) {
     CPU *cpu;
 
@@ -91,10 +99,10 @@ int countInstructions(char *filename) {
 }
 
 // Load compiled instructions from a file at filename.
-instruction *loadInstructions(char *filename, int instructionCount) {
+Instruction *loadInstructions(char *filename, int instructionCount) {
     int i;
     FILE *f;
-    instruction *instructions;
+    Instruction *instructions;
 
     if (filename == NULL) {
         printError(ERROR_NULL_CHECK);
@@ -111,7 +119,7 @@ instruction *loadInstructions(char *filename, int instructionCount) {
 
     // Create an array of instructions of length instructionCount. If the allocation fails,
     // close the file and return NULL.
-    if ((instructions = malloc(sizeof(instruction) * instructionCount)) == NULL) {
+    if ((instructions = malloc(sizeof(Instruction) * instructionCount)) == NULL) {
         fclose(f);
         printError(ERROR_OUT_OF_MEMORY);
 
@@ -133,11 +141,11 @@ instruction *loadInstructions(char *filename, int instructionCount) {
 }
 
 // Process the provided instructions using a CPU.
-int processInstructions(instruction *instructions, int instructionCount, int options) {
+int processInstructions(Instruction *instructions, int instructionCount, int options) {
     int i;
     CPU *cpu;
     int executeReturn;
-    recordStack *stack;
+    RecordStack *stack;
 
     if (instructions == NULL || instructionCount == 0) {
         printError(ERROR_NULL_CHECK);
@@ -152,6 +160,7 @@ int processInstructions(instruction *instructions, int instructionCount, int opt
         return SIGNAL_FAILURE;
     }
 
+    // If the stack can't be allocated, return SIGNAL_FAILURE.
     if ((stack = initializeRecordStack()) == NULL) {
         destroyCPU(cpu);
         printError(ERROR_OUT_OF_MEMORY);
@@ -203,7 +212,7 @@ int processInstructions(instruction *instructions, int instructionCount, int opt
 }
 
 // Fetch next instruction from instructions and place in the CPU instRegister.
-int fetchInstruction(CPU *cpu, instruction *instructions) {
+int fetchInstruction(CPU *cpu, Instruction *instructions) {
     if (cpu == NULL || instructions == NULL) {
         printError(ERROR_NULL_CHECK);
         
@@ -227,7 +236,7 @@ int fetchInstruction(CPU *cpu, instruction *instructions) {
 }
 
 // Execute instruction loaded into CPU.
-int executeInstruction(CPU *cpu, recordStack *stack) {
+int executeInstruction(CPU *cpu, RecordStack *stack) {
     if (cpu == NULL || stack == NULL || stack->currentRecord == NULL) {
         printError(ERROR_NULL_CHECK);
         
@@ -268,7 +277,7 @@ int executeInstruction(CPU *cpu, recordStack *stack) {
 }
 
 // Encapsulating function to free an instruction array.
-int destroyInstructions(instruction *instructions) {
+int destroyInstructions(Instruction *instructions) {
     free(instructions);
 
     return SIGNAL_SUCCESS;
