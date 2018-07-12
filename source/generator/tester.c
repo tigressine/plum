@@ -28,7 +28,7 @@ void printTable(SymbolTable *table) {
     printTableRow(table->head);
 }
 
-int main(void) {
+int _main(void) {
     SymbolTable *table;
     Symbol *symbol1;
     Symbol *symbol2;

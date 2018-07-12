@@ -1,7 +1,8 @@
 #include <stdio.h>
 #include <string.h>
 #include "plum.h"
-//#include "scanner/scanner.h"
+#include "machine/machine.h"
+#include "generator/generator.h"
 
 // Get the mode of the machine.
 int getMode(char *mode) {
@@ -131,7 +132,7 @@ int main(int argCount, char **argsVector) {
 
     // If the input file doesn't exist, scream about it.
     inFile = argsVector[2];
-    if (!fileExists(inFile)) {
+    if (fileExists(inFile) == SIGNAL_FALSE) {
         printError(ERROR_FILE_NOT_FOUND, inFile);
 
         return 0;
