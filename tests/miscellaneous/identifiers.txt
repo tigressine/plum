@@ -1,0 +1,13 @@
+/* Several valid and invalid identifiers */
+hello
+goodbye
+this
+is
+a
+valid
+identifier
+thishoweverisfartoolongforavariablename
+thisisjustto olong
+thisisgoodd
+12rekt
+123456rekt

@@ -165,6 +165,8 @@ int handleLongToken(FILE *fin, FILE *fout, char first, int lexemeValue, int len)
     char token[len + 1];
     
     if (fin == NULL || fout == NULL) {
+        printError(ERROR_NULL_CHECK);
+        
         return SIGNAL_FAILURE;
     }
 

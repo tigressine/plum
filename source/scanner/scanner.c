@@ -96,14 +96,16 @@ int scanSource(char *sourceFile, char *outFile, int options) {
     fclose(fin);
     fclose(fout);
 
-    if (checkOption(&options, OPTION_PRINT_SOURCE)) {
-        printSource(sourceFile);
-    }
-    if (checkOption(&options, OPTION_PRINT_LEXEME_TABLE)) {
-        printLexemeTable(outFile);
-    }
-    if (checkOption(&options, OPTION_PRINT_LEXEME_LIST)) {
-        printLexemeList(outFile);
+    if (returnStatus != SIGNAL_FAILURE || checkOption(&options, OPTION_SKIP_ERRORS)) {
+        if (checkOption(&options, OPTION_PRINT_SOURCE)) {
+            printSource(sourceFile);
+        }
+        if (checkOption(&options, OPTION_PRINT_LEXEME_TABLE)) {
+            printLexemeTable(outFile);
+        }
+        if (checkOption(&options, OPTION_PRINT_LEXEME_LIST)) {
+            printLexemeList(outFile);
+        }
     }
 
     // If OPTION_SKIP_ERRORS is on, pretend like everything went fine.

@@ -6,11 +6,13 @@
 // Call printFile for a source file.
 void printSource(char *filename) {
     printFile(filename, "Source Program:\n---------------\n");
+    printf("\n");
 }
 
 // Call printFile for a lexeme file.
 void printLexemeList(char *filename) {
     printFile(filename, "Lexeme List:\n------------\n");
+    printf("\n");
 }
 
 // Print the contents of the file, as well as a header label.
@@ -80,6 +82,7 @@ void printLexemeTable(char *filename) {
             printLexemeTableLine(lexemes[buffer - 4], buffer); // magic number
         }
     }
+    printf("\n");
 
     fclose(f);
 }

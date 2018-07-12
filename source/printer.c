@@ -13,8 +13,8 @@ void printError(int errorCode, ...) {
     // All errors in this array map to the appropriate code in
     // an enumeration defined in the plum.h header.
     char errors[][MAX_ERROR_LENGTH] = {
-        "illegal identifier: %s",
-        "token is too long: %s",
+        "illegal identifier: %s...",
+        "token is too long: %s...",
         "use = instead of :=",
         "symbol expected: %s",
         "%s must be followed by %s",
@@ -27,7 +27,7 @@ void printError(int errorCode, ...) {
         "%s cannot begin with %s",
         "number too large: %s",
         "file not found: %s",
-        "unknown character: %s",
+        "unknown character: %c",
         "argument missing for flag: %s",
         "unknown arguments passed to program",
         "bad mode specified: %s",
@@ -52,12 +52,14 @@ void printError(int errorCode, ...) {
     switch (errorCode) {
         // Errors that must be formatted first.
         case ERROR_BAD_MODE:
+        case ERROR_TOKEN_TOO_LONG:
         case ERROR_FILE_NOT_FOUND:
         case ERROR_SYMBOL_EXPECTED:
         case ERROR_NUMBER_TOO_LARGE:
         case ERROR_MISSING_ARGUMENT:
         case ERROR_INVALID_REGISTER:
         case ERROR_UNKNOWN_CHARACTER:
+        case ERROR_ILLEGAL_IDENTIFIER:
         case ERROR_ILLEGAL_TOKEN_START:
         case ERROR_LOCAL_OUT_OF_BOUNDS:
         case ERROR_ILLEGAL_SYSTEM_CALL:

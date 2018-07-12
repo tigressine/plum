@@ -1,0 +1,2 @@
+/* Test for greater than and less than symbols. */
+<<>>=<=>==<><<><>>
