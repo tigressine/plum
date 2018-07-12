@@ -1,17 +1,14 @@
+// Part of Plum by Tiger Sachse.
 #ifndef PLUM_H
 #define PLUM_H
 
 #include <limits.h>
 
-#define DEFAULT_OUTPUT_FILE "plum.out"
-#define MAX_ERROR_LENGTH 80
 #define IDENTIFIER_LEN 11
+#define MAX_ERROR_LENGTH 80
+#define DEFAULT_OUTPUT_FILE "plum.out"
 
-enum Status {
-    STATUS_ACTIVE,
-    STATUS_INACTIVE
-};
-
+// Function return signals.
 enum Signals {
     SIGNAL_FAILURE = INT_MIN,
     SIGNAL_SUCCESS,
@@ -54,6 +51,7 @@ enum Errors {
     ERROR_ILLEGAL_OPCODE
 };
 
+// Available system calls.
 enum SystemCalls {
     CALL_PRINT = 1,
     CALL_SCAN,
@@ -79,12 +77,12 @@ enum Modes {
     MODE_EXECUTE
 };
 
-// Utilities prototypes.
+// Utilities functional prototypes.
 void setOption(int*, int);
 int checkOption(int*, int);
 int fileExists(char*);
 
-// Printer prototypes.
+// Printer functional prototypes.
 void printError(int, ...);
 
 #endif

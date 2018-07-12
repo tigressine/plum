@@ -4,6 +4,12 @@
 #include <limits.h>
 #include "../plum.h"
 
+// Different statuses possible for symbols in the symbol table.
+enum Status {
+    STATUS_ACTIVE,
+    STATUS_INACTIVE
+};
+
 typedef struct Symbol {
     int type;
     int value;
