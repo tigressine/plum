@@ -1,3 +1,5 @@
+// Part of Plum by Tiger Sachse.
+
 #include <stdio.h>
 #include <stdarg.h>
 #include "machine.h"
@@ -53,7 +55,7 @@ int operationLiteral(CPU *cpu) {
 
 // Revert programCounter to the top activation record's returnAddress, then pops
 // the top record.
-int operationReturn(CPU *cpu, recordStack *stack) {
+int operationReturn(CPU *cpu, RecordStack *stack) {
     if (invalidCPUState(cpu, 0)) {
         return SIGNAL_FAILURE;
     }
@@ -70,8 +72,8 @@ int operationReturn(CPU *cpu, recordStack *stack) {
 }
 
 // Load a value from an activation record into a register.
-int operationLoad(CPU *cpu, recordStack *stack) {
-    recordStackItem *desiredRecord;
+int operationLoad(CPU *cpu, RecordStack *stack) {
+    RecordStackItem *desiredRecord;
     int index;
     
     if (invalidCPUState(cpu, 1)) {
@@ -116,8 +118,8 @@ int operationLoad(CPU *cpu, recordStack *stack) {
 }
 
 // Load a value from a register into an activation record in the stack.
-int operationStore(CPU *cpu, recordStack *stack) {
-    recordStackItem *desiredRecord;
+int operationStore(CPU *cpu, RecordStack *stack) {
+    RecordStackItem *desiredRecord;
     int index;
 
     if (invalidCPUState(cpu, 1)) {
@@ -132,8 +134,6 @@ int operationStore(CPU *cpu, recordStack *stack) {
 
     // Get the static parent of the top level record, L levels down.
     if ((desiredRecord = getStaticParent(stack, cpu->instRegister.LField)) == NULL) {
-        printError(ERROR_INVALID_STATIC_PARENT);//move to function
-        
         return SIGNAL_FAILURE;
     }
 
@@ -161,7 +161,7 @@ int operationStore(CPU *cpu, recordStack *stack) {
 }
 
 // Push a new activation record environment onto the stack.
-int operationCall(CPU *cpu, recordStack *stack) {
+int operationCall(CPU *cpu, RecordStack *stack) {
     if (invalidCPUState(cpu, 0)) {
         return SIGNAL_FAILURE;
     }
@@ -181,7 +181,7 @@ int operationCall(CPU *cpu, recordStack *stack) {
 }
 
 // Allocate locals in top level activation record.
-int operationAllocate(CPU *cpu, recordStack *stack) {
+int operationAllocate(CPU *cpu, RecordStack *stack) {
     if (invalidCPUState(cpu, 0)) {
         return SIGNAL_FAILURE;
     }
