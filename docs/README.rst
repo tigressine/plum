@@ -1,5 +1,7 @@
 plomachine
 ----------
+NOTE: This readme is out of date and has not been updated with the most current information.
+
 This project is a PL/0 virtual machine and compiler. It's being built for class but it's such an interesting project that I felt it was worthy of a repository. The only component available is the virtual machine at the moment, but this will change as the semester progresses.
 
 setup
