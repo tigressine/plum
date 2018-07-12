@@ -68,19 +68,19 @@ int checkKeywords(FILE *fout, char *word) {
     int i;
    
     KeywordValuePair keywords[] = {
-        { "begin", BEGIN },
-        { "call", CALL },
-        { "const", CONST },
-        { "do", DO },
-        { "else", ELSE },
-        { "end", END },
-        { "if", IF },
-        { "procedure", PROCEDURE },
-        { "then", THEN },
-        { "read", READ },
-        { "var", VAR },
-        { "while", WHILE },
-        { "write", WRITE }
+        { "begin",LEX_BEGIN },
+        { "call",LEX_CALL },
+        { "const",LEX_CONST },
+        { "do",LEX_DO },
+        { "else",LEX_ELSE },
+        { "end",LEX_END },
+        { "if",LEX_IF },
+        { "procedure",LEX_PROCEDURE },
+        { "then",LEX_THEN },
+        { "read",LEX_READ },
+        { "var",LEX_VAR },
+        { "while",LEX_WHILE },
+        { "write",LEX_WRITE }
     };
    
     if (fout == NULL || word == NULL) {
@@ -130,7 +130,7 @@ int handlePair(FILE *fin, FILE *fout, SymbolSymbolPair pair) {
         // Check all expected follow characters for pairs.
         for (i = 0; i < pair.pairs; i++) {
             if (buffer == pair.follows[i]) {
-                if (pair.pairValues[i] == COMMENT) {
+                if (pair.pairValues[i] == LEX_COMMENT) {
                     skipComment(fin);
                 }
                 else {
@@ -146,7 +146,7 @@ int handlePair(FILE *fin, FILE *fout, SymbolSymbolPair pair) {
 
     // If the solo value indicates the symbol is unknown, throw an
     // error, else print it to the output file.
-    if (pair.soloValue == UNKNOWN) {
+    if (pair.soloValue == LEX_UNKNOWN) {
         printError(ERROR_UNKNOWN_CHARACTER, pair.lead);
 
         return SIGNAL_FAILURE;
@@ -178,8 +178,8 @@ int handleLongToken(FILE *fin, FILE *fout, char first, int lexemeValue, int len)
         // If we are building an identifier and the buffer is alphanumeric
         // or if we are building a number and the buffer is a digit,
         // add to the token array.
-        if ((lexemeValue == IDENTIFIER && isAlphanumeric(buffer)) ||
-            (lexemeValue == NUMBER && isDigit(buffer))) {
+        if ((lexemeValue == LEX_IDENTIFIER && isAlphanumeric(buffer)) ||
+            (lexemeValue == LEX_NUMBER && isDigit(buffer))) {
             
             token[index++] = buffer;
         }
@@ -201,7 +201,7 @@ int handleLongToken(FILE *fin, FILE *fout, char first, int lexemeValue, int len)
 
             // If we were building a number and it's followed by a letter,
             // this is actually an identifier with digits at the start.
-            if (lexemeValue == NUMBER && isAlphabetic(buffer)) {
+            if (lexemeValue == LEX_NUMBER && isAlphabetic(buffer)) {
                 printError(ERROR_ILLEGAL_IDENTIFIER, token);
             }
             // Else we either have a number that's too long or an
@@ -218,15 +218,15 @@ int handleLongToken(FILE *fin, FILE *fout, char first, int lexemeValue, int len)
     // Make the token a bonafide string.
     token[index] = '\0';
 
-    if (lexemeValue == IDENTIFIER) {
+    if (lexemeValue == LEX_IDENTIFIER) {
         // If the word doesn't match any keywords,
         // print into the output file as an identifier.
         if (checkKeywords(fout, token) == SIGNAL_FAILURE) {
-            fprintf(fout, "%d %s ", IDENTIFIER, token);
+            fprintf(fout, "%d %s ", LEX_IDENTIFIER, token);
         }
     }
-    else if (lexemeValue == NUMBER){
-        fprintf(fout, "%d %s ", NUMBER, token);
+    else if (lexemeValue == LEX_NUMBER){
+        fprintf(fout, "%d %s ", LEX_NUMBER, token);
     }
 
     return SIGNAL_SUCCESS;
