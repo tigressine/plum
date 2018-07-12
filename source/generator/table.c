@@ -1,3 +1,5 @@
+// Part of Plum by Tiger Sachse.
+
 #include <stdlib.h>
 #include <limits.h>
 #include <string.h>
