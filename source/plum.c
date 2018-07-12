@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <string.h>
 #include "plum.h"
+#include "scanner/scanner.h"
 #include "machine/machine.h"
 #include "generator/generator.h"
 
@@ -162,6 +163,7 @@ int main(int argCount, char **argsVector) {
             break;
 
         case MODE_SCAN:
+            scanSource(inFile, outFile, options);
             break;
 
         case MODE_COMPILE:
