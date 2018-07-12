@@ -16,22 +16,22 @@ int scanSource(char *sourceFile, char *outFile, int options) {
     const int directMappedSymbolsCount = 9;
 
     SymbolValuePair directMappedSymbols[] = {
-        { '+', PLUS },
-        { '-', MINUS },
-        { '*', MULTIPLY },
-        { '(', LEFT_PARENTHESIS },
-        { ')', RIGHT_PARENTHESIS },
-        { ',', COMMA },
-        { '.', PERIOD },
-        { ';', SEMICOLON },
-        { '=', EQUAL }
+        { '+',LEX_PLUS },
+        { '-',LEX_MINUS },
+        { '*',LEX_MULTIPLY },
+        { '(',LEX_LEFT_PARENTHESIS },
+        { ')',LEX_RIGHT_PARENTHESIS },
+        { ',',LEX_COMMA },
+        { '.',LEX_PERIOD },
+        { ';',LEX_SEMICOLON },
+        { '=',LEX_EQUAL }
     };
 
     SymbolSymbolPair pairedSymbols[] = {
-        { '<', { '>', '=' }, LESS, { NOT_EQUAL, LESS_EQUAL }, 2 },
-        { '>', { '=' }, GREATER, { GREATER_EQUAL }, 1 },
-        { ':', { '=' }, UNKNOWN, { BECOME }, 1 },
-        { '/', { '*' }, SLASH, { COMMENT }, 1 }
+        { '<', { '>', '=' }, LEX_LESS, { LEX_NOT_EQUAL, LEX_LESS_EQUAL }, 2 },
+        { '>', { '=' }, LEX_GREATER, { LEX_GREATER_EQUAL }, 1 },
+        { ':', { '=' }, LEX_UNKNOWN, { LEX_BECOME }, 1 },
+        { '/', { '*' }, LEX_SLASH, { LEX_COMMENT }, 1 }
     };
         
     if ((fin = fopen(sourceFile, "r")) == NULL) {
@@ -42,6 +42,7 @@ int scanSource(char *sourceFile, char *outFile, int options) {
 
     if ((fout = fopen(outFile, "w")) == NULL) {
         printError(ERROR_FILE_NOT_FOUND, outFile);
+        fclose(fin);
 
         return SIGNAL_FAILURE;
     }
@@ -52,10 +53,10 @@ int scanSource(char *sourceFile, char *outFile, int options) {
     // appropriate lexeme values using handler functions.
     while (fscanf(fin, " %c", &buffer) != EOF) {
         if (isAlphabetic(buffer)) {
-            singleStatus = handleLongToken(fin, fout, buffer, IDENTIFIER, IDENTIFIER_LEN); 
+            singleStatus = handleLongToken(fin, fout, buffer, LEX_IDENTIFIER, IDENTIFIER_LEN); 
         }
         else if (isDigit(buffer)) {
-            singleStatus = handleLongToken(fin, fout, buffer, NUMBER, NUMBER_LEN); 
+            singleStatus = handleLongToken(fin, fout, buffer, LEX_NUMBER, NUMBER_LEN); 
         }
         else {
             for (i = 0; i < directMappedSymbolsCount; i++) {

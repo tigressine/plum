@@ -33,6 +33,9 @@ typedef struct SymbolTable {
     struct TableNode *head;
 } SymbolTable;
 
+// Generator functional prototypes.
+int compileLexemes(char*, char*, int);
+
 // Table functional prototypes.
 SymbolTable *createSymbolTable(void);
 TableNode *createTableNode(int, int, int, int, int, char*, TableNode*);

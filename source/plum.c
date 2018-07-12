@@ -167,6 +167,7 @@ int main(int argCount, char **argsVector) {
             break;
 
         case MODE_COMPILE:
+            compileLexemes(inFile, outFile, options);
             break;
 
         case MODE_EXECUTE:

@@ -7,7 +7,13 @@
 
 // Create a new symbol table.
 SymbolTable *createSymbolTable(void)  {
-    return calloc(1, sizeof(SymbolTable));
+    SymbolTable *table;
+
+    if ((table = calloc(1, sizeof(SymbolTable))) == NULL) {
+        printError(ERROR_OUT_OF_MEMORY);
+    }
+
+    return table;
 }
 
 // Create a column for a symbol table.
@@ -22,11 +28,15 @@ TableNode *createTableNode(int type,
 
     // If the name is too long, return nothing.
     if (strlen(name) > IDENTIFIER_LEN) {
+        printError(ERROR_TOKEN_TOO_LONG, name);
+        
         return NULL;
     }
 
     // If the call to malloc fails, return nothing.
     if ((new = malloc(sizeof(TableNode))) == NULL) {
+        printError(ERROR_OUT_OF_MEMORY);
+        
         return NULL;
     }
 
@@ -52,6 +62,8 @@ int insertSymbol(SymbolTable *table,
     TableNode *new;
 
     if (table == NULL) {
+        printError(ERROR_NULL_CHECK);
+        
         return SIGNAL_FAILURE;
     }
 
@@ -59,6 +71,8 @@ int insertSymbol(SymbolTable *table,
     
     // If a new node could not be created, return failure.
     if (new == NULL) {
+        printError(ERROR_NULL_CHECK);
+
         return SIGNAL_FAILURE;
     }
     else {
@@ -77,6 +91,8 @@ Symbol *lookupSymbol(SymbolTable *table, char *name) {
     TableNode *current;
 
     if (table == NULL) {
+        printError(ERROR_NULL_CHECK);
+        
         return NULL;
     }
 
@@ -111,6 +127,8 @@ void destroySymbolTable(SymbolTable *table) {
     TableNode *next;
 
     if (table == NULL) {
+        printError(ERROR_NULL_CHECK);
+        
         return;
     }
 

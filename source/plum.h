@@ -8,6 +8,45 @@
 #define MAX_ERROR_LENGTH 80
 #define DEFAULT_OUTPUT_FILE "plum.out"
 
+// Enumeration of lexeme values.
+enum LexemeValues {
+    LEX_UNKNOWN,
+    LEX_NULL,
+    LEX_IDENTIFIER,
+    LEX_NUMBER,
+    LEX_PLUS,
+    LEX_MINUS,
+    LEX_MULTIPLY,
+    LEX_SLASH,
+    LEX_ODD,
+    LEX_EQUAL,
+    LEX_NOT_EQUAL,
+    LEX_LESS,
+    LEX_LESS_EQUAL,
+    LEX_GREATER,
+    LEX_GREATER_EQUAL,
+    LEX_LEFT_PARENTHESIS,
+    LEX_RIGHT_PARENTHESIS,
+    LEX_COMMA,
+    LEX_SEMICOLON,
+    LEX_PERIOD,
+    LEX_BECOME,
+    LEX_BEGIN,
+    LEX_END,
+    LEX_IF,
+    LEX_THEN,
+    LEX_WHILE,
+    LEX_DO,
+    LEX_CALL,
+    LEX_CONST,
+    LEX_VAR,
+    LEX_PROCEDURE,
+    LEX_WRITE,
+    LEX_READ,
+    LEX_ELSE,
+    LEX_COMMENT
+} LexemeValues;
+
 // Function return signals.
 enum Signals {
     SIGNAL_FAILURE = INT_MIN,
