@@ -33,17 +33,17 @@ void printError(int errorCode, ...) {
         "bad mode specified: %s",//
         "no mode specified",//
         "input file required as second argument",//
-        "attempt to dereference null",//
+        "attempted to dereference null",//
         "program ran out of memory",
-        "register is out of bounds: %d",
-        "static parent does not exist",
-        "dynamic parent does not exist",
-        "local index is out of bounds: %d",
-        "illegal system call: %d",
-        "attempted dividing by zero",
+        "register is out of bounds: %d",//
+        "static parent does not exist",//
+        "dynamic parent does not exist",//
+        "local index is out of bounds: %d",//
+        "illegal system call: %d",//
+        "attempted to divide by zero",//
         "file too long: %s",//
-        "program counter out of bounds: %d",
-        "illegal operation code: %d"
+        "program counter out of bounds: %d",//
+        "illegal operation code: %d"//
     };
 
     // Initialize the variadic argument list, starting after errorCode.

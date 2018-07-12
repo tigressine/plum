@@ -113,10 +113,6 @@ RecordStackItem *getDynamicParent(RecordStack *stack, int levels) {
         levels--;
     }
 
-    if (desired == NULL) {
-        printError(ERROR_INVALID_DYNAMIC_PARENT);
-    }
-
     return desired;
 }
 
@@ -137,10 +133,6 @@ RecordStackItem *getStaticParent(RecordStack *stack, int levels) {
     while (levels > 0 && desired != NULL) {
         desired = desired->staticLink;
         levels--;
-    }
-
-    if (desired == NULL) {
-        printError(ERROR_INVALID_STATIC_PARENT);
     }
 
     return desired;

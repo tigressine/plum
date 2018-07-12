@@ -134,6 +134,8 @@ int operationStore(CPU *cpu, RecordStack *stack) {
 
     // Get the static parent of the top level record, L levels down.
     if ((desiredRecord = getStaticParent(stack, cpu->instRegister.LField)) == NULL) {
+        printError(ERROR_INVALID_STATIC_PARENT);
+        
         return SIGNAL_FAILURE;
     }
 
