@@ -1,0 +1,10 @@
+var x, w;
+begin
+    x:= 4;
+    in w;
+    if w > x then
+        w:= w + 1
+    else
+        w:= x;
+    out w;
+end.

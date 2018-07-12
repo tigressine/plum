@@ -1,40 +1,7 @@
+// Part of Plum by Tiger Sachse.
+
 #include <stdio.h>
-#include "analyzer.h"
-
-// Print error if file is missing.
-void errorMissingFile(char *filename) {
-    printf("ERROR: File '%s' not found.\n", filename);
-}
-
-// Print error alerting the user of an unknown character.
-void errorUnknownCharacter(char unknown) {
-    printf("ERROR: Unknown character '%c'.\n", unknown);
-}
-
-// Print error explaining that the provided token is too long.
-void errorTokenTooLong(char *token, int length) {
-    printf("ERROR: Token beginning with '%s' is too long. Maximum length %d.\n", token, length);
-}
-
-// Print error upon detection of an identifier starting with a digit.
-void errorBadIdentifier(char *token) {
-    printf("ERROR: Identifier starting with '%s' cannot start with a digit.\n", token);
-}
-
-// Print error if no source file is provided.
-void errorNoSource(void) {
-    printf("ERROR: Please pass a PL/0 source file as your first argument.\n");
-}
-
-// Print error if a flag that requires an argument has no argument.
-void errorNoArgument(char *flag) {
-    printf("ERROR: No argument provided after '%s' flag.\n", flag);
-}
-
-// Print if unknown arguments are passed to the program.
-void errorUnknownArguments(void) {
-    printf("ERROR: Unknown arguments after initial argument.\n");
-}
+#include "scanner.h"
 
 // Call printFile for a source file.
 void printSource(char *filename) {
@@ -52,12 +19,14 @@ void printFile(char *filename, char *header) {
     char buffer;
 
     if ((f = fopen(filename, "r")) == NULL) {
+        printError(ERROR_FILE_NOT_FOUND, filename);
+        
         return;
     }
 
     // Print every character in the file.
     printf("%s", header);
-    while(fscanf(f, "%c", &buffer) != EOF) {
+    while (fscanf(f, "%c", &buffer) != EOF) {
         printf("%c", buffer);
     }
 
@@ -67,7 +36,7 @@ void printFile(char *filename, char *header) {
 
 // Standardizing function to print line in lexeme table.
 void printLexemeTableLine(char *lexeme, int lexemeValue) {
-    printf("%12s | %d\n", lexeme, lexemeValue);
+    printf("%12s | %d\n", lexeme, lexemeValue); // magic number
 }
 
 // Print entire lexeme table from lexeme file.
@@ -87,6 +56,8 @@ void printLexemeTable(char *filename) {
     };
 
     if ((f = fopen(filename, "r")) == NULL) {
+        printError(ERROR_FILE_NOT_FOUND, filename);
+        
         return;
     }
 
@@ -95,18 +66,18 @@ void printLexemeTable(char *filename) {
     printf("     ----------------\n");
 
     // For each integer in the file, print the relevant symbol and lexeme value.
-    while(fscanf(f, " %d", &buffer) != EOF) {
+    while (fscanf(f, "%d", &buffer) != EOF) {
         // If the buffer is for an identifier or number, read the next
         // string in the file and then print.
         if (buffer == IDENTIFIER || buffer == NUMBER) {
-            fscanf(f, MAX_TOKEN_FORMAT, word);
+            fscanf(f, "%12s", word); // magic number
             printLexemeTableLine(word, buffer);
         }
         // Else print the lexeme from the lexemes array, with an offset of
         // four to account for the first four values in the enumeration not
         // being included.
         else {
-            printLexemeTableLine(lexemes[buffer - 4], buffer);
+            printLexemeTableLine(lexemes[buffer - 4], buffer); // magic number
         }
     }
 

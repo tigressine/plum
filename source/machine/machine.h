@@ -1,126 +1,114 @@
-#include <limits.h>
+// Part of Plum by Tiger Sachse.
 
-#ifndef VIRTUALMACHINE_HEADER
-#define VIRTUALMACHINE_HEADER
+#ifndef MACHINE_H
+#define MACHINE_H
 
-// Convenience definitions for PL/0 opcode keywords.
-#define LIT 1
-#define RTN 2
-#define LOD 3
-#define STO 4
-#define CAL 5
-#define INC 6
-#define JMP 7
-#define JPC 8
-#define SIO 9
-#define NEG 10
-#define ADD 11
-#define SUB 12
-#define MUL 13
-#define DIV 14
-#define ODD 15
-#define MOD 16
-#define EQL 17
-#define NEQ 18
-#define LSS 19
-#define LEQ 20
-#define GTR 21
-#define GEQ 22
-
-// Trace flag constants (defined in hexidecimal to be MLG).
-#define TRACE_CPU 0x1
-#define TRACE_RECORDS 0x2
-#define TRACE_REGISTERS 0x4
+#include "../plum.h"
 
 // Constants.
 #define INT_OFFSET 4
-#define MAX_LINES 100
+#define MAX_LINES 1000
 #define REGISTER_COUNT 16
-#define OP_FAILURE INT_MIN
-#define OP_SUCCESS INT_MIN + 1
-#define KILL_PROGRAM INT_MIN + 2
+
+// Operation codes for each assembly instruction.
+enum Opcodes {
+    LIT = 1,
+    RTN, LOD, STO,
+    CAL, INC, JMP,
+    JPC, SIO, NEG,
+    ADD, SUB, MUL,
+    DIV, ODD, MOD,
+    EQL, NEQ, LSS,
+    LEQ, GTR, GEQ
+};
 
 // Instruction struct for each line of PL/0 code.
-typedef struct instruction {
+typedef struct Instruction {
     int opCode;
     int RField;
     int LField;
     int MField;
-} instruction;
+} Instruction;
 
 // CPU struct to hold registers and the current instruction.
 typedef struct CPU {
     int registers[REGISTER_COUNT];
     int programCounter;
     int instructionCount;
-    instruction instRegister;
+    Instruction instRegister;
 } CPU;
 
 // An item in an activation record stack. Also serves as a node in
 // a linked list (that's how the stack is implemented).
-typedef struct recordStackItem {
+typedef struct RecordStackItem {
     int *locals;
     int localCount;
     int returnValue;
     int returnAddress;
-    struct recordStackItem *staticLink;
-    struct recordStackItem *dynamicLink;
-} recordStackItem;
+    struct RecordStackItem *staticLink;
+    struct RecordStackItem *dynamicLink;
+} RecordStackItem;
 
 // Container struct for a record linked list struct. Also keeps track
 // of the number of nodes in the stack.
-typedef struct recordStack {
+typedef struct RecordStack {
     int records;
-    recordStackItem *currentRecord;
-} recordStack;
+    RecordStackItem *currentRecord;
+} RecordStack;
 
-// Core functional prototypes.
+// Machine functional prototypes.
+int startMachine(char*, int);
 CPU *createCPU(int);
-int freeCPU(CPU*);
+int destroyCPU(CPU*);
 int countInstructions(char*);
-instruction *loadInstructions(char*, int);
-int processInstructions(instruction*, int, int);
-int fetchInstruction(CPU*, instruction*);
-int executeInstruction(CPU*, recordStack*);
-int freeInstructions(instruction*);
-void printStackTraceHeader(int);
-void printStackTraceLine(CPU*, recordStack*, int);
-void printRegisters(CPU*);
-void printCPU(CPU*);
-void printRecords(recordStackItem*);
+Instruction *loadInstructions(char*, int);
+int processInstructions(Instruction*, int, int);
+int fetchInstruction(CPU*, Instruction*);
+int executeInstruction(CPU*, RecordStack*);
+int destroyInstructions(Instruction*);
 
 // Operations functional prototypes.
-int opLiteral(CPU*);
-int opReturn(CPU*, recordStack*);
-int opLoad(CPU*, recordStack*);
-int opStore(CPU*, recordStack*);
-int opCall(CPU*, recordStack*);
-int opAllocate(CPU*, recordStack*);
-int opJump(CPU*);
-int opConditionalJump(CPU*);
-int opSystemCall(CPU*);
-int opNegate(CPU*);
-int opAdd(CPU*);
-int opSubtract(CPU*);
-int opMultiply(CPU*);
-int opDivide(CPU*);
-int opIsOdd(CPU*);
-int opModulus(CPU*);
-int opIsEqual(CPU*);
-int opIsNotEqual(CPU*);
-int opIsLessThan(CPU*);
-int opIsLessThanOrEqualTo(CPU*);
-int opIsGreaterThan(CPU*);
-int opIsGreaterThanOrEqualTo(CPU*);
+int invalidRegister(int);
+int invalidCPUState(CPU*, int);
+int operationLiteral(CPU*);
+int operationReturn(CPU*, RecordStack*);
+int operationLoad(CPU*, RecordStack*);
+int operationStore(CPU*, RecordStack*);
+int operationCall(CPU*, RecordStack*);
+int operationAllocate(CPU*, RecordStack*);
+int operationJump(CPU*);
+int operationConditionalJump(CPU*);
+int operationSystemCall(CPU*);
+int operationNegate(CPU*);
+int operationAdd(CPU*);
+int operationSubtract(CPU*);
+int operationMultiply(CPU*);
+int operationDivide(CPU*);
+int operationIsOdd(CPU*);
+int operationModulus(CPU*);
+int operationIsEqual(CPU*);
+int operationIsNotEqual(CPU*);
+int operationIsLessThan(CPU*);
+int operationIsLessThanOrEqualTo(CPU*);
+int operationIsGreaterThan(CPU*);
+int operationIsGreaterThanOrEqualTo(CPU*);
 
 // Stack functional prototypes.
-recordStack *initializeRecordStack(void);
-int pushRecord(CPU*, recordStack*);
-int popRecord(recordStack*);
-recordStackItem *peekRecord(recordStack*);
-int allocateLocals(recordStackItem*, int);
-recordStackItem *getDynamicParent(recordStack*, int);
-recordStackItem *getStaticParent(recordStack*, int);
-int isEmpty(recordStack*);
-recordStack *destroyRecordStack(recordStack*);
+RecordStack *initializeRecordStack(void);
+int pushRecord(CPU*, RecordStack*);
+int popRecord(RecordStack*);
+RecordStackItem *peekRecord(RecordStack*);
+int allocateLocals(RecordStackItem*, int);
+RecordStackItem *getDynamicParent(RecordStack*, int);
+RecordStackItem *getStaticParent(RecordStack*, int);
+int isEmpty(RecordStack*);
+RecordStack *destroyRecordStack(RecordStack*);
+
+// Printer functional prototypes.
+void printStackTraceHeader(int);
+void printStackTraceLine(CPU*, RecordStack*, int);
+void printRegisters(CPU*);
+void printCPU(CPU*);
+void printRecords(RecordStackItem*);
+
 #endif

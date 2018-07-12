@@ -1,26 +1,12 @@
+// Part of Plum by Tiger Sachse.
+
 #include <limits.h>
 #include <stdio.h>
+#include "../plum.h"
 
 // Constants.
-#define DEFAULT_OUTFILE "output.pll"
-// MAX_TOKEN_FORMAT prevents stack smashing if
-// the lexeme file contains tokens that are too long. It's
-// value relies on IDENTIFIER_LEN. The smashing happens
-// because these long tokens overflow a buffer in printLexemeTable.
-// I'd rather not make the buffer bigger, so I restrict the input
-// instead. It is obviously not an ideal solution.
-#define MAX_TOKEN_FORMAT "%11s"
-#define OP_SUCCESS INT_MIN + 1
-#define OP_FAILURE INT_MIN
-#define IDENTIFIER_LEN 11
-#define NUMBER_LEN 5
 #define KEYWORDS 13
-
-// Options defined as bit flags.
-#define OPTION_SKIP_ERRORS 1
-#define OPTION_PRINT_SOURCE 2
-#define OPTION_PRINT_LEXEME_TABLE 4
-#define OPTION_PRINT_LEXEME_LIST 8
+#define NUMBER_LEN 5
 
 // Map keywords and their values.
 typedef struct KeywordValuePair {
@@ -47,7 +33,7 @@ typedef struct SymbolSymbolPair {
 enum LexemeValues {
     UNKNOWN, NULL_VAL, IDENTIFIER,
     NUMBER, PLUS, MINUS,
-    MULTIPLY, SLASH, ODD,
+    MULTIPLY, SLASH, ODD_KEY,
     EQUAL, NOT_EQUAL, LESS,
     LESS_EQUAL, GREATER,
     GREATER_EQUAL, LEFT_PARENTHESIS,
@@ -59,7 +45,7 @@ enum LexemeValues {
 } LexemeValues;
 
 // Core functional prototypes.
-int analyzeSource(char*, char*, int);
+int scanSource(char*, char*, int);
 
 // Handler functional prototypes.
 int isAlphanumeric(char);
@@ -73,13 +59,6 @@ int handlePair(FILE*, FILE*, SymbolSymbolPair);
 int handleLongToken(FILE*, FILE*, char, int, int);
 
 // Printer functional prototypes.
-void errorMissingFile(char*);
-void errorUnknownCharacter(char);
-void errorTokenTooLong(char*, int);
-void errorBadIdentifier(char*);
-void errorNoSource(void);
-void errorNoArgument(char*);
-void errorUnknownArguments(void);
 void printSource(char*);
 void printLexemeList(char*);
 void printFile(char*, char*);
