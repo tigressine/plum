@@ -1,8 +1,10 @@
+// Part of Plum by Tiger Sachse.
+
 #include <stdio.h>
-#include "analyzer.h"
+#include "scanner.h"
 
 // Convert the input file into lexeme values and export to an output file.
-int analyzeSource(char *sourceFile, char *outFile, int options) {
+int scanSource(char *sourceFile, char *outFile, int options) {
     int i;
     FILE *fin;
     FILE *fout;
@@ -33,18 +35,18 @@ int analyzeSource(char *sourceFile, char *outFile, int options) {
     };
         
     if ((fin = fopen(sourceFile, "r")) == NULL) {
-        errorMissingFile(sourceFile);
-        
-        return OP_FAILURE;
+        printError(ERROR_FILE_NOT_FOUND, sourceFile);
+
+        return SIGNAL_FAILURE;
     }
 
     if ((fout = fopen(outFile, "w")) == NULL) {
-        errorMissingFile(outFile);
+        printError(ERROR_FILE_NOT_FOUND, outFile);
 
-        return OP_FAILURE;
+        return SIGNAL_FAILURE;
     }
 
-    returnStatus = OP_SUCCESS;
+    returnStatus = SIGNAL_SUCCESS;
 
     // Read through the characters in a file and match them to their
     // appropriate lexeme values using handler functions.
@@ -73,18 +75,18 @@ int analyzeSource(char *sourceFile, char *outFile, int options) {
                 }
                 // If this loop also didn't terminate early, give up.
                 if (i == pairedSymbolsCount) {
-                   errorUnknownCharacter(buffer);
-                   singleStatus = OP_FAILURE;
+                   printError(ERROR_UNKNOWN_CHARACTER, buffer);
+                   singleStatus = SIGNAL_FAILURE;
                 }
             }
         }
 
         // Set persistent returnStatus to failure if a handler call failed.
-        if (singleStatus == OP_FAILURE) {
-            returnStatus = OP_FAILURE;
+        if (singleStatus == SIGNAL_FAILURE) {
+            returnStatus = SIGNAL_FAILURE;
 
             // If OPTION_SKIP_ERRORS is off, then break the loop.
-            if (!(options & OPTION_SKIP_ERRORS)) {
+            if (!checkOption(&options, OPTION_SKIP_ERRORS)) {
                 break;
             }
         }
@@ -94,6 +96,16 @@ int analyzeSource(char *sourceFile, char *outFile, int options) {
     fclose(fin);
     fclose(fout);
 
+    if (checkOption(&options, OPTION_PRINT_SOURCE)) {
+        printSource(sourceFile);
+    }
+    if (checkOption(&options, OPTION_PRINT_LEXEME_TABLE)) {
+        printLexemeTable(outFile);
+    }
+    if (checkOption(&options, OPTION_PRINT_LEXEME_LIST)) {
+        printLexemeList(outFile);
+    }
+
     // If OPTION_SKIP_ERRORS is on, pretend like everything went fine.
-    return (options & OPTION_SKIP_ERRORS) ? OP_SUCCESS : returnStatus;
+    return checkOption(&options, OPTION_SKIP_ERRORS) ? SIGNAL_SUCCESS : returnStatus;
 }

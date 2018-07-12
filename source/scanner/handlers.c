@@ -1,6 +1,8 @@
+// Part of Plum by Tiger Sachse.
+
 #include <stdio.h>
 #include <string.h>
-#include "analyzer.h"
+#include "scanner.h"
 
 // Return if the character is alpabetic or numeric.
 int isAlphanumeric(char character) {
@@ -22,7 +24,9 @@ int skipComment(FILE *f) {
     char buffer;
 
     if (f == NULL) {
-        return OP_FAILURE;
+        printError(ERROR_NULL_CHECK);
+
+        return SIGNAL_FAILURE;
     }
 
     // Assumes that the "/*" characters have already been consumed by the
@@ -32,12 +36,12 @@ int skipComment(FILE *f) {
         if (buffer == '*') {
             fscanf(f, "%c", &buffer);
             if (buffer == '/') {
-                return OP_SUCCESS;
+                return SIGNAL_SUCCESS;
             }
         }
     }
 
-    return OP_FAILURE;
+    return SIGNAL_FAILURE;
 }
 
 // Eat all remaining characters in a bad token.
@@ -45,6 +49,8 @@ void eatCharacters(FILE *fin, int lexemeValue) {
     char buffer;
 
     if (fin == NULL) {
+        printError(ERROR_NULL_CHECK);
+
         return;
     }
 
@@ -78,7 +84,9 @@ int checkKeywords(FILE *fout, char *word) {
     };
    
     if (fout == NULL || word == NULL) {
-        return OP_FAILURE;
+        printError(ERROR_NULL_CHECK);
+
+        return SIGNAL_FAILURE;
     }
 
     // If any of the keywords match the word, return success.
@@ -86,22 +94,24 @@ int checkKeywords(FILE *fout, char *word) {
         if (strcmp(word, keywords[i].keyword) == 0) {
             fprintf(fout, "%d ", keywords[i].value);
 
-            return OP_SUCCESS;
+            return SIGNAL_SUCCESS;
         }
     }
    
-    return OP_FAILURE;
+    return SIGNAL_FAILURE;
 }
 
 // Send a directly-mapped symbol's lexeme value to the output file.
 int handleDirectMappedSymbol(FILE *fout, int lexemeValue) {
     if (fout == NULL) {
-        return OP_FAILURE;
+        printError(ERROR_NULL_CHECK);
+        
+        return SIGNAL_FAILURE;
     }
 
     fprintf(fout, "%d ", lexemeValue);
     
-    return OP_SUCCESS;
+    return SIGNAL_SUCCESS;
 }
 
 // Print appropriate lexeme value to output file, based on presence of pair
@@ -111,7 +121,9 @@ int handlePair(FILE *fin, FILE *fout, SymbolSymbolPair pair) {
     int i;
     
     if (fin == NULL || fout == NULL) {
-        return OP_FAILURE;
+        printError(ERROR_NULL_CHECK);
+        
+        return SIGNAL_FAILURE;
     }
     
     if (fscanf(fin, "%c", &buffer) != EOF) {
@@ -125,7 +137,7 @@ int handlePair(FILE *fin, FILE *fout, SymbolSymbolPair pair) {
                     fprintf(fout, "%d ", pair.pairValues[i]);
                 }
 
-                return OP_SUCCESS;
+                return SIGNAL_SUCCESS;
             }
         }
         // Else the next character was something else. Rewind the file pointer.
@@ -135,14 +147,14 @@ int handlePair(FILE *fin, FILE *fout, SymbolSymbolPair pair) {
     // If the solo value indicates the symbol is unknown, throw an
     // error, else print it to the output file.
     if (pair.soloValue == UNKNOWN) {
-        errorUnknownCharacter(pair.lead);
+        printError(ERROR_UNKNOWN_CHARACTER, pair.lead);
 
-        return OP_FAILURE;
+        return SIGNAL_FAILURE;
     }
     else {
         fprintf(fout, "%d ", pair.soloValue);
     
-        return OP_SUCCESS;
+        return SIGNAL_SUCCESS;
     }
 }
 
@@ -153,7 +165,7 @@ int handleLongToken(FILE *fin, FILE *fout, char first, int lexemeValue, int len)
     char token[len + 1];
     
     if (fin == NULL || fout == NULL) {
-        return OP_FAILURE;
+        return SIGNAL_FAILURE;
     }
 
     index = 0;
@@ -188,16 +200,16 @@ int handleLongToken(FILE *fin, FILE *fout, char first, int lexemeValue, int len)
             // If we were building a number and it's followed by a letter,
             // this is actually an identifier with digits at the start.
             if (lexemeValue == NUMBER && isAlphabetic(buffer)) {
-                errorBadIdentifier(token);
+                printError(ERROR_ILLEGAL_IDENTIFIER, token);
             }
             // Else we either have a number that's too long or an
             // identifier that's too long.
             else {
-                errorTokenTooLong(token, len);
+                printError(ERROR_TOKEN_TOO_LONG, token);
             }
 
             // Explode.
-            return OP_FAILURE;
+            return SIGNAL_FAILURE;
         }
     }
 
@@ -207,7 +219,7 @@ int handleLongToken(FILE *fin, FILE *fout, char first, int lexemeValue, int len)
     if (lexemeValue == IDENTIFIER) {
         // If the word doesn't match any keywords,
         // print into the output file as an identifier.
-        if (checkKeywords(fout, token) == OP_FAILURE) {
+        if (checkKeywords(fout, token) == SIGNAL_FAILURE) {
             fprintf(fout, "%d %s ", IDENTIFIER, token);
         }
     }
@@ -215,5 +227,5 @@ int handleLongToken(FILE *fin, FILE *fout, char first, int lexemeValue, int len)
         fprintf(fout, "%d %s ", NUMBER, token);
     }
 
-    return OP_SUCCESS;
+    return SIGNAL_SUCCESS;
 }
