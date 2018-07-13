@@ -167,7 +167,8 @@ int main(int argCount, char **argsVector) {
             break;
 
         case MODE_COMPILE:
-            compileLexemes(inFile, outFile, options);
+            scanSource(inFile, INTERMEDIATE_FILE, options); // delete file after
+            compileLexemes(INTERMEDIATE_FILE, outFile, options);// check for crashes
             break;
 
         case MODE_EXECUTE:

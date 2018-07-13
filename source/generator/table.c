@@ -67,6 +67,13 @@ int insertSymbol(SymbolTable *table,
         return SIGNAL_FAILURE;
     }
 
+    // All entries in the symbol table must be unique.
+    if (lookupSymbol(table, name) != NULL) {
+        printError(ERROR_IDENTIFIER_ALREADY_DECLARED, name);
+
+        return SIGNAL_FAILURE;
+    }
+
     new = createTableNode(type, value, level, active, address, name, table->head);
     
     // If a new node could not be created, return failure.

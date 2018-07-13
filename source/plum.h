@@ -7,6 +7,7 @@
 #define IDENTIFIER_LEN 11
 #define MAX_ERROR_LENGTH 80
 #define DEFAULT_OUTPUT_FILE "plum.out"
+#define INTERMEDIATE_FILE "plum.intermediate.tmp"
 
 // Enumeration of lexeme values.
 enum LexemeValues {
@@ -60,6 +61,7 @@ enum Signals {
 
 // The full collection of errors that this program can throw.
 enum Errors {
+    ERROR_IDENTIFIER_ALREADY_DECLARED,
     ERROR_IDENTIFIER_EXPECTED,
     ERROR_NUMBER_EXPECTED,
     ERROR_ILLEGAL_IDENTIFIER,

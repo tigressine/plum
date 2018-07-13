@@ -68,6 +68,8 @@ int classCondition(IOTunnel*, SymbolTable*);
 int classExpression(IOTunnel*, SymbolTable*);
 int classTerm(IOTunnel*, SymbolTable*);
 int classFactor(IOTunnel*, SymbolTable*);
+int subclassConstDeclaration(IOTunnel*, SymbolTable*);
+int subclassVarDeclaration(IOTunnel*, SymbolTable*);
 
 // Printer functional prototypes.
 void printSymbolTable(SymbolTable*);

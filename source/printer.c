@@ -13,6 +13,7 @@ void printError(int errorCode, ...) {
     // All errors in this array map to the appropriate code in
     // an enumeration defined in the plum.h header.
     char errors[][MAX_ERROR_LENGTH] = {
+        "identifier already declared: %s",
         "identifier expected",
         "number expected",
         "illegal identifier: %s...",
@@ -74,6 +75,7 @@ void printError(int errorCode, ...) {
         case ERROR_ILLEGAL_FOLLOW_TOKEN:
         case ERROR_UNDECLARED_IDENTIFIER:
         case ERROR_ILLEGAL_LEXEME_FORMAT:
+        case ERROR_IDENTIFIER_ALREADY_DECLARED:
         case ERROR_PROGRAM_COUNTER_OUT_OF_BOUNDS:
             // Call a safe version of sprintf that also handles variadic lists.
             vsnprintf(error, MAX_ERROR_LENGTH, errors[errorCode], arguments);
