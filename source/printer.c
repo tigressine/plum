@@ -45,7 +45,8 @@ void printError(int errorCode, ...) {
         "program counter out of bounds: %d",//
         "illegal operation code: %d",//
         "missing value for token: %d",
-        "illegal format of lexemes: %d"
+        "illegal format of lexemes: %d",
+        "characters after period"
     };
 
     // Initialize the variadic argument list, starting after errorCode.

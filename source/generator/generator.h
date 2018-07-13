@@ -11,6 +11,7 @@ typedef struct IOTunnel {
     int token;
     FILE *fin;
     FILE *fout;
+    int status;
     int tokenValue;
     char tokenName[IDENTIFIER_LEN + 1];
 } IOTunnel;
@@ -45,9 +46,9 @@ typedef struct SymbolTable {
 
 // Generator functional prototypes.
 IOTunnel *createIOTunnel(char*, char*);
-int loadToken(IOTunnel*);
-int handleIdentifier(IOTunnel*);
-int handleNumber(IOTunnel*);
+void loadToken(IOTunnel*);
+void handleIdentifier(IOTunnel*);
+void handleNumber(IOTunnel*);
 void destroyIOTunnel(IOTunnel*);
 int compileLexemes(char*, char*, int);
 
@@ -60,12 +61,12 @@ void destroySymbolTable(SymbolTable*);
 int getTableSize(SymbolTable*);
 
 // Class functional prototypes.
-int classProgram();
-int classBlock();
-int classStatement();
-int classCondition();
-int classExpression();
-int classTerm();
-int classFactor();
+int classProgram(IOTunnel*, SymbolTable*);
+int classBlock(IOTunnel*, SymbolTable*);
+int classStatement(IOTunnel*, SymbolTable*);
+int classCondition(IOTunnel*, SymbolTable*);
+int classExpression(IOTunnel*, SymbolTable*);
+int classTerm(IOTunnel*, SymbolTable*);
+int classFactor(IOTunnel*, SymbolTable*);
 
 #endif
