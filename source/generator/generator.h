@@ -5,6 +5,15 @@
 #include <limits.h>
 #include "../plum.h"
 
+// A tunnel for input and output streams, as well as token storage.
+typedef struct IOTunnel {
+    int token;
+    FILE *fin;
+    FILE *fout;
+    int tokenValue;
+    char tokenName[IDENTIFIER_LEN + 1];
+} IOTunnel;
+
 // Different statuses possible for symbols in the symbol table.
 enum Status {
     STATUS_ACTIVE,
