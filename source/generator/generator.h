@@ -2,6 +2,7 @@
 #ifndef GENERATOR_H
 #define GENERATOR_H
 
+#include <stdio.h>
 #include <limits.h>
 #include "../plum.h"
 
@@ -43,6 +44,11 @@ typedef struct SymbolTable {
 } SymbolTable;
 
 // Generator functional prototypes.
+IOTunnel *createIOTunnel(char*, char*);
+int loadToken(IOTunnel*);
+int handleIdentifier(IOTunnel*);
+int handleNumber(IOTunnel*);
+void destroyIOTunnel(IOTunnel*);
 int compileLexemes(char*, char*, int);
 
 // Table functional prototypes.
@@ -52,5 +58,14 @@ int insertSymbol(SymbolTable*, int, int, int, int, int, char*);
 Symbol *lookupSymbol(SymbolTable*, char*);
 void destroySymbolTable(SymbolTable*);
 int getTableSize(SymbolTable*);
+
+// Class functional prototypes.
+int classProgram();
+int classBlock();
+int classStatement();
+int classCondition();
+int classExpression();
+int classTerm();
+int classFactor();
 
 #endif
