@@ -71,7 +71,7 @@ int insertSymbol(SymbolTable *table,
     
     // If a new node could not be created, return failure.
     if (new == NULL) {
-        printError(ERROR_NULL_CHECK);
+        printError(ERROR_OUT_OF_MEMORY);
 
         return SIGNAL_FAILURE;
     }

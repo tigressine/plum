@@ -60,6 +60,8 @@ enum Signals {
 
 // The full collection of errors that this program can throw.
 enum Errors {
+    ERROR_IDENTIFIER_EXPECTED,
+    ERROR_NUMBER_EXPECTED,
     ERROR_ILLEGAL_IDENTIFIER,
     ERROR_TOKEN_TOO_LONG,
     ERROR_BECOME_INSTEAD_OF_EQUAL,

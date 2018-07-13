@@ -13,10 +13,12 @@ void printError(int errorCode, ...) {
     // All errors in this array map to the appropriate code in
     // an enumeration defined in the plum.h header.
     char errors[][MAX_ERROR_LENGTH] = {
+        "identifier expected",
+        "number expected",
         "illegal identifier: %s...",
         "token is too long: %s...",
         "use = instead of :=",
-        "symbol expected: %s",
+        "symbol expected: %c",
         "%s must be followed by %s",
         "statement expected",
         "missing bisecting semicolon between statements",

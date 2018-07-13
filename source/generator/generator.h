@@ -69,4 +69,8 @@ int classExpression(IOTunnel*, SymbolTable*);
 int classTerm(IOTunnel*, SymbolTable*);
 int classFactor(IOTunnel*, SymbolTable*);
 
+// Printer functional prototypes.
+void printSymbolTable(SymbolTable*);
+void printSymbolTableColumn(TableNode*);
+
 #endif

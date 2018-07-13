@@ -75,6 +75,7 @@ void loadToken(IOTunnel *tunnel) {
     // Handle numbers appropriately or default the tokenValue to zero
     // for all other tokens.
     if (tunnel->token == LEX_NUMBER) {
+        handleNumber(tunnel);
         if (tunnel->status == SIGNAL_FAILURE) {
             return;
         }    
@@ -203,6 +204,8 @@ int compileLexemes(char *lexemeFile, char *outFile, int options) {
     }
 
     returnValue = classProgram(tunnel, table); 
+
+    printSymbolTable(table);
 
     destroyIOTunnel(tunnel);
     destroySymbolTable(table);
