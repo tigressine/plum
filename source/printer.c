@@ -13,12 +13,17 @@ void printError(int errorCode, ...) {
     // All errors in this array map to the appropriate code in
     // an enumeration defined in the plum.h header.
     char errors[][MAX_ERROR_LENGTH] = {
+        "factor syntax incorrect",
+        "no relational token provided",
+        "expected do token",
+        "expected then token",
+        "expected end token",
         "identifier already declared: %s",
         "identifier expected",
         "number expected",
         "illegal identifier: %s...",
         "token is too long: %s...",
-        "use = instead of :=",
+        "symbol expected: :=",//
         "symbol expected: %c",
         "%s must be followed by %s",
         "statement expected",

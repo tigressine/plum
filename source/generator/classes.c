@@ -136,6 +136,37 @@ int subclassIfStatement(IOTunnel *tunnel, SymbolTable *table) {
 
         return SIGNAL_FAILURE;
     }
+
+    loadToken(tunnel);
+    if (tunnel->status == SIGNAL_FAILURE || tunnel->status == SIGNAL_EOF) {
+        return SIGNAL_FAILURE;
+    }
+
+    if (classCondition(tunnel, table) == SIGNAL_FAILURE) {
+        return SIGNAL_FAILURE;
+    }
+
+    loadToken(tunnel);
+    if (tunnel->status == SIGNAL_FAILURE || tunnel->status == SIGNAL_EOF) {
+        return SIGNAL_FAILURE;
+    }
+
+    if (tunnel->token != LEX_THEN) {
+        printError(ERROR_THEN_EXPECTED);
+
+        return SIGNAL_FAILURE;
+    }
+    
+    loadToken(tunnel);
+    if (tunnel->status == SIGNAL_FAILURE || tunnel->status == SIGNAL_EOF) {
+        return SIGNAL_FAILURE;
+    }
+    
+    if (classStatement(tunnel, table) == SIGNAL_FAILURE) {
+        return SIGNAL_FAILURE;
+    }
+
+    return SIGNAL_SUCCESS;
 }
 
 int subclassWhileStatement(IOTunnel *tunnel, SymbolTable *table) {
@@ -144,7 +175,32 @@ int subclassWhileStatement(IOTunnel *tunnel, SymbolTable *table) {
 
         return SIGNAL_FAILURE;
     }
+    
+    loadToken(tunnel);
+    if (tunnel->status == SIGNAL_FAILURE || tunnel->status == SIGNAL_EOF) {
+        return SIGNAL_FAILURE;
+    }
 
+    if (classCondition(tunnel, table) == SIGNAL_FAILURE) {
+        return SIGNAL_FAILURE;
+    }
+
+    if (tunnel->token != LEX_DO) {
+        printError(ERROR_DO_EXPECTED);
+
+        return SIGNAL_FAILURE;
+    }
+
+    loadToken(tunnel);
+    if (tunnel->status == SIGNAL_FAILURE || tunnel->status == SIGNAL_EOF) {
+        return SIGNAL_FAILURE;
+    }
+
+    if (classStatement(tunnel, table) == SIGNAL_FAILURE) {
+        return SIGNAL_FAILURE;
+    }
+
+    return SIGNAL_SUCCESS;
 }
 
 int classStatement(IOTunnel *tunnel, SymbolTable *table) {
@@ -167,7 +223,7 @@ int classStatement(IOTunnel *tunnel, SymbolTable *table) {
         return subclassWhileStatement(tunnel, table);
     }
     else {
-        return SIGNAL_FAILURE;
+        return SIGNAL_SUCCESS;//might be wrong
     }
 }
 
@@ -176,6 +232,46 @@ int classCondition(IOTunnel *tunnel, SymbolTable *table) {
         printError(ERROR_NULL_CHECK);
 
         return SIGNAL_FAILURE;
+    }
+
+    if (tunnel->token == LEX_ODD) {
+        loadToken(tunnel);
+        if (tunnel->status == SIGNAL_FAILURE || tunnel->status == SIGNAL_EOF) {
+            return SIGNAL_FAILURE;
+        }
+
+        if (classExpression(tunnel, table) == SIGNAL_FAILURE) {
+            return SIGNAL_FAILURE;
+        }
+    }
+    else {
+        if (classExpression(tunnel, table) == SIGNAL_FAILURE) {
+            return SIGNAL_FAILURE;
+        }
+       
+        switch (tunnel->token) {
+            case LEX_EQUAL:
+            case LEX_LESS:
+            //case LEX_WEIRD_ONE:
+            case LEX_LESS_EQUAL:
+            case LEX_GREATER:
+            case LEX_GREATER_EQUAL:
+                loadToken(tunnel);
+                if (tunnel->status == SIGNAL_FAILURE || tunnel->status == SIGNAL_EOF) {
+                    return SIGNAL_FAILURE;
+                }
+
+                if (classExpression(tunnel, table) == SIGNAL_FAILURE) {
+                    return SIGNAL_FAILURE;
+                }
+           
+                break;
+            
+            default:
+                printError(ERROR_NO_RELATIONAL_TOKEN);
+
+                return SIGNAL_FAILURE;
+        }
     }
     return SIGNAL_SUCCESS;
 }
@@ -186,6 +282,29 @@ int classExpression(IOTunnel *tunnel, SymbolTable *table) {
 
         return SIGNAL_FAILURE;
     }
+
+    if (tunnel->token == LEX_PLUS || tunnel->token == LEX_MINUS) {
+        loadToken(tunnel);
+        if (tunnel->status == SIGNAL_FAILURE || tunnel->status == SIGNAL_EOF) {
+            return SIGNAL_FAILURE;
+        }
+    }
+
+    if (classTerm(tunnel, table) == SIGNAL_FAILURE) {
+        return SIGNAL_FAILURE;
+    }
+
+    while (tunnel->token == LEX_PLUS || tunnel->token == LEX_MINUS) {
+        loadToken(tunnel);
+        if (tunnel->status == SIGNAL_FAILURE || tunnel->status == SIGNAL_EOF) {
+            return SIGNAL_FAILURE;
+        }
+
+        if (classTerm(tunnel, table) == SIGNAL_FAILURE) {
+            return SIGNAL_FAILURE;
+        }
+    }
+
     return SIGNAL_SUCCESS;
 }
 
@@ -195,6 +314,22 @@ int classTerm(IOTunnel *tunnel, SymbolTable *table) {
 
         return SIGNAL_FAILURE;
     }
+    
+    if (classFactor(tunnel, table) == SIGNAL_FAILURE) {
+        return SIGNAL_FAILURE;
+    }
+    
+    while (tunnel->token == LEX_MULTIPLY || tunnel->token == LEX_SLASH) {
+        loadToken(tunnel);
+        if (tunnel->status == SIGNAL_FAILURE || tunnel->status == SIGNAL_EOF) {
+            return SIGNAL_FAILURE;
+        }
+
+        if (classFactor(tunnel, table) == SIGNAL_FAILURE) {
+            return SIGNAL_FAILURE;
+        }
+    }
+
     return SIGNAL_SUCCESS;
 }
 
@@ -204,6 +339,46 @@ int classFactor(IOTunnel *tunnel, SymbolTable *table) {
 
         return SIGNAL_FAILURE;
     }
+
+    if (tunnel->token == LEX_IDENTIFIER) {
+        loadToken(tunnel);
+        if (tunnel->status == SIGNAL_FAILURE || tunnel->status == SIGNAL_EOF) {
+            return SIGNAL_FAILURE;
+        }
+    }
+    else if (tunnel->token == LEX_NUMBER) {
+        loadToken(tunnel);
+        if (tunnel->status == SIGNAL_FAILURE || tunnel->status == SIGNAL_EOF) {
+            return SIGNAL_FAILURE;
+        }
+    }
+    else if (tunnel->token == LEX_LEFT_PARENTHESIS) {
+        loadToken(tunnel);
+        if (tunnel->status == SIGNAL_FAILURE || tunnel->status == SIGNAL_EOF) {
+            return SIGNAL_FAILURE;
+        }
+
+        if (classExpression(tunnel, table) == SIGNAL_FAILURE) {
+            return SIGNAL_FAILURE;
+        }
+
+        if (tunnel->token != LEX_RIGHT_PARENTHESIS) {
+            printError(ERROR_SYMBOL_EXPECTED, ')');
+
+            return SIGNAL_FAILURE;
+        }
+        
+        loadToken(tunnel);
+        if (tunnel->status == SIGNAL_FAILURE || tunnel->status == SIGNAL_EOF) {
+            return SIGNAL_FAILURE;
+        }
+    }
+    else {
+        printError(ERROR_INVALID_FACTOR);
+
+        return SIGNAL_FAILURE;
+    }
+
     return SIGNAL_SUCCESS;
 }
 
