@@ -65,7 +65,86 @@ int classBlock(IOTunnel *tunnel, SymbolTable *table) {
         }
     }
 
+    return classStatement(tunnel, table);
+}
+
+int subclassIdentifierStatement(IOTunnel *tunnel, SymbolTable *table) {
+    if (tunnel == NULL || table == NULL) {
+        printError(ERROR_NULL_CHECK);
+
+        return SIGNAL_FAILURE;
+    }
+    
+    loadToken(tunnel);
+    if (tunnel->status == SIGNAL_FAILURE || tunnel->status == SIGNAL_EOF) {
+        return SIGNAL_FAILURE;
+    }
+
+    if (tunnel->token != LEX_BECOME) {
+        printError(ERROR_BECOME_EXPECTED);
+
+        return SIGNAL_FAILURE;
+    }
+    
+    loadToken(tunnel);
+    if (tunnel->status == SIGNAL_FAILURE || tunnel->status == SIGNAL_EOF) {
+        return SIGNAL_FAILURE;
+    }
+
+    return classExpression(tunnel, table);
+}
+
+int subclassBeginStatement(IOTunnel *tunnel, SymbolTable *table) {
+    if (tunnel == NULL || table == NULL) {
+        printError(ERROR_NULL_CHECK);
+
+        return SIGNAL_FAILURE;
+    }
+
+    loadToken(tunnel);
+    if (tunnel->status == SIGNAL_FAILURE || tunnel->status == SIGNAL_EOF) {
+        return SIGNAL_FAILURE;
+    }
+
+    if (classStatement(tunnel, table) == SIGNAL_FAILURE) {
+        return SIGNAL_FAILURE;
+    }
+
+    while (tunnel->token == LEX_SEMICOLON) {
+        loadToken(tunnel);
+        if (tunnel->status == SIGNAL_FAILURE || tunnel->status == SIGNAL_EOF) {
+            return SIGNAL_FAILURE;
+        }
+        
+        if (classStatement(tunnel, table) == SIGNAL_FAILURE) {
+            return SIGNAL_FAILURE;
+        }
+    }
+
+    if (tunnel->token != LEX_END) {
+        printError(ERROR_END_EXPECTED);
+
+        return SIGNAL_FAILURE;
+    }
+     
     return SIGNAL_SUCCESS;
+}
+
+int subclassIfStatement(IOTunnel *tunnel, SymbolTable *table) {
+    if (tunnel == NULL || table == NULL) {
+        printError(ERROR_NULL_CHECK);
+
+        return SIGNAL_FAILURE;
+    }
+}
+
+int subclassWhileStatement(IOTunnel *tunnel, SymbolTable *table) {
+    if (tunnel == NULL || table == NULL) {
+        printError(ERROR_NULL_CHECK);
+
+        return SIGNAL_FAILURE;
+    }
+
 }
 
 int classStatement(IOTunnel *tunnel, SymbolTable *table) {
@@ -74,7 +153,22 @@ int classStatement(IOTunnel *tunnel, SymbolTable *table) {
 
         return SIGNAL_FAILURE;
     }
-    return SIGNAL_SUCCESS;
+
+    if (tunnel->token == LEX_IDENTIFIER) {
+        return subclassIdentifierStatement(tunnel, table);
+    }
+    else if (tunnel->token == LEX_BEGIN) {
+        return subclassBeginStatement(tunnel, table);
+    }
+    else if (tunnel->token == LEX_IF) {
+        return subclassIfStatement(tunnel, table); 
+    }
+    else if (tunnel->token == LEX_WHILE) {
+        return subclassWhileStatement(tunnel, table);
+    }
+    else {
+        return SIGNAL_FAILURE;
+    }
 }
 
 int classCondition(IOTunnel *tunnel, SymbolTable *table) {
@@ -236,7 +330,6 @@ int subclassVarDeclaration(IOTunnel *tunnel, SymbolTable *table) {
 
     // If the final token isn't a semicolon, we've got a problem.
     if (tunnel->token != LEX_SEMICOLON) {
-        printf("%d\n", tunnel->token);
         printError(ERROR_SYMBOL_EXPECTED, ';');
 
         return SIGNAL_FAILURE;
