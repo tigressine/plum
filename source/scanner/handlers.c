@@ -4,21 +4,6 @@
 #include <string.h>
 #include "scanner.h"
 
-// Return if the character is alpabetic or numeric.
-int isAlphanumeric(char character) {
-    return (isAlphabetic(character) || isDigit(character));
-}
-
-// Return if the character is alphabetic.
-int isAlphabetic(char character) {
-    return ((character >= 'a' && character <= 'z') || (character >= 'A' && character <= 'Z'));
-}
-
-// Return if the character is a digit.
-int isDigit(char character) {
-    return (character >= '0' && character <= '9');
-}
-
 // Skip past a comment in the source file.
 int skipComment(FILE *f) {
     char buffer;
@@ -32,7 +17,7 @@ int skipComment(FILE *f) {
     // Assumes that the "/*" characters have already been consumed by the
     // file pointer. Scans through the file until "*/" is found or the end
     // of the file is reached.
-    while(fscanf(f, "%c", &buffer) != EOF) {
+    while (fscanf(f, "%c", &buffer) != EOF) {
         if (buffer == '*') {
             fscanf(f, "%c", &buffer);
             if (buffer == '/') {
@@ -54,7 +39,7 @@ void eatCharacters(FILE *fin, int lexemeValue) {
         return;
     }
 
-    while(fscanf(fin, "%c", &buffer) != EOF) {
+    while (fscanf(fin, "%c", &buffer) != EOF) {
         // Once a non-token character is detected, rewind and break.
         if (!isAlphanumeric(buffer)) {
             fseek(fin, -1, SEEK_CUR);
@@ -174,7 +159,7 @@ int handleLongToken(FILE *fin, FILE *fout, char first, int lexemeValue, int len)
     token[index++] = first;
 
     // Eat up more characters!
-    while(index < len && fscanf(fin, "%c", &buffer) != EOF) {
+    while (index < len && fscanf(fin, "%c", &buffer) != EOF) {
         // If we are building an identifier and the buffer is alphanumeric
         // or if we are building a number and the buffer is a digit,
         // add to the token array.

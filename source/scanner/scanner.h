@@ -32,9 +32,6 @@ typedef struct SymbolSymbolPair {
 int scanSource(char*, char*, int);
 
 // Handler functional prototypes.
-int isAlphanumeric(char);
-int isAlphabetic(char);
-int isDigit(char);
 int skipComment(FILE*);
 void eatCharacters(FILE*, int);
 int checkKeywords(FILE*, char*);

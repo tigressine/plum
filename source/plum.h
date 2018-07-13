@@ -89,7 +89,9 @@ enum Errors {
     ERROR_DIVIDE_BY_ZERO,
     ERROR_FILE_TOO_LONG,
     ERROR_PROGRAM_COUNTER_OUT_OF_BOUNDS,
-    ERROR_ILLEGAL_OPCODE
+    ERROR_ILLEGAL_OPCODE,
+    ERROR_MISSING_TOKEN,
+    ERROR_ILLEGAL_LEXEME_FORMAT
 };
 
 // Available system calls.
@@ -122,6 +124,10 @@ enum Modes {
 void setOption(int*, int);
 int checkOption(int*, int);
 int fileExists(char*);
+int isAlphanumeric(char);
+int isAlphabetic(char);
+int isDigit(char);
+int isWhitespace(char);
 
 // Printer functional prototypes.
 void printError(int, ...);

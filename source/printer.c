@@ -43,7 +43,9 @@ void printError(int errorCode, ...) {
         "attempted to divide by zero",//
         "file too long: %s",//
         "program counter out of bounds: %d",//
-        "illegal operation code: %d"//
+        "illegal operation code: %d",//
+        "missing value for token: %d",
+        "illegal format of lexemes: %d"
     };
 
     // Initialize the variadic argument list, starting after errorCode.
@@ -53,6 +55,7 @@ void printError(int errorCode, ...) {
         // Errors that must be formatted first.
         case ERROR_BAD_MODE:
         case ERROR_FILE_TOO_LONG:
+        case ERROR_MISSING_TOKEN:
         case ERROR_ILLEGAL_OPCODE:
         case ERROR_TOKEN_TOO_LONG:
         case ERROR_FILE_NOT_FOUND:
@@ -67,6 +70,7 @@ void printError(int errorCode, ...) {
         case ERROR_ILLEGAL_SYSTEM_CALL:
         case ERROR_ILLEGAL_FOLLOW_TOKEN:
         case ERROR_UNDECLARED_IDENTIFIER:
+        case ERROR_ILLEGAL_LEXEME_FORMAT:
         case ERROR_PROGRAM_COUNTER_OUT_OF_BOUNDS:
             // Call a safe version of sprintf that also handles variadic lists.
             vsnprintf(error, MAX_ERROR_LENGTH, errors[errorCode], arguments);

@@ -40,3 +40,23 @@ int fileExists(char *filename) {
         return SIGNAL_TRUE;
     }
 }
+
+// Return if the character is alpabetic or numeric.
+int isAlphanumeric(char character) {
+    return (isAlphabetic(character) || isDigit(character));
+}
+
+// Return if the character is alphabetic.
+int isAlphabetic(char character) {
+    return ((character >= 'a' && character <= 'z') || (character >= 'A' && character <= 'Z'));
+}
+
+// Return if the character is a digit.
+int isDigit(char character) {
+    return (character >= '0' && character <= '9');
+}
+
+// Return if the character is whitespace.
+int isWhitespace(char character) {
+    return (character == ' ' || character == '\t' || character == '\n'); 
+}
