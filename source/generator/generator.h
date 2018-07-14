@@ -57,8 +57,8 @@ SymbolTable *createSymbolTable(void);
 TableNode *createTableNode(int, int, int, int, int, char*, TableNode*);
 int insertSymbol(SymbolTable*, int, int, int, int, int, char*);
 Symbol *lookupSymbol(SymbolTable*, char*);
-void destroySymbolTable(SymbolTable*);
 int getTableSize(SymbolTable*);
+void destroySymbolTable(SymbolTable*);
 
 // Class functional prototypes.
 int classProgram(IOTunnel*, SymbolTable*);
@@ -70,6 +70,12 @@ int classTerm(IOTunnel*, SymbolTable*);
 int classFactor(IOTunnel*, SymbolTable*);
 int subclassConstDeclaration(IOTunnel*, SymbolTable*);
 int subclassVarDeclaration(IOTunnel*, SymbolTable*);
+int subclassIdentifierStatement(IOTunnel*, SymbolTable*);
+int subclassBeginStatement(IOTunnel*, SymbolTable*);
+int subclassIfStatement(IOTunnel*, SymbolTable*);
+int subclassWhileStatement(IOTunnel*, SymbolTable*);
+int subclassReadStatement(IOTunnel*, SymbolTable*);
+int subclassWriteStatement(IOTunnel*, SymbolTable*);
 
 // Printer functional prototypes.
 void printSymbolTable(SymbolTable*);

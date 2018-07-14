@@ -2,10 +2,10 @@
 
 #include <string.h>
 #include "generator.h"
-//END
+
 // Syntactic class for the whole program.
+// EBNF: classBlock ".".
 int classProgram(IOTunnel *tunnel, SymbolTable *table) {
-    printf("program\n");
     if (tunnel == NULL || table == NULL) {
         printError(ERROR_NULL_CHECK);
 
@@ -18,7 +18,6 @@ int classProgram(IOTunnel *tunnel, SymbolTable *table) {
         return SIGNAL_FAILURE;
     }
 
-    // Attempt to verify the inner block.
     if (classBlock(tunnel, table) == SIGNAL_FAILURE) {
         return SIGNAL_FAILURE;
     }
@@ -30,6 +29,8 @@ int classProgram(IOTunnel *tunnel, SymbolTable *table) {
         return SIGNAL_FAILURE;
     }
     else {
+
+        // If anything follows the period, there is an error.
         loadToken(tunnel);
         if (tunnel->status != SIGNAL_EOF) {
             printError(ERROR_TRAILING_CHARACTERS);
@@ -42,8 +43,8 @@ int classProgram(IOTunnel *tunnel, SymbolTable *table) {
 }
 
 // Syntactic class for a block.
+// EBNF: [subclassConstDeclaration][subclassVarDeclaration][classStatement].
 int classBlock(IOTunnel *tunnel, SymbolTable *table) {
-    printf("block\n");
     char identifier[IDENTIFIER_LEN + 1];
     int value;
     
@@ -67,165 +68,14 @@ int classBlock(IOTunnel *tunnel, SymbolTable *table) {
         }
     }
 
+    // Handle all statements.
     return classStatement(tunnel, table);
 }
 
-int subclassIdentifierStatement(IOTunnel *tunnel, SymbolTable *table) {
-    printf("identifier\n");
-    if (tunnel == NULL || table == NULL) {
-        printError(ERROR_NULL_CHECK);
-
-        return SIGNAL_FAILURE;
-    }
-    
-    loadToken(tunnel);
-    if (tunnel->status == SIGNAL_FAILURE || tunnel->status == SIGNAL_EOF) {
-        return SIGNAL_FAILURE;
-    }
-
-    if (tunnel->token != LEX_BECOME) {
-        printError(ERROR_BECOME_EXPECTED);
-
-        return SIGNAL_FAILURE;
-    }
-    
-    loadToken(tunnel);
-    if (tunnel->status == SIGNAL_FAILURE || tunnel->status == SIGNAL_EOF) {
-        return SIGNAL_FAILURE;
-    }
-
-    printf("done4]\n");
-    return classExpression(tunnel, table);
-}
-
-int subclassBeginStatement(IOTunnel *tunnel, SymbolTable *table) {
-    printf("begin\n");
-    if (tunnel == NULL || table == NULL) {
-        printError(ERROR_NULL_CHECK);
-
-        return SIGNAL_FAILURE;
-    }
-
-    loadToken(tunnel);
-    if (tunnel->status == SIGNAL_FAILURE || tunnel->status == SIGNAL_EOF) {
-        return SIGNAL_FAILURE;
-    }
-
-    if (classStatement(tunnel, table) == SIGNAL_FAILURE) {
-        return SIGNAL_FAILURE;
-    }
-
-    printf("done6\n");
-    while (tunnel->token == LEX_SEMICOLON) {
-        printf("here?\n");
-        loadToken(tunnel);
-        if (tunnel->status == SIGNAL_FAILURE || tunnel->status == SIGNAL_EOF) {
-            return SIGNAL_FAILURE;
-        }
-        
-        if (classStatement(tunnel, table) == SIGNAL_FAILURE) {
-            return SIGNAL_FAILURE;
-        }
-    }
-
-    if (tunnel->token != LEX_END) {
-        printf("found\n");
-        printError(ERROR_END_EXPECTED);
-
-        return SIGNAL_FAILURE;
-    }
-    else {
-        printf("end found!!!\n");
-    }
-
-    printf("done7\n");
-    loadToken(tunnel);
-    if (tunnel->status == SIGNAL_FAILURE || tunnel->status == SIGNAL_EOF) {
-        return SIGNAL_FAILURE;
-    }
-    printf("done8\n");
-    return SIGNAL_SUCCESS;
-}
-
-int subclassIfStatement(IOTunnel *tunnel, SymbolTable *table) {
-    printf("if\n");
-    if (tunnel == NULL || table == NULL) {
-        printError(ERROR_NULL_CHECK);
-
-        return SIGNAL_FAILURE;
-    }
-
-    loadToken(tunnel);
-    if (tunnel->status == SIGNAL_FAILURE || tunnel->status == SIGNAL_EOF) {
-        return SIGNAL_FAILURE;
-    }
-
-    if (classCondition(tunnel, table) == SIGNAL_FAILURE) {
-        return SIGNAL_FAILURE;
-    }
-
-    /*
-    loadToken(tunnel);
-    if (tunnel->status == SIGNAL_FAILURE || tunnel->status == SIGNAL_EOF) {
-        return SIGNAL_FAILURE;
-    }*/
-
-    if (tunnel->token != LEX_THEN) {
-        printError(ERROR_THEN_EXPECTED);
-
-        return SIGNAL_FAILURE;
-    }
-    
-    loadToken(tunnel);
-    if (tunnel->status == SIGNAL_FAILURE || tunnel->status == SIGNAL_EOF) {
-        return SIGNAL_FAILURE;
-    }
-    
-    if (classStatement(tunnel, table) == SIGNAL_FAILURE) {
-        return SIGNAL_FAILURE;
-    }
-
-    return SIGNAL_SUCCESS;
-}
-
-int subclassWhileStatement(IOTunnel *tunnel, SymbolTable *table) {
-    printf("while\n");
-    if (tunnel == NULL || table == NULL) {
-        printError(ERROR_NULL_CHECK);
-
-        return SIGNAL_FAILURE;
-    }
-    
-    loadToken(tunnel);
-    if (tunnel->status == SIGNAL_FAILURE || tunnel->status == SIGNAL_EOF) {
-        return SIGNAL_FAILURE;
-    }
-
-    if (classCondition(tunnel, table) == SIGNAL_FAILURE) {
-        return SIGNAL_FAILURE;
-    }
-
-    if (tunnel->token != LEX_DO) {
-        printError(ERROR_DO_EXPECTED);
-
-        return SIGNAL_FAILURE;
-    }
-
-    loadToken(tunnel);
-    if (tunnel->status == SIGNAL_FAILURE || tunnel->status == SIGNAL_EOF) {
-        return SIGNAL_FAILURE;
-    }
-
-    if (classStatement(tunnel, table) == SIGNAL_FAILURE) {
-        return SIGNAL_FAILURE;
-    }
-
-    return SIGNAL_SUCCESS;
-}
-
+// Syntactic class for statements.
+// EBNF: [subclassIdentifierStatement | subclassBeginStatement | subclassIfStatement |
+//        subclassWhileStatement | subclassReadStatement | subclassWriteStatement].
 int classStatement(IOTunnel *tunnel, SymbolTable *table) {
-    printf("statement\n");
-    printf("token%d\n", tunnel->token);
     if (tunnel == NULL || table == NULL) {
         printError(ERROR_NULL_CHECK);
 
@@ -244,14 +94,20 @@ int classStatement(IOTunnel *tunnel, SymbolTable *table) {
     else if (tunnel->token == LEX_WHILE) {
         return subclassWhileStatement(tunnel, table);
     }
+    else if (tunnel->token == LEX_READ) {
+        return subclassReadStatement(tunnel, table);
+    }
+    else if (tunnel->token == LEX_WRITE) {
+        return subclassWriteStatement(tunnel, table);
+    }
     else {
-        printf("this]n\n");
         return SIGNAL_SUCCESS;//might be wrong
     }
 }
 
+// Syntactic class for conditions.
+// EBNF: "odd" classExpression | expression comparator expression.
 int classCondition(IOTunnel *tunnel, SymbolTable *table) {
-    printf("condition\n");
     if (tunnel == NULL || table == NULL) {
         printError(ERROR_NULL_CHECK);
 
@@ -272,13 +128,14 @@ int classCondition(IOTunnel *tunnel, SymbolTable *table) {
         if (classExpression(tunnel, table) == SIGNAL_FAILURE) {
             return SIGNAL_FAILURE;
         }
-       
+      
+        // Token must be one of these comparators.
         switch (tunnel->token) {
-            case LEX_EQUAL:
             case LEX_LESS:
-            //case LEX_WEIRD_ONE:
-            case LEX_LESS_EQUAL:
+            case LEX_EQUAL:
             case LEX_GREATER:
+            case LEX_NOT_EQUAL:
+            case LEX_LESS_EQUAL:
             case LEX_GREATER_EQUAL:
                 loadToken(tunnel);
                 if (tunnel->status == SIGNAL_FAILURE || tunnel->status == SIGNAL_EOF) {
@@ -301,14 +158,16 @@ int classCondition(IOTunnel *tunnel, SymbolTable *table) {
     return SIGNAL_SUCCESS;
 }
 
+// Syntactic class for expressions.
+// EBNF: ["+" | "-"] classTerm {("+" | "-") classTerm}.
 int classExpression(IOTunnel *tunnel, SymbolTable *table) {
-    printf("expression\n");
     if (tunnel == NULL || table == NULL) {
         printError(ERROR_NULL_CHECK);
 
         return SIGNAL_FAILURE;
     }
 
+    // Accept positive or negative signs in front of terms.
     if (tunnel->token == LEX_PLUS || tunnel->token == LEX_MINUS) {
         loadToken(tunnel);
         if (tunnel->status == SIGNAL_FAILURE || tunnel->status == SIGNAL_EOF) {
@@ -320,6 +179,7 @@ int classExpression(IOTunnel *tunnel, SymbolTable *table) {
         return SIGNAL_FAILURE;
     }
 
+    // Accept additional terms.
     while (tunnel->token == LEX_PLUS || tunnel->token == LEX_MINUS) {
         loadToken(tunnel);
         if (tunnel->status == SIGNAL_FAILURE || tunnel->status == SIGNAL_EOF) {
@@ -331,18 +191,18 @@ int classExpression(IOTunnel *tunnel, SymbolTable *table) {
         }
     }
 
-    printf("done3\n");
     return SIGNAL_SUCCESS;
 }
 
+// Syntactic class for terms.
+// EBNF: classFactor {("*" | "/") classFactor}.
 int classTerm(IOTunnel *tunnel, SymbolTable *table) {
-    printf("term\n");
     if (tunnel == NULL || table == NULL) {
         printError(ERROR_NULL_CHECK);
 
         return SIGNAL_FAILURE;
     }
-    
+   
     if (classFactor(tunnel, table) == SIGNAL_FAILURE) {
         return SIGNAL_FAILURE;
     }
@@ -358,21 +218,20 @@ int classTerm(IOTunnel *tunnel, SymbolTable *table) {
         }
     }
 
-    printf("done2\n");
     return SIGNAL_SUCCESS;
 }
 
+// Syntactic class for factors.
+// EBNF: identifier | number | "(" classExpression ")".
 int classFactor(IOTunnel *tunnel, SymbolTable *table) {
-    printf("factor\n");
-    printf("tun%d\n", tunnel->token);
     if (tunnel == NULL || table == NULL) {
         printError(ERROR_NULL_CHECK);
 
         return SIGNAL_FAILURE;
     }
 
+    // Factors can either be identifiers, numbers, or expressions.
     if (tunnel->token == LEX_IDENTIFIER) {
-        printf("this is the extra\n");
         loadToken(tunnel);
         if (tunnel->status == SIGNAL_FAILURE || tunnel->status == SIGNAL_EOF) {
             return SIGNAL_FAILURE;
@@ -411,13 +270,12 @@ int classFactor(IOTunnel *tunnel, SymbolTable *table) {
         return SIGNAL_FAILURE;
     }
 
-    printf("done\n");
     return SIGNAL_SUCCESS;
 }
 
-// Add all constants to the symbol table.
+// Subclass for constant declarations.
+// EBNF: "const" identifier "=" number {"," identifier "=" number} ";".
 int subclassConstDeclaration(IOTunnel *tunnel, SymbolTable *table) {
-    printf("const dec\n");
     char identifier[IDENTIFIER_LEN + 1];
     int value;
     
@@ -426,10 +284,9 @@ int subclassConstDeclaration(IOTunnel *tunnel, SymbolTable *table) {
 
         return SIGNAL_FAILURE;
     }
-   
+  
+    // Do loops are so ugly!
     do {
-
-        // This first token should be the identifier.
         loadToken(tunnel);
         if (tunnel->status == SIGNAL_FAILURE || tunnel->status == SIGNAL_EOF) {
             return SIGNAL_FAILURE;
@@ -444,7 +301,6 @@ int subclassConstDeclaration(IOTunnel *tunnel, SymbolTable *table) {
         // Save the identifier's name for later.
         strcpy(identifier, tunnel->tokenName);
 
-        // This next token must be an equal sign.
         loadToken(tunnel);
         if (tunnel->status == SIGNAL_FAILURE || tunnel->status == SIGNAL_EOF) {
             return SIGNAL_FAILURE;
@@ -485,7 +341,6 @@ int subclassConstDeclaration(IOTunnel *tunnel, SymbolTable *table) {
     }
     while (tunnel->token == LEX_COMMA);
 
-    // After all the constants are declared, there must be a semicolon.
     if (tunnel->token != LEX_SEMICOLON) {
         printError(ERROR_SYMBOL_EXPECTED, ';');
 
@@ -500,18 +355,17 @@ int subclassConstDeclaration(IOTunnel *tunnel, SymbolTable *table) {
     return SIGNAL_SUCCESS;
 }
 
-// Add all variables to the symbol table.
+// Subclass for variable declarations.
+// EBNF: "var" identifier {"," identifier} ";".
 int subclassVarDeclaration(IOTunnel *tunnel, SymbolTable *table) {
-    printf("var dec\n");
     if (tunnel == NULL || table == NULL) {
         printError(ERROR_NULL_CHECK);
 
         return SIGNAL_FAILURE;
     }
-    
+   
+    // SOOOO UGLY!
     do {
-        
-        // This first token must be the variable identifier.
         loadToken(tunnel);
         if (tunnel->status == SIGNAL_FAILURE || tunnel->status == SIGNAL_EOF) {
             return SIGNAL_FAILURE;
@@ -530,7 +384,6 @@ int subclassVarDeclaration(IOTunnel *tunnel, SymbolTable *table) {
             return SIGNAL_FAILURE;
         }
         
-        // The next token will be either a comma or a semicolon.
         loadToken(tunnel);
         if (tunnel->status == SIGNAL_FAILURE || tunnel->status == SIGNAL_EOF) {
             return SIGNAL_FAILURE;
@@ -550,5 +403,205 @@ int subclassVarDeclaration(IOTunnel *tunnel, SymbolTable *table) {
         return SIGNAL_FAILURE;
     }
 
+    return SIGNAL_SUCCESS;
+}
+
+// Subclass for identifier statements.
+// EBNF: identifier ":=" classExpression.
+int subclassIdentifierStatement(IOTunnel *tunnel, SymbolTable *table) {
+    if (tunnel == NULL || table == NULL) {
+        printError(ERROR_NULL_CHECK);
+
+        return SIGNAL_FAILURE;
+    }
+
+    loadToken(tunnel);
+    if (tunnel->status == SIGNAL_FAILURE || tunnel->status == SIGNAL_EOF) {
+        return SIGNAL_FAILURE;
+    }
+
+    if (tunnel->token != LEX_BECOME) {
+        printError(ERROR_BECOME_EXPECTED);
+
+        return SIGNAL_FAILURE;
+    }
+    
+    loadToken(tunnel);
+    if (tunnel->status == SIGNAL_FAILURE || tunnel->status == SIGNAL_EOF) {
+        return SIGNAL_FAILURE;
+    }
+
+    return classExpression(tunnel, table);
+}
+
+// Subclass for begin statements.
+// EBNF: "begin" classStatement {";" classStatement} "end".
+int subclassBeginStatement(IOTunnel *tunnel, SymbolTable *table) {
+    if (tunnel == NULL || table == NULL) {
+        printError(ERROR_NULL_CHECK);
+
+        return SIGNAL_FAILURE;
+    }
+
+    loadToken(tunnel);
+    if (tunnel->status == SIGNAL_FAILURE || tunnel->status == SIGNAL_EOF) {
+        return SIGNAL_FAILURE;
+    }
+
+    if (classStatement(tunnel, table) == SIGNAL_FAILURE) {
+        return SIGNAL_FAILURE;
+    }
+
+    // Absorb multiple statements in sequence.
+    while (tunnel->token == LEX_SEMICOLON) {
+        loadToken(tunnel);
+        if (tunnel->status == SIGNAL_FAILURE || tunnel->status == SIGNAL_EOF) {
+            return SIGNAL_FAILURE;
+        }
+        
+        if (classStatement(tunnel, table) == SIGNAL_FAILURE) {
+            return SIGNAL_FAILURE;
+        }
+    }
+
+    if (tunnel->token != LEX_END) {
+        printError(ERROR_END_EXPECTED);
+
+        return SIGNAL_FAILURE;
+    }
+
+    loadToken(tunnel);
+    if (tunnel->status == SIGNAL_FAILURE || tunnel->status == SIGNAL_EOF) {
+        return SIGNAL_FAILURE;
+    }
+    
+    return SIGNAL_SUCCESS;
+}
+
+// Subclass for if statements.
+// EBNF: "if" classCondition "then" classStatement.
+int subclassIfStatement(IOTunnel *tunnel, SymbolTable *table) {
+    if (tunnel == NULL || table == NULL) {
+        printError(ERROR_NULL_CHECK);
+
+        return SIGNAL_FAILURE;
+    }
+
+    loadToken(tunnel);
+    if (tunnel->status == SIGNAL_FAILURE || tunnel->status == SIGNAL_EOF) {
+        return SIGNAL_FAILURE;
+    }
+
+    if (classCondition(tunnel, table) == SIGNAL_FAILURE) {
+        return SIGNAL_FAILURE;
+    }
+
+    if (tunnel->token != LEX_THEN) {
+        printError(ERROR_THEN_EXPECTED);
+
+        return SIGNAL_FAILURE;
+    }
+    
+    loadToken(tunnel);
+    if (tunnel->status == SIGNAL_FAILURE || tunnel->status == SIGNAL_EOF) {
+        return SIGNAL_FAILURE;
+    }
+    
+    if (classStatement(tunnel, table) == SIGNAL_FAILURE) {
+        return SIGNAL_FAILURE;
+    }
+
+    return SIGNAL_SUCCESS;
+}
+
+// Subclass for while statements.
+// EBNF: "while" classCondition "do" classStatement.
+int subclassWhileStatement(IOTunnel *tunnel, SymbolTable *table) {
+    if (tunnel == NULL || table == NULL) {
+        printError(ERROR_NULL_CHECK);
+
+        return SIGNAL_FAILURE;
+    }
+    
+    loadToken(tunnel);
+    if (tunnel->status == SIGNAL_FAILURE || tunnel->status == SIGNAL_EOF) {
+        return SIGNAL_FAILURE;
+    }
+
+    if (classCondition(tunnel, table) == SIGNAL_FAILURE) {
+        return SIGNAL_FAILURE;
+    }
+
+    if (tunnel->token != LEX_DO) {
+        printError(ERROR_DO_EXPECTED);
+
+        return SIGNAL_FAILURE;
+    }
+
+    loadToken(tunnel);
+    if (tunnel->status == SIGNAL_FAILURE || tunnel->status == SIGNAL_EOF) {
+        return SIGNAL_FAILURE;
+    }
+
+    if (classStatement(tunnel, table) == SIGNAL_FAILURE) {
+        return SIGNAL_FAILURE;
+    }
+
+    return SIGNAL_SUCCESS;
+}
+
+// Subclass for read statements.
+// EBNF: "read" identifier.
+int subclassReadStatement(IOTunnel *tunnel, SymbolTable *table) {
+    if (tunnel == NULL || table == NULL) {
+        printError(ERROR_NULL_CHECK);
+
+        return SIGNAL_FAILURE;
+    }
+    
+    loadToken(tunnel);
+    if (tunnel->status == SIGNAL_FAILURE || tunnel->status == SIGNAL_EOF) {
+        return SIGNAL_FAILURE;
+    }
+    
+    if (tunnel->token != LEX_IDENTIFIER) {
+        printError(ERROR_IDENTIFIER_EXPECTED);
+        
+        return SIGNAL_FAILURE;
+    }
+    
+    loadToken(tunnel);
+    if (tunnel->status == SIGNAL_FAILURE || tunnel->status == SIGNAL_EOF) {
+        return SIGNAL_FAILURE;
+    }
+
+    return SIGNAL_SUCCESS;
+}
+
+// Subclass for write statements.
+// EBNF: "write" identifier.
+int subclassWriteStatement(IOTunnel *tunnel, SymbolTable *table) {
+    if (tunnel == NULL || table == NULL) {
+        printError(ERROR_NULL_CHECK);
+
+        return SIGNAL_FAILURE;
+    }
+    
+    loadToken(tunnel);
+    if (tunnel->status == SIGNAL_FAILURE || tunnel->status == SIGNAL_EOF) {
+        return SIGNAL_FAILURE;
+    }
+
+    if (tunnel->token != LEX_IDENTIFIER) {
+        printError(ERROR_IDENTIFIER_EXPECTED);
+        
+        return SIGNAL_FAILURE;
+    }
+    
+    loadToken(tunnel);
+    if (tunnel->status == SIGNAL_FAILURE || tunnel->status == SIGNAL_EOF) {
+        return SIGNAL_FAILURE;
+    }
+    
     return SIGNAL_SUCCESS;
 }
