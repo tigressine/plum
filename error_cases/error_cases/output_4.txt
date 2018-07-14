@@ -1,0 +1,1 @@
+Error: "const", "var", or "procedure" must be followed by identifier.

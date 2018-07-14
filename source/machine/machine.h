@@ -6,21 +6,7 @@
 #include "../plum.h"
 
 // Constants.
-#define INT_OFFSET 4
 #define MAX_LINES 1000
-#define REGISTER_COUNT 16
-
-// Operation codes for each assembly instruction.
-enum Opcodes {
-    LIT = 1,
-    RTN, LOD, STO,
-    CAL, INC, JMP,
-    JPC, SIO, NEG,
-    ADD, SUB, MUL,
-    DIV, ODD, MOD,
-    EQL, NEQ, LSS,
-    LEQ, GTR, GEQ
-};
 
 // Instruction struct for each line of PL/0 code.
 typedef struct Instruction {

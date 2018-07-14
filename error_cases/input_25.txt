@@ -1,0 +1,2 @@
+const m = 888888888;
+var x, y;begin  x := y * 56;end.

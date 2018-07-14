@@ -34,6 +34,50 @@ IOTunnel *createIOTunnel(char *lexemeFile, char *outFile) {
     return tunnel;
 }
 
+int emitInstruction(IOTunnel *tunnel, int OP, int R, int L, int M) {
+    if (tunnel == NULL) {
+        printError(ERROR_NULL_CHECK);
+
+        return SIGNAL_FAILURE;
+    }
+
+    if (fprintf(tunnel->fout, "%d %d %d %d\n", OP, R, L, M) <= 0) {
+        //printError(ERROR_FAILED_WRITING_TO_FILE);
+        
+        return SIGNAL_FAILURE;
+    }
+    else {
+        tunnel->programCounter++;
+
+        return SIGNAL_SUCCESS;
+    }
+}
+
+int setConstants(IOTunnel *tunnel, SymbolTable *table) {
+    TableNode *current;
+
+    if (tunnel == NULL || table == NULL || table->head == NULL) {
+        printError(ERROR_NULL_CHECK);
+        
+        return SIGNAL_FAILURE;
+    }
+
+    current = table->head;
+    while (current != NULL) {
+        if (current->symbol.type == LEX_CONST) {
+            if (emitInstruction(tunnel, LIT, 0, 0, current->symbol.value) == SIGNAL_FAILURE) {
+                return SIGNAL_FAILURE;
+            }
+            if (emitInstruction(tunnel, STO, 0, 0, current->symbol.address) == SIGNAL_FAILURE) {
+                return SIGNAL_FAILURE;
+            }
+        }
+        current = current->next;
+    }
+
+    return SIGNAL_SUCCESS;
+}
+
 // Load a token from the input stream.
 int loadToken(IOTunnel *tunnel) {
     int i;

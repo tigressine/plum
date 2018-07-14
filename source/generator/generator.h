@@ -13,6 +13,7 @@ typedef struct IOTunnel {
     FILE *fout;
     int status;
     int tokenValue;
+    int programCounter;
     char tokenName[IDENTIFIER_LEN + 1];
 } IOTunnel;
 
@@ -41,11 +42,14 @@ typedef struct TableNode {
 // Symbol table container struct that implements a linked list.
 typedef struct SymbolTable {
     int symbols;
+    int currentAddress;
     struct TableNode *head;
 } SymbolTable;
 
 // Generator functional prototypes.
 IOTunnel *createIOTunnel(char*, char*);
+int emitInstruction(IOTunnel*, int, int, int, int);
+int setConstants(IOTunnel*, SymbolTable*);
 int loadToken(IOTunnel*);
 int handleIdentifier(IOTunnel*);
 int handleNumber(IOTunnel*);
@@ -55,7 +59,7 @@ int compileLexemes(char*, char*, int);
 // Table functional prototypes.
 SymbolTable *createSymbolTable(void);
 TableNode *createTableNode(int, int, int, int, int, char*, TableNode*);
-int insertSymbol(SymbolTable*, int, int, int, int, int, char*);
+int insertSymbol(SymbolTable*, int, int, int, int, char*);
 Symbol *lookupSymbol(SymbolTable*, char*);
 int getTableSize(SymbolTable*);
 void destroySymbolTable(SymbolTable*);
@@ -65,9 +69,9 @@ int classProgram(IOTunnel*, SymbolTable*);
 int classBlock(IOTunnel*, SymbolTable*);
 int classStatement(IOTunnel*, SymbolTable*);
 int classCondition(IOTunnel*, SymbolTable*);
-int classExpression(IOTunnel*, SymbolTable*);
-int classTerm(IOTunnel*, SymbolTable*);
-int classFactor(IOTunnel*, SymbolTable*);
+int classExpression(IOTunnel*, SymbolTable*, int);
+int classTerm(IOTunnel*, SymbolTable*, int);
+int classFactor(IOTunnel*, SymbolTable*, int);
 int subclassConstDeclaration(IOTunnel*, SymbolTable*);
 int subclassVarDeclaration(IOTunnel*, SymbolTable*);
 int subclassIdentifierStatement(IOTunnel*, SymbolTable*);

@@ -1,0 +1,1 @@
+Error: Incorrect symbol after statement part in block.

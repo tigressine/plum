@@ -1,0 +1,2 @@
+const m = 8;
+var x, y;begin	  m := y + 56;end.

@@ -19,6 +19,9 @@ int getMode(char *mode) {
         else if (strcmp(mode, "scan") == 0) {
             return MODE_SCAN;
         }
+        else if (strcmp(mode, "parse") == 0) {
+            return MODE_PARSE;
+        }
         else if (strcmp(mode, "compile") == 0) {
             return MODE_COMPILE;
         }
@@ -160,15 +163,29 @@ int main(int argCount, char **argsVector) {
 
     switch (mode) {
         case MODE_RUN:
+            if (scanSource(inFile, INTERMEDIATE_FILE, options) == SIGNAL_SUCCESS) {
+                if (compileLexemes(INTERMEDIATE_FILE, outFile, options) == SIGNAL_SUCCESS) {
+                    startMachine(outFile, options);
+                }
+            }
+            
+            remove(INTERMEDIATE_FILE);
             break;
 
         case MODE_SCAN:
             scanSource(inFile, outFile, options);
             break;
 
+        case MODE_PARSE:
+            compileLexemes(inFile, outFile, options);
+            break;
+
         case MODE_COMPILE:
-            scanSource(inFile, INTERMEDIATE_FILE, options); // delete file after
-            compileLexemes(INTERMEDIATE_FILE, outFile, options);// check for crashes
+            if (scanSource(inFile, INTERMEDIATE_FILE, options) == SIGNAL_SUCCESS) {
+                compileLexemes(INTERMEDIATE_FILE, outFile, options);
+            }
+            
+            remove(INTERMEDIATE_FILE);
             break;
 
         case MODE_EXECUTE:

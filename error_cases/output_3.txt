@@ -1,0 +1,1 @@
+Error: Identifier must be followed by =.

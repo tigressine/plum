@@ -12,6 +12,8 @@ SymbolTable *createSymbolTable(void)  {
     if ((table = calloc(1, sizeof(SymbolTable))) == NULL) {
         printError(ERROR_OUT_OF_MEMORY);
     }
+    
+    table->currentAddress = INT_OFFSET;
 
     return table;
 }
@@ -53,12 +55,11 @@ TableNode *createTableNode(int type,
 
 // Insert a new symbol column in the symbol table.
 int insertSymbol(SymbolTable *table,
-                  int type,
-                  int value,
-                  int level,
-                  int active,
-                  int address,
-                  char *name) {
+                 int type,
+                 int value,
+                 int level,
+                 int active,
+                 char *name) {
     TableNode *new;
 
     if (table == NULL) {
@@ -74,8 +75,9 @@ int insertSymbol(SymbolTable *table,
         return SIGNAL_FAILURE;
     }
 
-    new = createTableNode(type, value, level, active, address, name, table->head);
-    
+    new = createTableNode(type, value, level, active, table->currentAddress, name, table->head);
+    table->currentAddress++;
+
     // If a new node could not be created, return failure.
     if (new == NULL) {
         printError(ERROR_OUT_OF_MEMORY);

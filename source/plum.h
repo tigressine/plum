@@ -4,10 +4,24 @@
 
 #include <limits.h>
 
+#define INT_OFFSET 4
 #define IDENTIFIER_LEN 11
+#define REGISTER_COUNT 16
 #define MAX_ERROR_LENGTH 80
+#define INTERMEDIATE_FILE "plum.tmp"
 #define DEFAULT_OUTPUT_FILE "plum.out"
-#define INTERMEDIATE_FILE "plum.intermediate.tmp"
+
+// Operation codes for each assembly instruction.
+enum Opcodes {
+    LIT = 1,
+    RTN, LOD, STO,
+    CAL, INC, JMP,
+    JPC, SIO, NEG,
+    ADD, SUB, MUL,
+    DIV, ODD, MOD,
+    EQL, NEQ, LSS,
+    LEQ, GTR, GEQ
+};
 
 // Enumeration of lexeme values.
 enum LexemeValues {
@@ -128,6 +142,7 @@ enum Options {
 enum Modes {
     MODE_RUN,
     MODE_SCAN,
+    MODE_PARSE,
     MODE_COMPILE,
     MODE_EXECUTE
 };

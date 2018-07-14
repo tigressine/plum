@@ -33,7 +33,9 @@ int classProgram(IOTunnel *tunnel, SymbolTable *table) {
         return SIGNAL_FAILURE;
     }
     else {
-        return SIGNAL_SUCCESS;
+        
+        // Return whether the final emit call is successful.
+        return emitInstruction(tunnel, SIO, 0, 0, 3);
     }
 }
 
@@ -63,6 +65,14 @@ int classBlock(IOTunnel *tunnel, SymbolTable *table) {
         }
     }
 
+    if (emitInstruction(tunnel, INC, 0, 0, getTableSize(table) + INT_OFFSET) == SIGNAL_FAILURE) {
+        return SIGNAL_FAILURE;
+    }
+
+    if (setConstants(tunnel, table) == SIGNAL_FAILURE) {
+        return SIGNAL_FAILURE;
+    }
+
     // Handle all statements.
     return classStatement(tunnel, table);
 }
@@ -71,6 +81,8 @@ int classBlock(IOTunnel *tunnel, SymbolTable *table) {
 // EBNF: [subclassIdentifierStatement | subclassBeginStatement | subclassIfStatement |
 //        subclassWhileStatement | subclassReadStatement | subclassWriteStatement].
 int classStatement(IOTunnel *tunnel, SymbolTable *table) {
+    Symbol *symbol;
+
     if (tunnel == NULL || table == NULL) {
         printError(ERROR_NULL_CHECK);
 
@@ -78,7 +90,19 @@ int classStatement(IOTunnel *tunnel, SymbolTable *table) {
     }
 
     if (tunnel->token == LEX_IDENTIFIER) {
-        return subclassIdentifierStatement(tunnel, table);
+        if ((symbol = lookupSymbol(table, tunnel->tokenName)) == NULL) {
+            //printError(ERROR this identifer undeclared);
+            
+            return SIGNAL_FAILURE;
+        }
+        
+        if (subclassIdentifierStatement(tunnel, table) == SIGNAL_FAILURE) {
+            return SIGNAL_FAILURE;
+        }
+
+        if (emitInstruction(tunnel, STO, 0, 0, symbol->address) == SIGNAL_FAILURE) {
+            return SIGNAL_FAILURE;
+        }
     }
     else if (tunnel->token == LEX_BEGIN) {
         return subclassBeginStatement(tunnel, table);
@@ -114,12 +138,12 @@ int classCondition(IOTunnel *tunnel, SymbolTable *table) {
             return SIGNAL_FAILURE;
         }
 
-        if (classExpression(tunnel, table) == SIGNAL_FAILURE) {
+        if (classExpression(tunnel, table, 0) == SIGNAL_FAILURE) {
             return SIGNAL_FAILURE;
         }
     }
     else {
-        if (classExpression(tunnel, table) == SIGNAL_FAILURE) {
+        if (classExpression(tunnel, table, 0) == SIGNAL_FAILURE) {
             return SIGNAL_FAILURE;
         }
       
@@ -135,7 +159,7 @@ int classCondition(IOTunnel *tunnel, SymbolTable *table) {
                     return SIGNAL_FAILURE;
                 }
 
-                if (classExpression(tunnel, table) == SIGNAL_FAILURE) {
+                if (classExpression(tunnel, table, 0) == SIGNAL_FAILURE) {
                     return SIGNAL_FAILURE;
                 }
            
@@ -153,33 +177,65 @@ int classCondition(IOTunnel *tunnel, SymbolTable *table) {
 
 // Syntactic class for expressions.
 // EBNF: ["+" | "-"] classTerm {("+" | "-") classTerm}.
-int classExpression(IOTunnel *tunnel, SymbolTable *table) {
+int classExpression(IOTunnel *tunnel, SymbolTable *table, int registerPosition) {
+    int operation;
+
     if (tunnel == NULL || table == NULL) {
         printError(ERROR_NULL_CHECK);
 
         return SIGNAL_FAILURE;
     }
 
-    // Accept positive or negative signs in front of terms.
-    if (tunnel->token == LEX_PLUS || tunnel->token == LEX_MINUS) {
-        if (loadToken(tunnel) == SIGNAL_FAILURE) {
-            return SIGNAL_FAILURE;
-        }
-    }
-
-    if (classTerm(tunnel, table) == SIGNAL_FAILURE) {
+    if (registerPosition >= REGISTER_COUNT) {
+        //printError(out of registers);
+        
         return SIGNAL_FAILURE;
     }
 
+    // Accept positive or negative signs in front of terms.
+    operation = tunnel->token;
+    if (operation == LEX_PLUS || operation == LEX_MINUS) {
+        if (loadToken(tunnel) == SIGNAL_FAILURE) {
+            return SIGNAL_FAILURE;
+        }
+    }
+
+    if (classTerm(tunnel, table, registerPosition) == SIGNAL_FAILURE) {
+        return SIGNAL_FAILURE;
+    }
+
+    // Negate the term if there was a minus sign.
+    if (operation == LEX_MINUS) {
+        if (emitInstruction(tunnel,
+                            NEG,
+                            registerPosition,
+                            registerPosition, 0) == SIGNAL_FAILURE) {
+            return SIGNAL_FAILURE;
+        }
+    }
+
+    //registerPosition++;
+
     // Accept additional terms.
-    while (tunnel->token == LEX_PLUS || tunnel->token == LEX_MINUS) {
+    operation = tunnel->token;
+    while (operation == LEX_PLUS || operation == LEX_MINUS) {
         if (loadToken(tunnel) == SIGNAL_FAILURE) {
             return SIGNAL_FAILURE;
         }
 
-        if (classTerm(tunnel, table) == SIGNAL_FAILURE) {
+        if (classTerm(tunnel, table, registerPosition + 1) == SIGNAL_FAILURE) {
             return SIGNAL_FAILURE;
         }
+        
+        if (emitInstruction(tunnel,
+                            (operation == LEX_PLUS) ? ADD : SUB,
+                            registerPosition,
+                            registerPosition,
+                            registerPosition + 1) == SIGNAL_FAILURE) {
+            return SIGNAL_FAILURE;
+        }
+
+        operation = tunnel->token;
     }
 
     return SIGNAL_SUCCESS;
@@ -187,25 +243,46 @@ int classExpression(IOTunnel *tunnel, SymbolTable *table) {
 
 // Syntactic class for terms.
 // EBNF: classFactor {("*" | "/") classFactor}.
-int classTerm(IOTunnel *tunnel, SymbolTable *table) {
+int classTerm(IOTunnel *tunnel, SymbolTable *table, int registerPosition) {
+    int operation;
+
     if (tunnel == NULL || table == NULL) {
         printError(ERROR_NULL_CHECK);
 
         return SIGNAL_FAILURE;
     }
    
-    if (classFactor(tunnel, table) == SIGNAL_FAILURE) {
+    if (registerPosition >= REGISTER_COUNT) {
+        //printError(out of registers);
+        
+        return SIGNAL_FAILURE;
+    }
+
+    if (classFactor(tunnel, table, registerPosition) == SIGNAL_FAILURE) {
         return SIGNAL_FAILURE;
     }
     
-    while (tunnel->token == LEX_MULTIPLY || tunnel->token == LEX_SLASH) {
+    //registerPosition++;
+
+    operation = tunnel->token;
+    while (operation == LEX_MULTIPLY || operation == LEX_SLASH) {
         if (loadToken(tunnel) == SIGNAL_FAILURE) {
             return SIGNAL_FAILURE;
         }
 
-        if (classFactor(tunnel, table) == SIGNAL_FAILURE) {
+        if (classFactor(tunnel, table, registerPosition + 1) == SIGNAL_FAILURE) {
             return SIGNAL_FAILURE;
         }
+
+        if (emitInstruction(tunnel,
+                            (operation == LEX_MULTIPLY) ? MUL : DIV,
+                            registerPosition,
+                            registerPosition,
+                            registerPosition + 1) == SIGNAL_FAILURE) {
+            return SIGNAL_FAILURE;
+        }
+
+        operation = tunnel->token;
     }
 
     return SIGNAL_SUCCESS;
@@ -213,20 +290,48 @@ int classTerm(IOTunnel *tunnel, SymbolTable *table) {
 
 // Syntactic class for factors.
 // EBNF: identifier | number | "(" classExpression ")".
-int classFactor(IOTunnel *tunnel, SymbolTable *table) {
+int classFactor(IOTunnel *tunnel, SymbolTable *table, int registerPosition) {
+    Symbol *symbol;
+    
     if (tunnel == NULL || table == NULL) {
         printError(ERROR_NULL_CHECK);
 
         return SIGNAL_FAILURE;
     }
 
+    if (registerPosition >= REGISTER_COUNT) {
+        //printError(out of registers);
+        
+        return SIGNAL_FAILURE;
+    }
+
     // Factors can either be identifiers, numbers, or expressions.
     if (tunnel->token == LEX_IDENTIFIER) {
+        if ((symbol = lookupSymbol(table, tunnel->tokenName)) == NULL) {
+            //printError(ERROR this identifer undeclared);
+            
+            return SIGNAL_FAILURE;
+        }
+        
+        if (emitInstruction(tunnel,
+                            LOD,
+                            registerPosition, 0,
+                            symbol->address) == SIGNAL_FAILURE) {
+            return SIGNAL_FAILURE;
+        }
+        
         if (loadToken(tunnel) == SIGNAL_FAILURE) {
             return SIGNAL_FAILURE;
         }
     }
     else if (tunnel->token == LEX_NUMBER) {
+        if (emitInstruction(tunnel,
+                            LIT,
+                            registerPosition, 0,
+                            tunnel->tokenValue) == SIGNAL_FAILURE) {
+            return SIGNAL_FAILURE;
+        }
+        
         if (loadToken(tunnel) == SIGNAL_FAILURE) {
             return SIGNAL_FAILURE;
         }
@@ -236,7 +341,7 @@ int classFactor(IOTunnel *tunnel, SymbolTable *table) {
             return SIGNAL_FAILURE;
         }
 
-        if (classExpression(tunnel, table) == SIGNAL_FAILURE) {
+        if (classExpression(tunnel, table, registerPosition) == SIGNAL_FAILURE) {
             return SIGNAL_FAILURE;
         }
 
@@ -251,7 +356,7 @@ int classFactor(IOTunnel *tunnel, SymbolTable *table) {
         }
     }
     else {
-        printError(ERROR_INVALID_FACTOR);
+        printError(ERROR_INVALID_FACTOR);//
 
         return SIGNAL_FAILURE;
     }
@@ -311,7 +416,7 @@ int subclassConstDeclaration(IOTunnel *tunnel, SymbolTable *table) {
         if (insertSymbol(table,
                          LEX_CONST,
                          tunnel->tokenValue, 0,
-                         STATUS_ACTIVE, 0,
+                         STATUS_ACTIVE,
                          identifier) == SIGNAL_FAILURE) {
             
             return SIGNAL_FAILURE;
@@ -359,7 +464,7 @@ int subclassVarDeclaration(IOTunnel *tunnel, SymbolTable *table) {
 
         // Attempt to insert the variable into the table.
         if (insertSymbol(table, LEX_VAR, 0, 0,
-                         STATUS_ACTIVE, 0, tunnel->tokenName) == SIGNAL_FAILURE) {
+                         STATUS_ACTIVE, tunnel->tokenName) == SIGNAL_FAILURE) {
             
             return SIGNAL_FAILURE;
         }
@@ -407,7 +512,7 @@ int subclassIdentifierStatement(IOTunnel *tunnel, SymbolTable *table) {
         return SIGNAL_FAILURE;
     }
 
-    return classExpression(tunnel, table);
+    return classExpression(tunnel, table, 0);
 }
 
 // Subclass for begin statements.
