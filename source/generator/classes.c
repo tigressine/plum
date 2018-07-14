@@ -13,8 +13,7 @@ int classProgram(IOTunnel *tunnel, SymbolTable *table) {
     }
   
     // Attempt to load the first token.
-    loadToken(tunnel);
-    if (tunnel->status == SIGNAL_FAILURE || tunnel->status == SIGNAL_EOF) {
+    if (loadToken(tunnel) == SIGNAL_FAILURE) {
         return SIGNAL_FAILURE;
     }
 
@@ -28,16 +27,12 @@ int classProgram(IOTunnel *tunnel, SymbolTable *table) {
 
         return SIGNAL_FAILURE;
     }
+    else if (loadToken(tunnel) == SIGNAL_FAILURE || tunnel->status != SIGNAL_EOF) {
+        printError(ERROR_TRAILING_CHARACTERS);
+
+        return SIGNAL_FAILURE;
+    }
     else {
-
-        // If anything follows the period, there is an error.
-        loadToken(tunnel);
-        if (tunnel->status != SIGNAL_EOF) {
-            printError(ERROR_TRAILING_CHARACTERS);
-
-            return SIGNAL_FAILURE;
-        }
-
         return SIGNAL_SUCCESS;
     }
 }
@@ -115,8 +110,7 @@ int classCondition(IOTunnel *tunnel, SymbolTable *table) {
     }
 
     if (tunnel->token == LEX_ODD) {
-        loadToken(tunnel);
-        if (tunnel->status == SIGNAL_FAILURE || tunnel->status == SIGNAL_EOF) {
+        if (loadToken(tunnel) == SIGNAL_FAILURE) {
             return SIGNAL_FAILURE;
         }
 
@@ -137,8 +131,7 @@ int classCondition(IOTunnel *tunnel, SymbolTable *table) {
             case LEX_NOT_EQUAL:
             case LEX_LESS_EQUAL:
             case LEX_GREATER_EQUAL:
-                loadToken(tunnel);
-                if (tunnel->status == SIGNAL_FAILURE || tunnel->status == SIGNAL_EOF) {
+                if (loadToken(tunnel) == SIGNAL_FAILURE) {
                     return SIGNAL_FAILURE;
                 }
 
@@ -169,8 +162,7 @@ int classExpression(IOTunnel *tunnel, SymbolTable *table) {
 
     // Accept positive or negative signs in front of terms.
     if (tunnel->token == LEX_PLUS || tunnel->token == LEX_MINUS) {
-        loadToken(tunnel);
-        if (tunnel->status == SIGNAL_FAILURE || tunnel->status == SIGNAL_EOF) {
+        if (loadToken(tunnel) == SIGNAL_FAILURE) {
             return SIGNAL_FAILURE;
         }
     }
@@ -181,8 +173,7 @@ int classExpression(IOTunnel *tunnel, SymbolTable *table) {
 
     // Accept additional terms.
     while (tunnel->token == LEX_PLUS || tunnel->token == LEX_MINUS) {
-        loadToken(tunnel);
-        if (tunnel->status == SIGNAL_FAILURE || tunnel->status == SIGNAL_EOF) {
+        if (loadToken(tunnel) == SIGNAL_FAILURE) {
             return SIGNAL_FAILURE;
         }
 
@@ -208,8 +199,7 @@ int classTerm(IOTunnel *tunnel, SymbolTable *table) {
     }
     
     while (tunnel->token == LEX_MULTIPLY || tunnel->token == LEX_SLASH) {
-        loadToken(tunnel);
-        if (tunnel->status == SIGNAL_FAILURE || tunnel->status == SIGNAL_EOF) {
+        if (loadToken(tunnel) == SIGNAL_FAILURE) {
             return SIGNAL_FAILURE;
         }
 
@@ -232,20 +222,17 @@ int classFactor(IOTunnel *tunnel, SymbolTable *table) {
 
     // Factors can either be identifiers, numbers, or expressions.
     if (tunnel->token == LEX_IDENTIFIER) {
-        loadToken(tunnel);
-        if (tunnel->status == SIGNAL_FAILURE || tunnel->status == SIGNAL_EOF) {
+        if (loadToken(tunnel) == SIGNAL_FAILURE) {
             return SIGNAL_FAILURE;
         }
     }
     else if (tunnel->token == LEX_NUMBER) {
-        loadToken(tunnel);
-        if (tunnel->status == SIGNAL_FAILURE || tunnel->status == SIGNAL_EOF) {
+        if (loadToken(tunnel) == SIGNAL_FAILURE) {
             return SIGNAL_FAILURE;
         }
     }
     else if (tunnel->token == LEX_LEFT_PARENTHESIS) {
-        loadToken(tunnel);
-        if (tunnel->status == SIGNAL_FAILURE || tunnel->status == SIGNAL_EOF) {
+        if (loadToken(tunnel) == SIGNAL_FAILURE) {
             return SIGNAL_FAILURE;
         }
 
@@ -259,8 +246,7 @@ int classFactor(IOTunnel *tunnel, SymbolTable *table) {
             return SIGNAL_FAILURE;
         }
         
-        loadToken(tunnel);
-        if (tunnel->status == SIGNAL_FAILURE || tunnel->status == SIGNAL_EOF) {
+        if (loadToken(tunnel) == SIGNAL_FAILURE) {
             return SIGNAL_FAILURE;
         }
     }
@@ -287,8 +273,7 @@ int subclassConstDeclaration(IOTunnel *tunnel, SymbolTable *table) {
   
     // Do loops are so ugly!
     do {
-        loadToken(tunnel);
-        if (tunnel->status == SIGNAL_FAILURE || tunnel->status == SIGNAL_EOF) {
+        if (loadToken(tunnel) == SIGNAL_FAILURE) {
             return SIGNAL_FAILURE;
         }
 
@@ -301,8 +286,7 @@ int subclassConstDeclaration(IOTunnel *tunnel, SymbolTable *table) {
         // Save the identifier's name for later.
         strcpy(identifier, tunnel->tokenName);
 
-        loadToken(tunnel);
-        if (tunnel->status == SIGNAL_FAILURE || tunnel->status == SIGNAL_EOF) {
+        if (loadToken(tunnel) == SIGNAL_FAILURE) {
             return SIGNAL_FAILURE;
         }
 
@@ -313,8 +297,7 @@ int subclassConstDeclaration(IOTunnel *tunnel, SymbolTable *table) {
         }
         
         // This final token is the numerical value of the constant.
-        loadToken(tunnel);
-        if (tunnel->status == SIGNAL_FAILURE || tunnel->status == SIGNAL_EOF) {
+        if (loadToken(tunnel) == SIGNAL_FAILURE) {
             return SIGNAL_FAILURE;
         }
 
@@ -334,8 +317,7 @@ int subclassConstDeclaration(IOTunnel *tunnel, SymbolTable *table) {
             return SIGNAL_FAILURE;
         }
 
-        loadToken(tunnel);
-        if (tunnel->status == SIGNAL_FAILURE || tunnel->status == SIGNAL_EOF) {
+        if (loadToken(tunnel) == SIGNAL_FAILURE) {
             return SIGNAL_FAILURE;
         }
     }
@@ -347,8 +329,7 @@ int subclassConstDeclaration(IOTunnel *tunnel, SymbolTable *table) {
         return SIGNAL_FAILURE;
     }
     
-    loadToken(tunnel);
-    if (tunnel->status == SIGNAL_FAILURE) {
+    if (loadToken(tunnel) == SIGNAL_FAILURE) {
         return SIGNAL_FAILURE;
     }
 
@@ -366,8 +347,7 @@ int subclassVarDeclaration(IOTunnel *tunnel, SymbolTable *table) {
    
     // SOOOO UGLY!
     do {
-        loadToken(tunnel);
-        if (tunnel->status == SIGNAL_FAILURE || tunnel->status == SIGNAL_EOF) {
+        if (loadToken(tunnel) == SIGNAL_FAILURE) {
             return SIGNAL_FAILURE;
         }
 
@@ -384,8 +364,7 @@ int subclassVarDeclaration(IOTunnel *tunnel, SymbolTable *table) {
             return SIGNAL_FAILURE;
         }
         
-        loadToken(tunnel);
-        if (tunnel->status == SIGNAL_FAILURE || tunnel->status == SIGNAL_EOF) {
+        if (loadToken(tunnel) == SIGNAL_FAILURE) {
             return SIGNAL_FAILURE;
         }
     }
@@ -398,8 +377,7 @@ int subclassVarDeclaration(IOTunnel *tunnel, SymbolTable *table) {
         return SIGNAL_FAILURE;
     }
     
-    loadToken(tunnel);
-    if (tunnel->status == SIGNAL_FAILURE) {
+    if (loadToken(tunnel) == SIGNAL_FAILURE) {
         return SIGNAL_FAILURE;
     }
 
@@ -415,8 +393,7 @@ int subclassIdentifierStatement(IOTunnel *tunnel, SymbolTable *table) {
         return SIGNAL_FAILURE;
     }
 
-    loadToken(tunnel);
-    if (tunnel->status == SIGNAL_FAILURE || tunnel->status == SIGNAL_EOF) {
+    if (loadToken(tunnel) == SIGNAL_FAILURE) {
         return SIGNAL_FAILURE;
     }
 
@@ -426,8 +403,7 @@ int subclassIdentifierStatement(IOTunnel *tunnel, SymbolTable *table) {
         return SIGNAL_FAILURE;
     }
     
-    loadToken(tunnel);
-    if (tunnel->status == SIGNAL_FAILURE || tunnel->status == SIGNAL_EOF) {
+    if (loadToken(tunnel) == SIGNAL_FAILURE) {
         return SIGNAL_FAILURE;
     }
 
@@ -443,8 +419,7 @@ int subclassBeginStatement(IOTunnel *tunnel, SymbolTable *table) {
         return SIGNAL_FAILURE;
     }
 
-    loadToken(tunnel);
-    if (tunnel->status == SIGNAL_FAILURE || tunnel->status == SIGNAL_EOF) {
+    if (loadToken(tunnel) == SIGNAL_FAILURE) {
         return SIGNAL_FAILURE;
     }
 
@@ -454,8 +429,7 @@ int subclassBeginStatement(IOTunnel *tunnel, SymbolTable *table) {
 
     // Absorb multiple statements in sequence.
     while (tunnel->token == LEX_SEMICOLON) {
-        loadToken(tunnel);
-        if (tunnel->status == SIGNAL_FAILURE || tunnel->status == SIGNAL_EOF) {
+        if (loadToken(tunnel) == SIGNAL_FAILURE) {
             return SIGNAL_FAILURE;
         }
         
@@ -470,8 +444,7 @@ int subclassBeginStatement(IOTunnel *tunnel, SymbolTable *table) {
         return SIGNAL_FAILURE;
     }
 
-    loadToken(tunnel);
-    if (tunnel->status == SIGNAL_FAILURE || tunnel->status == SIGNAL_EOF) {
+    if (loadToken(tunnel) == SIGNAL_FAILURE) {
         return SIGNAL_FAILURE;
     }
     
@@ -487,8 +460,7 @@ int subclassIfStatement(IOTunnel *tunnel, SymbolTable *table) {
         return SIGNAL_FAILURE;
     }
 
-    loadToken(tunnel);
-    if (tunnel->status == SIGNAL_FAILURE || tunnel->status == SIGNAL_EOF) {
+    if (loadToken(tunnel) == SIGNAL_FAILURE) {
         return SIGNAL_FAILURE;
     }
 
@@ -502,8 +474,7 @@ int subclassIfStatement(IOTunnel *tunnel, SymbolTable *table) {
         return SIGNAL_FAILURE;
     }
     
-    loadToken(tunnel);
-    if (tunnel->status == SIGNAL_FAILURE || tunnel->status == SIGNAL_EOF) {
+    if (loadToken(tunnel) == SIGNAL_FAILURE) {
         return SIGNAL_FAILURE;
     }
     
@@ -523,8 +494,7 @@ int subclassWhileStatement(IOTunnel *tunnel, SymbolTable *table) {
         return SIGNAL_FAILURE;
     }
     
-    loadToken(tunnel);
-    if (tunnel->status == SIGNAL_FAILURE || tunnel->status == SIGNAL_EOF) {
+    if (loadToken(tunnel) == SIGNAL_FAILURE) {
         return SIGNAL_FAILURE;
     }
 
@@ -538,8 +508,7 @@ int subclassWhileStatement(IOTunnel *tunnel, SymbolTable *table) {
         return SIGNAL_FAILURE;
     }
 
-    loadToken(tunnel);
-    if (tunnel->status == SIGNAL_FAILURE || tunnel->status == SIGNAL_EOF) {
+    if (loadToken(tunnel) == SIGNAL_FAILURE) {
         return SIGNAL_FAILURE;
     }
 
@@ -559,8 +528,7 @@ int subclassReadStatement(IOTunnel *tunnel, SymbolTable *table) {
         return SIGNAL_FAILURE;
     }
     
-    loadToken(tunnel);
-    if (tunnel->status == SIGNAL_FAILURE || tunnel->status == SIGNAL_EOF) {
+    if (loadToken(tunnel) == SIGNAL_FAILURE) {
         return SIGNAL_FAILURE;
     }
     
@@ -570,8 +538,7 @@ int subclassReadStatement(IOTunnel *tunnel, SymbolTable *table) {
         return SIGNAL_FAILURE;
     }
     
-    loadToken(tunnel);
-    if (tunnel->status == SIGNAL_FAILURE || tunnel->status == SIGNAL_EOF) {
+    if (loadToken(tunnel) == SIGNAL_FAILURE) {
         return SIGNAL_FAILURE;
     }
 
@@ -587,8 +554,7 @@ int subclassWriteStatement(IOTunnel *tunnel, SymbolTable *table) {
         return SIGNAL_FAILURE;
     }
     
-    loadToken(tunnel);
-    if (tunnel->status == SIGNAL_FAILURE || tunnel->status == SIGNAL_EOF) {
+    if (loadToken(tunnel) == SIGNAL_FAILURE) {
         return SIGNAL_FAILURE;
     }
 
@@ -598,8 +564,7 @@ int subclassWriteStatement(IOTunnel *tunnel, SymbolTable *table) {
         return SIGNAL_FAILURE;
     }
     
-    loadToken(tunnel);
-    if (tunnel->status == SIGNAL_FAILURE || tunnel->status == SIGNAL_EOF) {
+    if (loadToken(tunnel) == SIGNAL_FAILURE) {
         return SIGNAL_FAILURE;
     }
     

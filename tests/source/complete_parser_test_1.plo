@@ -1,0 +1,62 @@
+/* Big syntax checker by Tiger. */
+
+/* Check the variable and constant declarations. */
+const X = 100, Y = 200, Z = 300;
+var a, b, c, d, e, f, g, h;/*, procedure, call, else;*/
+
+/* Check the begin statement. */
+begin
+
+    /* Check the become statements. */
+    a := b + c;
+    d := d + g;
+
+    /* Check read. */
+    read g;
+
+    /* Check if statements, as well as factors and terms. */
+    if (a - b - c) < b then
+    begin
+        f := g;
+    end;
+    
+    if a > (b * (Z + (Y / 2))) then
+    begin
+        a := b * a;
+    end;
+    
+    if a = b then
+    begin
+        b := h;
+    end;
+    
+    if a <> b then
+    begin
+        b := h;
+    end;
+    
+    if a <= b then
+    begin
+        b := h;
+    end;
+    
+    if a >= b then
+    begin
+        b := h;
+    end;
+
+    /* Check nested while loops. */
+    while a + b > c do
+    begin
+        a := a + 1;
+        
+        while (b / (2 * c)) <> Z + 2 do
+        begin
+            c := c - 1;
+        end;
+    end;
+
+    /* Check write. */
+    write g;
+end.
+a

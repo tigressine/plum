@@ -58,5 +58,5 @@ int isDigit(char character) {
 
 // Return if the character is whitespace.
 int isWhitespace(char character) {
-    return (character == ' ' || character == '\t' || character == '\n'); 
+    return (character == '\0' || character == ' ' || character == '\t' || character == '\n'); 
 }

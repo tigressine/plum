@@ -46,9 +46,9 @@ typedef struct SymbolTable {
 
 // Generator functional prototypes.
 IOTunnel *createIOTunnel(char*, char*);
-void loadToken(IOTunnel*);
-void handleIdentifier(IOTunnel*);
-void handleNumber(IOTunnel*);
+int loadToken(IOTunnel*);
+int handleIdentifier(IOTunnel*);
+int handleNumber(IOTunnel*);
 void destroyIOTunnel(IOTunnel*);
 int compileLexemes(char*, char*, int);
 

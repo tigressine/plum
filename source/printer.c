@@ -54,7 +54,8 @@ void printError(int errorCode, ...) {
         "illegal operation code: %d",//
         "missing value for token: %d",
         "illegal format of lexemes: %d",
-        "characters after period"
+        "characters after period",
+        "unexpected end of file"
     };
 
     // Initialize the variadic argument list, starting after errorCode.

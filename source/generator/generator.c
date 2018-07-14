@@ -35,38 +35,42 @@ IOTunnel *createIOTunnel(char *lexemeFile, char *outFile) {
 }
 
 // Load a token from the input stream.
-void loadToken(IOTunnel *tunnel) {
+int loadToken(IOTunnel *tunnel) {
     int i;
     char buffer;
     
     if (tunnel == NULL) {
         printError(ERROR_NULL_CHECK);
         
-        return;
+        return SIGNAL_FAILURE;
+    }
+
+    if (tunnel->status == SIGNAL_EOF) {
+        printError(ERROR_END_OF_FILE);
+        tunnel->status = SIGNAL_FAILURE;
+        
+        return SIGNAL_FAILURE;
     }
 
     if (fscanf(tunnel->fin, " %d%c", &(tunnel->token), &buffer) == EOF) {
         tunnel->status = SIGNAL_EOF;
-
-        return;
     }
-  
+ 
     // If the token wasn't followed by whitespace, then the input file is
     // formatted incorrectly.
     if (!isWhitespace(buffer)) {
         printError(ERROR_ILLEGAL_LEXEME_FORMAT, tunnel->token);
         tunnel->status = SIGNAL_FAILURE;
         
-        return;
+        return SIGNAL_FAILURE;
     }
 
     // Handle identifiers appropriately, or erase the tokenName for all
     // other tokens.
     if (tunnel->token == LEX_IDENTIFIER) {
-        handleIdentifier(tunnel);
-        if (tunnel->status == SIGNAL_FAILURE) {
-            return;
-        } 
+        if (handleIdentifier(tunnel) == SIGNAL_FAILURE) {
+            return SIGNAL_FAILURE;
+        }
     }
     else {
         tunnel->tokenName[0] = '\0';
@@ -75,27 +79,36 @@ void loadToken(IOTunnel *tunnel) {
     // Handle numbers appropriately or default the tokenValue to zero
     // for all other tokens.
     if (tunnel->token == LEX_NUMBER) {
-        handleNumber(tunnel);
-        if (tunnel->status == SIGNAL_FAILURE) {
-            return;
+        if (handleNumber(tunnel) == SIGNAL_FAILURE) {
+            return SIGNAL_FAILURE;
         }    
     }
     else {
         tunnel->tokenValue = 0;
     }
 
-    tunnel->status = SIGNAL_SUCCESS;
+    if (tunnel->status != SIGNAL_EOF) {
+        tunnel->status = SIGNAL_SUCCESS;
+    }
+
+    return SIGNAL_SUCCESS;
 }
 
 // Handle identifiers in the lexeme list.
-void handleIdentifier(IOTunnel *tunnel) {
+int handleIdentifier(IOTunnel *tunnel) {
     int i;
     char buffer;
 
     if (tunnel == NULL) {
         printError(ERROR_NULL_CHECK);
 
-        return;
+        return SIGNAL_FAILURE;
+    }
+
+    if (tunnel->status == SIGNAL_EOF) {
+        printError(ERROR_MISSING_TOKEN, LEX_IDENTIFIER);
+        
+        return SIGNAL_FAILURE;
     }
 
     // Absorb an appropriate amount of characters.
@@ -109,12 +122,10 @@ void handleIdentifier(IOTunnel *tunnel) {
                 printError(ERROR_MISSING_TOKEN, LEX_IDENTIFIER);
                 tunnel->status = SIGNAL_FAILURE;
                 
-                return;
+                return SIGNAL_FAILURE;
             }
 
             tunnel->status = SIGNAL_EOF;
-
-            return;
         }
 
         // If the most recent character is not an alphanumeric character, then
@@ -127,14 +138,14 @@ void handleIdentifier(IOTunnel *tunnel) {
                 printError(ERROR_ILLEGAL_IDENTIFIER, tunnel->tokenName);
                 tunnel->status = SIGNAL_FAILURE;
 
-                return;
+                return SIGNAL_FAILURE;
             }
             else {
                 if (i == 0) {
                     printError(ERROR_MISSING_TOKEN, LEX_IDENTIFIER);
                     tunnel->status = SIGNAL_FAILURE;
 
-                    return;
+                    return SIGNAL_FAILURE;
                 }
                 tunnel->tokenName[i] = '\0';
                 break;
@@ -148,7 +159,7 @@ void handleIdentifier(IOTunnel *tunnel) {
         printError(ERROR_TOKEN_TOO_LONG, tunnel->tokenName);
         tunnel->status = SIGNAL_FAILURE;
 
-        return;
+        return SIGNAL_FAILURE;
     }
     else {
         fseek(tunnel->fin, -1, SEEK_CUR);
@@ -156,16 +167,22 @@ void handleIdentifier(IOTunnel *tunnel) {
 
     tunnel->status = SIGNAL_SUCCESS;
 
-    return;
+    return SIGNAL_SUCCESS;
 }
 
 // Handle numbers in the lexeme list.
-void handleNumber(IOTunnel *tunnel) {
+int handleNumber(IOTunnel *tunnel) {
    
     if (tunnel == NULL) {
         printError(ERROR_NULL_CHECK);
 
-        return;
+        return SIGNAL_FAILURE;
+    }
+    
+    if (tunnel->status == SIGNAL_EOF) {
+        printError(ERROR_MISSING_TOKEN, LEX_IDENTIFIER);
+        
+        return SIGNAL_FAILURE;
     }
 
     // If the expected number isn't there, throw a missing token error.
@@ -173,12 +190,12 @@ void handleNumber(IOTunnel *tunnel) {
        printError(ERROR_MISSING_TOKEN, LEX_NUMBER);
        tunnel->status = SIGNAL_FAILURE;
 
-       return;
+       return SIGNAL_FAILURE;
     }
     else {
         tunnel->status = SIGNAL_SUCCESS;
         
-        return;
+        return SIGNAL_SUCCESS;
     }
 }
 
