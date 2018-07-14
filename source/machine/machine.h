@@ -8,14 +8,6 @@
 // Constants.
 #define MAX_LINES 1000
 
-// Instruction struct for each line of PL/0 code.
-typedef struct Instruction {
-    int opCode;
-    int RField;
-    int LField;
-    int MField;
-} Instruction;
-
 // CPU struct to hold registers and the current instruction.
 typedef struct CPU {
     int registers[REGISTER_COUNT];

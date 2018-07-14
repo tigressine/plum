@@ -147,6 +147,14 @@ enum Modes {
     MODE_EXECUTE
 };
 
+// Instruction struct for each line of PL/0 code.
+typedef struct Instruction {
+    int opCode;
+    int RField;
+    int LField;
+    int MField;
+} Instruction;
+
 // Utilities functional prototypes.
 void setOption(int*, int);
 int checkOption(int*, int);

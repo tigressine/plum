@@ -627,6 +627,8 @@ int subclassWhileStatement(IOTunnel *tunnel, SymbolTable *table) {
 // Subclass for read statements.
 // EBNF: "read" identifier.
 int subclassReadStatement(IOTunnel *tunnel, SymbolTable *table) {
+    Symbol *symbol;
+    
     if (tunnel == NULL || table == NULL) {
         printError(ERROR_NULL_CHECK);
 
@@ -642,7 +644,18 @@ int subclassReadStatement(IOTunnel *tunnel, SymbolTable *table) {
         
         return SIGNAL_FAILURE;
     }
-    
+   
+    if ((symbol = lookupSymbol(table, tunnel->tokenName)) == NULL) {
+        return SIGNAL_FAILURE;
+    }
+
+    if (emitInstruction(tunnel, SIO, 0, 0, 2) == SIGNAL_FAILURE) {
+        return SIGNAL_FAILURE;
+    }
+    if (emitInstruction(tunnel, STO, 0, 0, symbol->address) == SIGNAL_FAILURE) {
+        return SIGNAL_FAILURE;
+    }
+
     if (loadToken(tunnel) == SIGNAL_FAILURE) {
         return SIGNAL_FAILURE;
     }
@@ -653,6 +666,8 @@ int subclassReadStatement(IOTunnel *tunnel, SymbolTable *table) {
 // Subclass for write statements.
 // EBNF: "write" identifier.
 int subclassWriteStatement(IOTunnel *tunnel, SymbolTable *table) {
+    Symbol *symbol;
+
     if (tunnel == NULL || table == NULL) {
         printError(ERROR_NULL_CHECK);
 
@@ -666,6 +681,17 @@ int subclassWriteStatement(IOTunnel *tunnel, SymbolTable *table) {
     if (tunnel->token != LEX_IDENTIFIER) {
         printError(ERROR_IDENTIFIER_EXPECTED);
         
+        return SIGNAL_FAILURE;
+    }
+    
+    if ((symbol = lookupSymbol(table, tunnel->tokenName)) == NULL) {
+        return SIGNAL_FAILURE;
+    }
+
+    if (emitInstruction(tunnel, LOD, 0, 0, symbol->address) == SIGNAL_FAILURE) {
+        return SIGNAL_FAILURE;
+    }
+    if (emitInstruction(tunnel, SIO, 0, 0, 1) == SIGNAL_FAILURE) {
         return SIGNAL_FAILURE;
     }
     

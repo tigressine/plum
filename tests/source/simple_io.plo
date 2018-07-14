@@ -1,0 +1,7 @@
+var x, y, z;
+begin
+    read x;
+    read y;
+    z := x + y + 100;
+    write z;
+end.
