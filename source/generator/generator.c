@@ -84,6 +84,7 @@ void loadToken(IOTunnel *tunnel) {
         tunnel->tokenValue = 0;
     }
 
+    printf("loaded: %d ident %s\n", tunnel->token, tunnel->tokenName);
     tunnel->status = SIGNAL_SUCCESS;
 }
 

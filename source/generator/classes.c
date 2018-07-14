@@ -2,9 +2,10 @@
 
 #include <string.h>
 #include "generator.h"
-
+//END
 // Syntactic class for the whole program.
 int classProgram(IOTunnel *tunnel, SymbolTable *table) {
+    printf("program\n");
     if (tunnel == NULL || table == NULL) {
         printError(ERROR_NULL_CHECK);
 
@@ -42,6 +43,7 @@ int classProgram(IOTunnel *tunnel, SymbolTable *table) {
 
 // Syntactic class for a block.
 int classBlock(IOTunnel *tunnel, SymbolTable *table) {
+    printf("block\n");
     char identifier[IDENTIFIER_LEN + 1];
     int value;
     
@@ -69,6 +71,7 @@ int classBlock(IOTunnel *tunnel, SymbolTable *table) {
 }
 
 int subclassIdentifierStatement(IOTunnel *tunnel, SymbolTable *table) {
+    printf("identifier\n");
     if (tunnel == NULL || table == NULL) {
         printError(ERROR_NULL_CHECK);
 
@@ -91,10 +94,12 @@ int subclassIdentifierStatement(IOTunnel *tunnel, SymbolTable *table) {
         return SIGNAL_FAILURE;
     }
 
+    printf("done4]\n");
     return classExpression(tunnel, table);
 }
 
 int subclassBeginStatement(IOTunnel *tunnel, SymbolTable *table) {
+    printf("begin\n");
     if (tunnel == NULL || table == NULL) {
         printError(ERROR_NULL_CHECK);
 
@@ -110,7 +115,9 @@ int subclassBeginStatement(IOTunnel *tunnel, SymbolTable *table) {
         return SIGNAL_FAILURE;
     }
 
+    printf("done6\n");
     while (tunnel->token == LEX_SEMICOLON) {
+        printf("here?\n");
         loadToken(tunnel);
         if (tunnel->status == SIGNAL_FAILURE || tunnel->status == SIGNAL_EOF) {
             return SIGNAL_FAILURE;
@@ -122,15 +129,26 @@ int subclassBeginStatement(IOTunnel *tunnel, SymbolTable *table) {
     }
 
     if (tunnel->token != LEX_END) {
+        printf("found\n");
         printError(ERROR_END_EXPECTED);
 
         return SIGNAL_FAILURE;
     }
-     
+    else {
+        printf("end found!!!\n");
+    }
+
+    printf("done7\n");
+    loadToken(tunnel);
+    if (tunnel->status == SIGNAL_FAILURE || tunnel->status == SIGNAL_EOF) {
+        return SIGNAL_FAILURE;
+    }
+    printf("done8\n");
     return SIGNAL_SUCCESS;
 }
 
 int subclassIfStatement(IOTunnel *tunnel, SymbolTable *table) {
+    printf("if\n");
     if (tunnel == NULL || table == NULL) {
         printError(ERROR_NULL_CHECK);
 
@@ -146,10 +164,11 @@ int subclassIfStatement(IOTunnel *tunnel, SymbolTable *table) {
         return SIGNAL_FAILURE;
     }
 
+    /*
     loadToken(tunnel);
     if (tunnel->status == SIGNAL_FAILURE || tunnel->status == SIGNAL_EOF) {
         return SIGNAL_FAILURE;
-    }
+    }*/
 
     if (tunnel->token != LEX_THEN) {
         printError(ERROR_THEN_EXPECTED);
@@ -170,6 +189,7 @@ int subclassIfStatement(IOTunnel *tunnel, SymbolTable *table) {
 }
 
 int subclassWhileStatement(IOTunnel *tunnel, SymbolTable *table) {
+    printf("while\n");
     if (tunnel == NULL || table == NULL) {
         printError(ERROR_NULL_CHECK);
 
@@ -204,6 +224,8 @@ int subclassWhileStatement(IOTunnel *tunnel, SymbolTable *table) {
 }
 
 int classStatement(IOTunnel *tunnel, SymbolTable *table) {
+    printf("statement\n");
+    printf("token%d\n", tunnel->token);
     if (tunnel == NULL || table == NULL) {
         printError(ERROR_NULL_CHECK);
 
@@ -223,11 +245,13 @@ int classStatement(IOTunnel *tunnel, SymbolTable *table) {
         return subclassWhileStatement(tunnel, table);
     }
     else {
+        printf("this]n\n");
         return SIGNAL_SUCCESS;//might be wrong
     }
 }
 
 int classCondition(IOTunnel *tunnel, SymbolTable *table) {
+    printf("condition\n");
     if (tunnel == NULL || table == NULL) {
         printError(ERROR_NULL_CHECK);
 
@@ -273,10 +297,12 @@ int classCondition(IOTunnel *tunnel, SymbolTable *table) {
                 return SIGNAL_FAILURE;
         }
     }
+    
     return SIGNAL_SUCCESS;
 }
 
 int classExpression(IOTunnel *tunnel, SymbolTable *table) {
+    printf("expression\n");
     if (tunnel == NULL || table == NULL) {
         printError(ERROR_NULL_CHECK);
 
@@ -305,10 +331,12 @@ int classExpression(IOTunnel *tunnel, SymbolTable *table) {
         }
     }
 
+    printf("done3\n");
     return SIGNAL_SUCCESS;
 }
 
 int classTerm(IOTunnel *tunnel, SymbolTable *table) {
+    printf("term\n");
     if (tunnel == NULL || table == NULL) {
         printError(ERROR_NULL_CHECK);
 
@@ -330,10 +358,13 @@ int classTerm(IOTunnel *tunnel, SymbolTable *table) {
         }
     }
 
+    printf("done2\n");
     return SIGNAL_SUCCESS;
 }
 
 int classFactor(IOTunnel *tunnel, SymbolTable *table) {
+    printf("factor\n");
+    printf("tun%d\n", tunnel->token);
     if (tunnel == NULL || table == NULL) {
         printError(ERROR_NULL_CHECK);
 
@@ -341,6 +372,7 @@ int classFactor(IOTunnel *tunnel, SymbolTable *table) {
     }
 
     if (tunnel->token == LEX_IDENTIFIER) {
+        printf("this is the extra\n");
         loadToken(tunnel);
         if (tunnel->status == SIGNAL_FAILURE || tunnel->status == SIGNAL_EOF) {
             return SIGNAL_FAILURE;
@@ -379,11 +411,13 @@ int classFactor(IOTunnel *tunnel, SymbolTable *table) {
         return SIGNAL_FAILURE;
     }
 
+    printf("done\n");
     return SIGNAL_SUCCESS;
 }
 
 // Add all constants to the symbol table.
 int subclassConstDeclaration(IOTunnel *tunnel, SymbolTable *table) {
+    printf("const dec\n");
     char identifier[IDENTIFIER_LEN + 1];
     int value;
     
@@ -468,6 +502,7 @@ int subclassConstDeclaration(IOTunnel *tunnel, SymbolTable *table) {
 
 // Add all variables to the symbol table.
 int subclassVarDeclaration(IOTunnel *tunnel, SymbolTable *table) {
+    printf("var dec\n");
     if (tunnel == NULL || table == NULL) {
         printError(ERROR_NULL_CHECK);
 
