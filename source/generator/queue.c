@@ -73,42 +73,37 @@ int enqueueInstruction(InstructionQueue *queue, Instruction instruction) {
     return SIGNAL_SUCCESS;
 }
 
-// Emit all of the instructions in the queue in order, until empty.
-int emitInstructions(IOTunnel *tunnel, InstructionQueue *queue) {
-    Instruction instruction;
-    int returnValue;
+// Clear all instructions out of the queue.
+void clearInstructionQueue(InstructionQueue *queue) {
+    QueueNode *current;
     QueueNode *next;
 
-    if (queue == NULL || tunnel == NULL) {
-        printError(ERROR_NULL_CHECK);
-
-        return SIGNAL_FAILURE;
-    }
-  
-    returnValue = SIGNAL_SUCCESS;
-
-    // Emit each instruction, starting at the head of the queue. Delete
-    // the nodes along the way.
-    while (!isQueueEmpty(queue)) {
-        instruction = queue->head->instruction;
-        next = queue->head->next;
-        free(queue->head);
-        queue->head = next;
-        queue->length--;
-
-        // If any call to emitInstruction fails, then change the returnValue to
-        // failure. Note that this doesn't just return failure immediately, else
-        // the rest of the queue would never get deleted, resulting in a memory leak.
-        if (emitInstruction(tunnel,
-                            instruction.opCode,
-                            instruction.RField,
-                            instruction.LField,
-                            instruction.MField) == SIGNAL_FAILURE) {
-            returnValue = SIGNAL_FAILURE;
-        }
+    if (queue == NULL) {
+        return;
     }
 
+    // Delete all nodes.
+    current = queue->head;
+    while (current != NULL) {
+        next = current->next;
+        free(current);
+        current = next;
+    }
+
+    // Reset all values.
+    queue->length = 0;
+    queue->head = NULL;
+    queue->tail = NULL;
+
+    return;
+}
+
+// Delete the InstructionQueue.
+void destroyInstructionQueue(InstructionQueue *queue) {
+    if (queue == NULL) {
+        return;
+    }
+
+    clearInstructionQueue(queue);
     free(queue);
-
-    return returnValue;
 }

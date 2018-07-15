@@ -6,17 +6,6 @@
 #include <limits.h>
 #include "../plum.h"
 
-// A tunnel for input and output streams, as well as token storage.
-typedef struct IOTunnel {
-    int token;
-    FILE *fin;
-    FILE *fout;
-    int status;
-    int tokenValue;
-    int programCounter;
-    char tokenName[IDENTIFIER_LEN + 1];
-} IOTunnel;
-
 // Nodes for the instruction queue.
 typedef struct QueueNode {
     Instruction instruction;
@@ -29,6 +18,18 @@ typedef struct InstructionQueue {
     QueueNode *tail;
     int length;
 } InstructionQueue;
+
+// A tunnel for input and output streams, as well as token storage.
+typedef struct IOTunnel {
+    int token;
+    FILE *fin;
+    FILE *fout;
+    int status;
+    int tokenValue;
+    int programCounter;
+    InstructionQueue *queue;
+    char tokenName[IDENTIFIER_LEN + 1];
+} IOTunnel;
 
 // Different statuses possible for symbols in the symbol table.
 enum Status {
@@ -60,14 +61,18 @@ typedef struct SymbolTable {
 } SymbolTable;
 
 // Generator functional prototypes.
+void setInstruction(Instruction*, int, int, int, int);
+int compileLexemes(char*, char*, int);
+
+// Tunnel functional prototypes.
 IOTunnel *createIOTunnel(char*, char*);
-int emitInstruction(IOTunnel*, int, int, int, int);
+int emitInstruction(IOTunnel*, Instruction, int);
+int emitInstructions(IOTunnel*);
 int setConstants(IOTunnel*, SymbolTable*);
 int loadToken(IOTunnel*);
 int handleIdentifier(IOTunnel*);
 int handleNumber(IOTunnel*);
 void destroyIOTunnel(IOTunnel*);
-int compileLexemes(char*, char*, int);
 
 // Table functional prototypes.
 SymbolTable *createSymbolTable(void);
@@ -104,6 +109,7 @@ int getQueueSize(InstructionQueue*);
 InstructionQueue *createInstructionQueue(void);
 QueueNode *createQueueNode(Instruction);
 int enqueueInstruction(InstructionQueue*, Instruction);
-int emitInstructions(IOTunnel*, InstructionQueue*);
+void clearInstructionQueue(InstructionQueue*);
+void destroyInstructionQueue(InstructionQueue*);
 
 #endif
