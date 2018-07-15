@@ -17,6 +17,19 @@ typedef struct IOTunnel {
     char tokenName[IDENTIFIER_LEN + 1];
 } IOTunnel;
 
+// Nodes for the instruction queue.
+typedef struct QueueNode {
+    Instruction instruction;
+    struct QueueNode *next;
+} QueueNode;
+
+// A queue of instructions for implementing if blocks.
+typedef struct InstructionQueue {
+    QueueNode *head;
+    QueueNode *tail;
+    int length;
+} InstructionQueue;
+
 // Different statuses possible for symbols in the symbol table.
 enum Status {
     STATUS_ACTIVE,
@@ -84,5 +97,13 @@ int subclassWriteStatement(IOTunnel*, SymbolTable*);
 // Printer functional prototypes.
 void printSymbolTable(SymbolTable*);
 void printSymbolTableColumn(TableNode*);
+
+// Queue functional prototypes.
+int isQueueEmpty(InstructionQueue*);
+int getQueueSize(InstructionQueue*);
+InstructionQueue *createInstructionQueue(void);
+QueueNode *createQueueNode(Instruction);
+int enqueueInstruction(InstructionQueue*, Instruction);
+int emitInstructions(IOTunnel*, InstructionQueue*);
 
 #endif
