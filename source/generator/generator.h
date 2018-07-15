@@ -69,6 +69,7 @@ IOTunnel *createIOTunnel(char*, char*);
 int emitInstruction(IOTunnel*, Instruction, int);
 int emitInstructions(IOTunnel*);
 int setConstants(IOTunnel*, SymbolTable*);
+QueueNode *getQueueTail(IOTunnel*);
 int loadToken(IOTunnel*);
 int handleIdentifier(IOTunnel*);
 int handleNumber(IOTunnel*);
@@ -85,19 +86,19 @@ void destroySymbolTable(SymbolTable*);
 // Class functional prototypes.
 int classProgram(IOTunnel*, SymbolTable*);
 int classBlock(IOTunnel*, SymbolTable*);
-int classStatement(IOTunnel*, SymbolTable*);
-int classCondition(IOTunnel*, SymbolTable*);
-int classExpression(IOTunnel*, SymbolTable*, int);
-int classTerm(IOTunnel*, SymbolTable*, int);
-int classFactor(IOTunnel*, SymbolTable*, int);
+int classStatement(IOTunnel*, SymbolTable*, int);
+int classCondition(IOTunnel*, SymbolTable*, int);
+int classExpression(IOTunnel*, SymbolTable*, int, int);
+int classTerm(IOTunnel*, SymbolTable*, int, int);
+int classFactor(IOTunnel*, SymbolTable*, int, int);
 int subclassConstDeclaration(IOTunnel*, SymbolTable*);
 int subclassVarDeclaration(IOTunnel*, SymbolTable*);
-int subclassIdentifierStatement(IOTunnel*, SymbolTable*);
-int subclassBeginStatement(IOTunnel*, SymbolTable*);
-int subclassIfStatement(IOTunnel*, SymbolTable*);
-int subclassWhileStatement(IOTunnel*, SymbolTable*);
-int subclassReadStatement(IOTunnel*, SymbolTable*);
-int subclassWriteStatement(IOTunnel*, SymbolTable*);
+int subclassIdentifierStatement(IOTunnel*, SymbolTable*, int);
+int subclassBeginStatement(IOTunnel*, SymbolTable*, int);
+int subclassIfStatement(IOTunnel*, SymbolTable*, int);
+int subclassWhileStatement(IOTunnel*, SymbolTable*, int);
+int subclassReadStatement(IOTunnel*, SymbolTable*, int);
+int subclassWriteStatement(IOTunnel*, SymbolTable*, int);
 
 // Printer functional prototypes.
 void printSymbolTable(SymbolTable*);
@@ -109,6 +110,7 @@ int getQueueSize(InstructionQueue*);
 InstructionQueue *createInstructionQueue(void);
 QueueNode *createQueueNode(Instruction);
 int enqueueInstruction(InstructionQueue*, Instruction);
+int insertInstruction(InstructionQueue*, Instruction, QueueNode*);
 void clearInstructionQueue(InstructionQueue*);
 void destroyInstructionQueue(InstructionQueue*);
 

@@ -42,14 +42,14 @@ IOTunnel *createIOTunnel(char *lexemeFile, char *outFile) {
 }
 
 // Send a given instruction either to file or into the queue.
-int emitInstruction(IOTunnel *tunnel, Instruction instruction, int useQueue) {
+int emitInstruction(IOTunnel *tunnel, Instruction instruction, int nestedDepth) {
     if (tunnel == NULL || tunnel->queue == NULL) {
         printError(ERROR_NULL_CHECK);
 
         return SIGNAL_FAILURE;
     }
 
-    if (useQueue == SIGNAL_TRUE) {
+    if (nestedDepth > 0) {
         if (enqueueInstruction(tunnel->queue, instruction) == SIGNAL_FAILURE) {
             return SIGNAL_FAILURE;
         } 
@@ -92,7 +92,7 @@ int emitInstructions(IOTunnel *tunnel) {
         // If any call to emitInstruction fails, then change the returnValue to
         // failure. Note that this doesn't just return failure immediately, else
         // the rest of the queue would never get deleted, resulting in a memory leak.
-        if (emitInstruction(tunnel, current->instruction, SIGNAL_FALSE) == SIGNAL_FAILURE) {
+        if (emitInstruction(tunnel, current->instruction, 0) == SIGNAL_FAILURE) {
             returnValue = SIGNAL_FAILURE;
         }
 
@@ -119,12 +119,12 @@ int setConstants(IOTunnel *tunnel, SymbolTable *table) {
     while (current != NULL) {
         if (current->symbol.type == LEX_CONST) {
             setInstruction(&instruction, LIT, 0, 0, current->symbol.value);
-            if (emitInstruction(tunnel, instruction, SIGNAL_FALSE) == SIGNAL_FAILURE) {
+            if (emitInstruction(tunnel, instruction, 0) == SIGNAL_FAILURE) {
 
                 return SIGNAL_FAILURE;
             }
             setInstruction(&instruction, STO, 0, 0, current->symbol.address);
-            if (emitInstruction(tunnel, instruction, SIGNAL_FALSE) == SIGNAL_FAILURE) {
+            if (emitInstruction(tunnel, instruction, 0) == SIGNAL_FAILURE) {
 
                 return SIGNAL_FAILURE;
             }
@@ -133,6 +133,10 @@ int setConstants(IOTunnel *tunnel, SymbolTable *table) {
     }
 
     return SIGNAL_SUCCESS;
+}
+
+QueueNode *getQueueTail(IOTunnel *tunnel) {
+    return (tunnel == NULL || tunnel->queue == NULL) ? NULL : tunnel->queue->tail;
 }
 
 // Load a token from the input stream.

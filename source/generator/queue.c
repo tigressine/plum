@@ -73,6 +73,32 @@ int enqueueInstruction(InstructionQueue *queue, Instruction instruction) {
     return SIGNAL_SUCCESS;
 }
 
+// Insert an instruction after a particular node. This node could technically be a node
+// in a different queue than the one passed (that'd be bad).
+int insertInstruction(InstructionQueue *queue, Instruction instruction, QueueNode *node) {
+    QueueNode *new;
+
+    if (queue == NULL || node == NULL) {
+        printError(ERROR_NULL_CHECK);
+
+        return SIGNAL_FAILURE;
+    }
+
+    if ((new = createQueueNode(instruction)) == NULL) {
+        return SIGNAL_FAILURE;
+    }
+
+    new->next = node->next;
+    node->next = new;
+
+    // Could be possible to increment the length of a different queue that doesn't
+    // contain the provided node parameter. This is a risk I'm willing to take here
+    // considering all of this machinery is not front-facing anyway. Still spooky.
+    queue->length++;
+
+    return SIGNAL_SUCCESS;
+}
+
 // Clear all instructions out of the queue.
 void clearInstructionQueue(InstructionQueue *queue) {
     QueueNode *current;

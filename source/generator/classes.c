@@ -1,5 +1,6 @@
 // Part of Plum by Tiger Sachse
-
+//SIGNAL_FALSE
+//SIGNAL_TRUE
 #include <string.h>
 #include "generator.h"
 
@@ -38,7 +39,7 @@ int classProgram(IOTunnel *tunnel, SymbolTable *table) {
         setInstruction(&instruction, SIO, 0, 0, 3);
 
         // Return whether the final emit call is successful.
-        return emitInstruction(tunnel, instruction, SIGNAL_FALSE);
+        return emitInstruction(tunnel, instruction, 0);
     }
 }
 
@@ -71,7 +72,7 @@ int classBlock(IOTunnel *tunnel, SymbolTable *table) {
     
     setInstruction(&instruction, INC, 0, 0, getTableSize(table) + INT_OFFSET);
 
-    if (emitInstruction(tunnel, instruction, SIGNAL_FALSE) == SIGNAL_FAILURE) {
+    if (emitInstruction(tunnel, instruction, 0) == SIGNAL_FAILURE) {
         return SIGNAL_FAILURE;
     }
 
@@ -80,13 +81,13 @@ int classBlock(IOTunnel *tunnel, SymbolTable *table) {
     }
 
     // Handle all statements.
-    return classStatement(tunnel, table);
+    return classStatement(tunnel, table, 0);
 }
 
 // Syntactic class for statements.
 // EBNF: [subclassIdentifierStatement | subclassBeginStatement | subclassIfStatement |
 //        subclassWhileStatement | subclassReadStatement | subclassWriteStatement].
-int classStatement(IOTunnel *tunnel, SymbolTable *table) {
+int classStatement(IOTunnel *tunnel, SymbolTable *table, int nestedDepth) {
     Instruction instruction;
     Symbol *symbol;
 
@@ -103,29 +104,29 @@ int classStatement(IOTunnel *tunnel, SymbolTable *table) {
             return SIGNAL_FAILURE;
         }
         
-        if (subclassIdentifierStatement(tunnel, table) == SIGNAL_FAILURE) {
+        if (subclassIdentifierStatement(tunnel, table, nestedDepth) == SIGNAL_FAILURE) {
             return SIGNAL_FAILURE;
         }
 
         setInstruction(&instruction, STO, 0, 0, symbol->address);
-        if (emitInstruction(tunnel, instruction, SIGNAL_FALSE) == SIGNAL_FAILURE) {
+        if (emitInstruction(tunnel, instruction, nestedDepth) == SIGNAL_FAILURE) {
             return SIGNAL_FAILURE;
         }
     }
     else if (tunnel->token == LEX_BEGIN) {
-        return subclassBeginStatement(tunnel, table);
+        return subclassBeginStatement(tunnel, table, nestedDepth);
     }
     else if (tunnel->token == LEX_IF) {
-        return subclassIfStatement(tunnel, table); 
+        return subclassIfStatement(tunnel, table, nestedDepth); 
     }
     else if (tunnel->token == LEX_WHILE) {
-        return subclassWhileStatement(tunnel, table);
+        return subclassWhileStatement(tunnel, table, nestedDepth);
     }
     else if (tunnel->token == LEX_READ) {
-        return subclassReadStatement(tunnel, table);
+        return subclassReadStatement(tunnel, table, nestedDepth);
     }
     else if (tunnel->token == LEX_WRITE) {
-        return subclassWriteStatement(tunnel, table);
+        return subclassWriteStatement(tunnel, table, nestedDepth);
     }
     else {
         return SIGNAL_SUCCESS;//might be wrong
@@ -134,7 +135,8 @@ int classStatement(IOTunnel *tunnel, SymbolTable *table) {
 
 // Syntactic class for conditions.
 // EBNF: "odd" classExpression | expression comparator expression.
-int classCondition(IOTunnel *tunnel, SymbolTable *table) {
+int classCondition(IOTunnel *tunnel, SymbolTable *table, int nestedDepth) {
+    Instruction instruction;
     if (tunnel == NULL || table == NULL) {
         printError(ERROR_NULL_CHECK);
 
@@ -146,37 +148,57 @@ int classCondition(IOTunnel *tunnel, SymbolTable *table) {
             return SIGNAL_FAILURE;
         }
 
-        if (classExpression(tunnel, table, 0) == SIGNAL_FAILURE) {
+        if (classExpression(tunnel, table, 0, nestedDepth) == SIGNAL_FAILURE) {
             return SIGNAL_FAILURE;
         }
     }
     else {
-        if (classExpression(tunnel, table, 0) == SIGNAL_FAILURE) {
+        if (classExpression(tunnel, table, 0, nestedDepth) == SIGNAL_FAILURE) {
             return SIGNAL_FAILURE;
         }
       
         // Token must be one of these comparators.
         switch (tunnel->token) {
             case LEX_LESS:
-            case LEX_EQUAL:
-            case LEX_GREATER:
-            case LEX_NOT_EQUAL:
-            case LEX_LESS_EQUAL:
-            case LEX_GREATER_EQUAL:
-                if (loadToken(tunnel) == SIGNAL_FAILURE) {
-                    return SIGNAL_FAILURE;
-                }
-
-                if (classExpression(tunnel, table, 0) == SIGNAL_FAILURE) {
-                    return SIGNAL_FAILURE;
-                }
-           
+                setInstruction(&instruction, LSS, 0, 0, 1);
                 break;
-            
+
+            case LEX_EQUAL:
+                setInstruction(&instruction, EQL, 0, 0, 1);
+                break;
+
+            case LEX_GREATER:
+                setInstruction(&instruction, GTR, 0, 0, 1);
+                break;
+
+            case LEX_NOT_EQUAL:
+                setInstruction(&instruction, NEQ, 0, 0, 1);
+                break;
+
+            case LEX_LESS_EQUAL:
+                setInstruction(&instruction, LEQ, 0, 0, 1);
+                break;
+
+            case LEX_GREATER_EQUAL:
+                setInstruction(&instruction, GEQ, 0, 0, 1);
+                break;
+
             default:
                 printError(ERROR_NO_RELATIONAL_TOKEN);
 
                 return SIGNAL_FAILURE;
+        }
+        
+        if (loadToken(tunnel) == SIGNAL_FAILURE) {
+            return SIGNAL_FAILURE;
+        }
+
+        if (classExpression(tunnel, table, 1, nestedDepth) == SIGNAL_FAILURE) {
+            return SIGNAL_FAILURE;
+        }
+
+        if (emitInstruction(tunnel, instruction, nestedDepth) == SIGNAL_FAILURE) {
+            return SIGNAL_FAILURE;
         }
     }
     
@@ -185,7 +207,7 @@ int classCondition(IOTunnel *tunnel, SymbolTable *table) {
 
 // Syntactic class for expressions.
 // EBNF: ["+" | "-"] classTerm {("+" | "-") classTerm}.
-int classExpression(IOTunnel *tunnel, SymbolTable *table, int registerPosition) {
+int classExpression(IOTunnel *tunnel, SymbolTable *table, int registerPosition, int nestedDepth) {
     Instruction instruction;
     int operation;
 
@@ -209,7 +231,7 @@ int classExpression(IOTunnel *tunnel, SymbolTable *table, int registerPosition) 
         }
     }
 
-    if (classTerm(tunnel, table, registerPosition) == SIGNAL_FAILURE) {
+    if (classTerm(tunnel, table, registerPosition, nestedDepth) == SIGNAL_FAILURE) {
         return SIGNAL_FAILURE;
     }
 
@@ -217,7 +239,7 @@ int classExpression(IOTunnel *tunnel, SymbolTable *table, int registerPosition) 
     
     // Negate the term if there was a minus sign.
     if (operation == LEX_MINUS) {
-        if (emitInstruction(tunnel, instruction, SIGNAL_FALSE) == SIGNAL_FAILURE) {
+        if (emitInstruction(tunnel, instruction, nestedDepth) == SIGNAL_FAILURE) {
             return SIGNAL_FAILURE;
         }
     }
@@ -229,7 +251,7 @@ int classExpression(IOTunnel *tunnel, SymbolTable *table, int registerPosition) 
             return SIGNAL_FAILURE;
         }
 
-        if (classTerm(tunnel, table, registerPosition + 1) == SIGNAL_FAILURE) {
+        if (classTerm(tunnel, table, registerPosition + 1, nestedDepth) == SIGNAL_FAILURE) {
             return SIGNAL_FAILURE;
         }
        
@@ -239,7 +261,7 @@ int classExpression(IOTunnel *tunnel, SymbolTable *table, int registerPosition) 
                        registerPosition,
                        registerPosition + 1);
 
-        if (emitInstruction(tunnel, instruction, SIGNAL_FALSE) == SIGNAL_FAILURE) {
+        if (emitInstruction(tunnel, instruction, nestedDepth) == SIGNAL_FAILURE) {
             return SIGNAL_FAILURE;
         }
 
@@ -251,7 +273,7 @@ int classExpression(IOTunnel *tunnel, SymbolTable *table, int registerPosition) 
 
 // Syntactic class for terms.
 // EBNF: classFactor {("*" | "/") classFactor}.
-int classTerm(IOTunnel *tunnel, SymbolTable *table, int registerPosition) {
+int classTerm(IOTunnel *tunnel, SymbolTable *table, int registerPosition, int nestedDepth) {
     Instruction instruction;
     int operation;
 
@@ -267,7 +289,7 @@ int classTerm(IOTunnel *tunnel, SymbolTable *table, int registerPosition) {
         return SIGNAL_FAILURE;
     }
 
-    if (classFactor(tunnel, table, registerPosition) == SIGNAL_FAILURE) {
+    if (classFactor(tunnel, table, registerPosition, nestedDepth) == SIGNAL_FAILURE) {
         return SIGNAL_FAILURE;
     }
     
@@ -277,7 +299,7 @@ int classTerm(IOTunnel *tunnel, SymbolTable *table, int registerPosition) {
             return SIGNAL_FAILURE;
         }
 
-        if (classFactor(tunnel, table, registerPosition + 1) == SIGNAL_FAILURE) {
+        if (classFactor(tunnel, table, registerPosition + 1, nestedDepth) == SIGNAL_FAILURE) {
             return SIGNAL_FAILURE;
         }
 
@@ -287,7 +309,7 @@ int classTerm(IOTunnel *tunnel, SymbolTable *table, int registerPosition) {
                        registerPosition,
                        registerPosition + 1);
         
-        if (emitInstruction(tunnel, instruction, SIGNAL_FALSE) == SIGNAL_FAILURE) {
+        if (emitInstruction(tunnel, instruction, nestedDepth) == SIGNAL_FAILURE) {
             return SIGNAL_FAILURE;
         }
 
@@ -299,7 +321,7 @@ int classTerm(IOTunnel *tunnel, SymbolTable *table, int registerPosition) {
 
 // Syntactic class for factors.
 // EBNF: identifier | number | "(" classExpression ")".
-int classFactor(IOTunnel *tunnel, SymbolTable *table, int registerPosition) {
+int classFactor(IOTunnel *tunnel, SymbolTable *table, int registerPosition, int nestedDepth) {
     Instruction instruction;
     Symbol *symbol;
     
@@ -325,7 +347,7 @@ int classFactor(IOTunnel *tunnel, SymbolTable *table, int registerPosition) {
         
         setInstruction(&instruction, LOD, registerPosition, 0, symbol->address);
 
-        if (emitInstruction(tunnel, instruction, SIGNAL_FALSE) == SIGNAL_FAILURE) {
+        if (emitInstruction(tunnel, instruction, nestedDepth) == SIGNAL_FAILURE) {
             return SIGNAL_FAILURE;
         }
         
@@ -336,7 +358,7 @@ int classFactor(IOTunnel *tunnel, SymbolTable *table, int registerPosition) {
     else if (tunnel->token == LEX_NUMBER) {
         setInstruction(&instruction, LIT, registerPosition, 0, tunnel->tokenValue);
         
-        if (emitInstruction(tunnel, instruction, SIGNAL_FALSE) == SIGNAL_FAILURE) {
+        if (emitInstruction(tunnel, instruction, nestedDepth) == SIGNAL_FAILURE) {
             return SIGNAL_FAILURE;
         }
         
@@ -349,7 +371,7 @@ int classFactor(IOTunnel *tunnel, SymbolTable *table, int registerPosition) {
             return SIGNAL_FAILURE;
         }
 
-        if (classExpression(tunnel, table, registerPosition) == SIGNAL_FAILURE) {
+        if (classExpression(tunnel, table, registerPosition, nestedDepth) == SIGNAL_FAILURE) {
             return SIGNAL_FAILURE;
         }
 
@@ -499,7 +521,7 @@ int subclassVarDeclaration(IOTunnel *tunnel, SymbolTable *table) {
 
 // Subclass for identifier statements.
 // EBNF: identifier ":=" classExpression.
-int subclassIdentifierStatement(IOTunnel *tunnel, SymbolTable *table) {
+int subclassIdentifierStatement(IOTunnel *tunnel, SymbolTable *table, int nestedDepth) {
     if (tunnel == NULL || table == NULL) {
         printError(ERROR_NULL_CHECK);
 
@@ -520,12 +542,12 @@ int subclassIdentifierStatement(IOTunnel *tunnel, SymbolTable *table) {
         return SIGNAL_FAILURE;
     }
 
-    return classExpression(tunnel, table, 0);
+    return classExpression(tunnel, table, 0, nestedDepth);
 }
 
 // Subclass for begin statements.
 // EBNF: "begin" classStatement {";" classStatement} "end".
-int subclassBeginStatement(IOTunnel *tunnel, SymbolTable *table) {
+int subclassBeginStatement(IOTunnel *tunnel, SymbolTable *table, int nestedDepth) {
     if (tunnel == NULL || table == NULL) {
         printError(ERROR_NULL_CHECK);
 
@@ -536,7 +558,7 @@ int subclassBeginStatement(IOTunnel *tunnel, SymbolTable *table) {
         return SIGNAL_FAILURE;
     }
 
-    if (classStatement(tunnel, table) == SIGNAL_FAILURE) {
+    if (classStatement(tunnel, table, nestedDepth) == SIGNAL_FAILURE) {
         return SIGNAL_FAILURE;
     }
 
@@ -546,7 +568,7 @@ int subclassBeginStatement(IOTunnel *tunnel, SymbolTable *table) {
             return SIGNAL_FAILURE;
         }
         
-        if (classStatement(tunnel, table) == SIGNAL_FAILURE) {
+        if (classStatement(tunnel, table, nestedDepth) == SIGNAL_FAILURE) {
             return SIGNAL_FAILURE;
         }
     }
@@ -566,7 +588,10 @@ int subclassBeginStatement(IOTunnel *tunnel, SymbolTable *table) {
 
 // Subclass for if statements.
 // EBNF: "if" classCondition "then" classStatement.
-int subclassIfStatement(IOTunnel *tunnel, SymbolTable *table) {
+int subclassIfStatement(IOTunnel *tunnel, SymbolTable *table, int nestedDepth) {
+    Instruction instruction;
+    QueueNode *insertionPoint;
+
     if (tunnel == NULL || table == NULL) {
         printError(ERROR_NULL_CHECK);
 
@@ -577,7 +602,11 @@ int subclassIfStatement(IOTunnel *tunnel, SymbolTable *table) {
         return SIGNAL_FAILURE;
     }
 
-    if (classCondition(tunnel, table) == SIGNAL_FAILURE) {
+    if (classCondition(tunnel, table, nestedDepth + 1) == SIGNAL_FAILURE) {
+        return SIGNAL_FAILURE;
+    }
+
+    if ((insertionPoint = getQueueTail(tunnel)) == NULL) {
         return SIGNAL_FAILURE;
     }
 
@@ -590,9 +619,26 @@ int subclassIfStatement(IOTunnel *tunnel, SymbolTable *table) {
     if (loadToken(tunnel) == SIGNAL_FAILURE) {
         return SIGNAL_FAILURE;
     }
-    
-    if (classStatement(tunnel, table) == SIGNAL_FAILURE) {
+   
+
+    if (classStatement(tunnel, table, nestedDepth + 1) == SIGNAL_FAILURE) {
         return SIGNAL_FAILURE;
+    }
+
+    setInstruction(&instruction, JPC, 0, 0,
+                   tunnel->programCounter + getQueueSize(tunnel->queue) + 1 + nestedDepth);
+  
+    if (nestedDepth > 0) {
+        if (insertInstruction(tunnel->queue, instruction, insertionPoint) == SIGNAL_FAILURE) {
+            return SIGNAL_FAILURE;
+        }
+    }
+    else {
+        if (emitInstruction(tunnel, instruction, nestedDepth) == SIGNAL_FAILURE) {
+            return SIGNAL_FAILURE;
+        }
+
+        emitInstructions(tunnel);
     }
 
     return SIGNAL_SUCCESS;
@@ -600,7 +646,7 @@ int subclassIfStatement(IOTunnel *tunnel, SymbolTable *table) {
 
 // Subclass for while statements.
 // EBNF: "while" classCondition "do" classStatement.
-int subclassWhileStatement(IOTunnel *tunnel, SymbolTable *table) {
+int subclassWhileStatement(IOTunnel *tunnel, SymbolTable *table, int nestedDepth) {
     if (tunnel == NULL || table == NULL) {
         printError(ERROR_NULL_CHECK);
 
@@ -611,7 +657,7 @@ int subclassWhileStatement(IOTunnel *tunnel, SymbolTable *table) {
         return SIGNAL_FAILURE;
     }
 
-    if (classCondition(tunnel, table) == SIGNAL_FAILURE) {
+    if (classCondition(tunnel, table, nestedDepth) == SIGNAL_FAILURE) {
         return SIGNAL_FAILURE;
     }
 
@@ -625,7 +671,7 @@ int subclassWhileStatement(IOTunnel *tunnel, SymbolTable *table) {
         return SIGNAL_FAILURE;
     }
 
-    if (classStatement(tunnel, table) == SIGNAL_FAILURE) {
+    if (classStatement(tunnel, table, nestedDepth) == SIGNAL_FAILURE) {
         return SIGNAL_FAILURE;
     }
 
@@ -634,7 +680,7 @@ int subclassWhileStatement(IOTunnel *tunnel, SymbolTable *table) {
 
 // Subclass for read statements.
 // EBNF: "read" identifier.
-int subclassReadStatement(IOTunnel *tunnel, SymbolTable *table) {
+int subclassReadStatement(IOTunnel *tunnel, SymbolTable *table, int nestedDepth) {
     Instruction instruction;
     Symbol *symbol;
     
@@ -659,12 +705,12 @@ int subclassReadStatement(IOTunnel *tunnel, SymbolTable *table) {
     }
 
     setInstruction(&instruction, SIO, 0, 0, 2);
-    if (emitInstruction(tunnel, instruction, SIGNAL_FALSE) == SIGNAL_FAILURE) {
+    if (emitInstruction(tunnel, instruction, nestedDepth) == SIGNAL_FAILURE) {
         return SIGNAL_FAILURE;
     }
     
     setInstruction(&instruction, STO, 0, 0, symbol->address);
-    if (emitInstruction(tunnel, instruction, SIGNAL_FALSE) == SIGNAL_FAILURE) {
+    if (emitInstruction(tunnel, instruction, nestedDepth) == SIGNAL_FAILURE) {
         return SIGNAL_FAILURE;
     }
 
@@ -677,7 +723,7 @@ int subclassReadStatement(IOTunnel *tunnel, SymbolTable *table) {
 
 // Subclass for write statements.
 // EBNF: "write" identifier.
-int subclassWriteStatement(IOTunnel *tunnel, SymbolTable *table) {
+int subclassWriteStatement(IOTunnel *tunnel, SymbolTable *table, int nestedDepth) {
     Instruction instruction;
     Symbol *symbol;
 
@@ -702,12 +748,12 @@ int subclassWriteStatement(IOTunnel *tunnel, SymbolTable *table) {
     }
 
     setInstruction(&instruction, LOD, 0, 0, symbol->address);
-    if (emitInstruction(tunnel, instruction, SIGNAL_FALSE) == SIGNAL_FAILURE) {
+    if (emitInstruction(tunnel, instruction, nestedDepth) == SIGNAL_FAILURE) {
         return SIGNAL_FAILURE;
     }
     
     setInstruction(&instruction, SIO, 0, 0, 1);
-    if (emitInstruction(tunnel, instruction, SIGNAL_FALSE) == SIGNAL_FAILURE) {
+    if (emitInstruction(tunnel, instruction, nestedDepth) == SIGNAL_FAILURE) {
         return SIGNAL_FAILURE;
     }
     

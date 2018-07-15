@@ -1,0 +1,29 @@
+const A = 100, B = 200;
+var x, y, z, yy, zz;
+begin
+    x := 1;
+    y := 2;
+    z := 3;
+    yy := 4;
+    zz := 5;
+    if A < B then
+    begin
+        x := (A + B) / 10;
+        if x > 100 then
+            y := B * 4;
+        if x < 100 then
+        begin
+            z := (A + B) * 70;
+            if z < 10000 then
+            begin
+                zz := 10000;
+            end;
+            if y < 10000 then
+            begin
+                yy := 1000;
+                zz := 42;
+            end;
+        end;
+    end;
+    zz := 25;
+end.
