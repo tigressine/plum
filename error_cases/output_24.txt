@@ -1,1 +1,0 @@
-Error: An expression can not begin with this symbol.

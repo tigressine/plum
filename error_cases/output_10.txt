@@ -1,1 +1,0 @@
-Error: Semicolon between statements missing.

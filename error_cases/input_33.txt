@@ -1,4 +1,0 @@
-const m = 8;
-var xmarksthespot, y;begin  x := y + 56;
-  write 2;
-end.

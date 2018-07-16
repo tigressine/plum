@@ -1,1 +1,0 @@
-Error 34: A variable must begin with a letter.

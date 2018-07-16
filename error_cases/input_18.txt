@@ -1,9 +1,0 @@
-const m = 8;
-var x, y;begin  x := 56;
-  read y;
- 
-  while y < x
-  begin
-    write x;
-    y := y + 1;
-  end;end.

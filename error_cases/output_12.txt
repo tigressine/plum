@@ -1,1 +1,0 @@
-Error: Assignment to constant or procedure is not allowed.

@@ -1,3 +1,0 @@
-const m = 8;
-var x, y;begin	  x := y + 56;
-  write z;end.

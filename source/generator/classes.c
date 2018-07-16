@@ -569,10 +569,26 @@ int subclassVarDeclaration(IOTunnel *tunnel, SymbolTable *table) {
 // Subclass for identifier statements.
 // EBNF: identifier ":=" classExpression.
 int subclassIdentifierStatement(IOTunnel *tunnel, SymbolTable *table, int nestedDepth) {
+    Symbol *symbol;
+    
     if (tunnel == NULL || table == NULL) {
         printError(ERROR_NULL_POINTER);
 
         return SIGNAL_FAILURE;
+    }
+
+    // Ensure that the identifier exists and is not a constant.
+    if ((symbol = lookupSymbol(table, tunnel->tokenName)) == NULL) {
+        printError(ERROR_UNDECLARED_IDENTIFIER, tunnel->tokenName);
+
+        return SIGNAL_FAILURE;
+    }
+    else {
+        if (symbol->type == LEX_CONST) {
+            printError(ERROR_ASSIGNMENT_TO_CONSTANT, symbol->name);
+
+            return SIGNAL_FAILURE;
+        }
     }
 
     if (loadToken(tunnel) == SIGNAL_FAILURE) {

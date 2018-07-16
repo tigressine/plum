@@ -1,0 +1,4 @@
+var x, y;
+begin
+    z := 100;
+end.
