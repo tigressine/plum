@@ -1,6 +1,5 @@
 // Part of Plum by Tiger Sachse
-//SIGNAL_FALSE
-//SIGNAL_TRUE
+
 #include <string.h>
 #include "generator.h"
 
@@ -627,17 +626,11 @@ int subclassIfStatement(IOTunnel *tunnel, SymbolTable *table, int nestedDepth) {
 
     setInstruction(&instruction, JPC, 0, 0,
                    tunnel->programCounter + getQueueSize(tunnel->queue) + 1 + nestedDepth);
-  
-    if (nestedDepth > 0) {
-        if (insertInstruction(tunnel->queue, instruction, insertionPoint) == SIGNAL_FAILURE) {
-            return SIGNAL_FAILURE;
-        }
+    if (insertInstruction(tunnel->queue, instruction, insertionPoint) == SIGNAL_FAILURE) {
+        return SIGNAL_FAILURE;
     }
-    else {
-        if (emitInstruction(tunnel, instruction, nestedDepth) == SIGNAL_FAILURE) {
-            return SIGNAL_FAILURE;
-        }
-
+    
+    if (nestedDepth <= 0) {
         emitInstructions(tunnel);
     }
 
@@ -647,6 +640,10 @@ int subclassIfStatement(IOTunnel *tunnel, SymbolTable *table, int nestedDepth) {
 // Subclass for while statements.
 // EBNF: "while" classCondition "do" classStatement.
 int subclassWhileStatement(IOTunnel *tunnel, SymbolTable *table, int nestedDepth) {
+    int returnPoint;
+    Instruction instruction;
+    QueueNode *insertionPoint;
+
     if (tunnel == NULL || table == NULL) {
         printError(ERROR_NULL_CHECK);
 
@@ -657,7 +654,13 @@ int subclassWhileStatement(IOTunnel *tunnel, SymbolTable *table, int nestedDepth
         return SIGNAL_FAILURE;
     }
 
-    if (classCondition(tunnel, table, nestedDepth) == SIGNAL_FAILURE) {
+    returnPoint = tunnel->programCounter + getQueueSize(tunnel->queue) + nestedDepth;
+
+    if (classCondition(tunnel, table, nestedDepth + 1) == SIGNAL_FAILURE) {
+        return SIGNAL_FAILURE;
+    }
+
+    if ((insertionPoint = getQueueTail(tunnel)) == NULL) {
         return SIGNAL_FAILURE;
     }
 
@@ -671,8 +674,23 @@ int subclassWhileStatement(IOTunnel *tunnel, SymbolTable *table, int nestedDepth
         return SIGNAL_FAILURE;
     }
 
-    if (classStatement(tunnel, table, nestedDepth) == SIGNAL_FAILURE) {
+    if (classStatement(tunnel, table, nestedDepth + 1) == SIGNAL_FAILURE) {
         return SIGNAL_FAILURE;
+    }
+
+    setInstruction(&instruction, JMP, 0, 0, returnPoint);
+    if (emitInstruction(tunnel, instruction, nestedDepth + 1) == SIGNAL_FAILURE) {
+        return SIGNAL_FAILURE;
+    }
+
+    setInstruction(&instruction, JPC, 0, 0,
+                   tunnel->programCounter + getQueueSize(tunnel->queue) + 1 + nestedDepth);
+    if (insertInstruction(tunnel->queue, instruction, insertionPoint) == SIGNAL_FAILURE) {
+        return SIGNAL_FAILURE;
+    }
+    
+    if (nestedDepth <= 0) {
+        emitInstructions(tunnel);
     }
 
     return SIGNAL_SUCCESS;

@@ -14,9 +14,19 @@ begin
         if x < 100 then
         begin
             z := (A + B) * 70;
-            if z < 10000 then
+            if z > 10000 then
             begin
                 zz := 10000;
+                if zz <> 10000 then
+                begin
+                    zz := 88;
+                end;
+                if zz = 10000 then
+                    zz := 999;
+                if zz < 10 then
+                begin
+                    zz := 99;
+                end;
             end;
             if y < 10000 then
             begin

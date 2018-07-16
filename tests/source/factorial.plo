@@ -1,0 +1,21 @@
+var count, running, target;
+begin
+    read target;
+
+    running := 1;
+    count := 1;
+
+    while count < target do
+    begin
+        count := count + 1;
+        running := running * count;
+        
+        write running;
+    end;
+
+    if target <= 0 then
+    begin
+        running := 0;
+        write running;
+    end;
+end.

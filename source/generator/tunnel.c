@@ -97,7 +97,6 @@ int emitInstructions(IOTunnel *tunnel) {
         }
 
         current = current->next;
-        tunnel->programCounter++;
     }
 
     clearInstructionQueue(tunnel->queue);
