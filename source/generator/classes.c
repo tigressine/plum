@@ -23,7 +23,8 @@ int classProgram(IOTunnel *tunnel, SymbolTable *table) {
         return SIGNAL_FAILURE;
     }
 
-    // This class must end with a period.
+    // This class must end with a period. If everything works, then emit the
+    // termination system call.
     if (tunnel->token != LEX_PERIOD) {
         printError(ERROR_SYMBOL_EXPECTED, '.');
 
@@ -68,13 +69,14 @@ int classBlock(IOTunnel *tunnel, SymbolTable *table) {
             return SIGNAL_FAILURE;
         }
     }
-    
+   
+    // Allocate the correct number of constants and variables on the stack.
     setInstruction(&instruction, INC, 0, 0, getTableSize(table) + INT_OFFSET);
-
     if (emitInstruction(tunnel, instruction, 0) == SIGNAL_FAILURE) {
         return SIGNAL_FAILURE;
     }
 
+    // Emit all the instructions to load constants into the stack.
     if (setConstants(tunnel, table) == SIGNAL_FAILURE) {
         return SIGNAL_FAILURE;
     }
@@ -96,39 +98,57 @@ int classStatement(IOTunnel *tunnel, SymbolTable *table, int nestedDepth) {
         return SIGNAL_FAILURE;
     }
 
+    // Handle identifier statements.
     if (tunnel->token == LEX_IDENTIFIER) {
+
+        // If the symbol is not in the symbol table, throw an error.
         if ((symbol = lookupSymbol(table, tunnel->tokenName)) == NULL) {
-            //printError(ERROR this identifer undeclared);
+            printError(ERROR_UNDECLARED_IDENTIFIER);
             
             return SIGNAL_FAILURE;
         }
         
+        // Call the identifier subclass.
         if (subclassIdentifierStatement(tunnel, table, nestedDepth) == SIGNAL_FAILURE) {
             return SIGNAL_FAILURE;
         }
 
+        // Store the calculated value for the identifier into the stack with a STO
+        // command. The calculated value will always be in register zero at this point.
         setInstruction(&instruction, STO, 0, 0, symbol->address);
         if (emitInstruction(tunnel, instruction, nestedDepth) == SIGNAL_FAILURE) {
             return SIGNAL_FAILURE;
         }
     }
+
+    // Handle begin/end multiline statements.
     else if (tunnel->token == LEX_BEGIN) {
         return subclassBeginStatement(tunnel, table, nestedDepth);
     }
+
+    // Handle if statements.
     else if (tunnel->token == LEX_IF) {
         return subclassIfStatement(tunnel, table, nestedDepth); 
     }
+
+    // Handle while statements.
     else if (tunnel->token == LEX_WHILE) {
         return subclassWhileStatement(tunnel, table, nestedDepth);
     }
+
+    // Handle read statements.
     else if (tunnel->token == LEX_READ) {
         return subclassReadStatement(tunnel, table, nestedDepth);
     }
+
+    // Handle write statements.
     else if (tunnel->token == LEX_WRITE) {
         return subclassWriteStatement(tunnel, table, nestedDepth);
     }
+
+    // Else this is the empty string.
     else {
-        return SIGNAL_SUCCESS;//might be wrong
+        return SIGNAL_SUCCESS;
     }
 }
 
@@ -136,12 +156,14 @@ int classStatement(IOTunnel *tunnel, SymbolTable *table, int nestedDepth) {
 // EBNF: "odd" classExpression | expression comparator expression.
 int classCondition(IOTunnel *tunnel, SymbolTable *table, int nestedDepth) {
     Instruction instruction;
+    
     if (tunnel == NULL || table == NULL) {
         printError(ERROR_NULL_CHECK);
 
         return SIGNAL_FAILURE;
     }
 
+    // Handle odd conditions.
     if (tunnel->token == LEX_ODD) {
         if (loadToken(tunnel) == SIGNAL_FAILURE) {
             return SIGNAL_FAILURE;
@@ -151,12 +173,16 @@ int classCondition(IOTunnel *tunnel, SymbolTable *table, int nestedDepth) {
             return SIGNAL_FAILURE;
         }
     }
+
+    // Handle all other conditions.
     else {
+
+        // Get the left half of the condition.
         if (classExpression(tunnel, table, 0, nestedDepth) == SIGNAL_FAILURE) {
             return SIGNAL_FAILURE;
         }
       
-        // Token must be one of these comparators.
+        // Current token must be one of these comparators.
         switch (tunnel->token) {
             case LEX_LESS:
                 setInstruction(&instruction, LSS, 0, 0, 1);
@@ -183,7 +209,7 @@ int classCondition(IOTunnel *tunnel, SymbolTable *table, int nestedDepth) {
                 break;
 
             default:
-                printError(ERROR_NO_RELATIONAL_TOKEN);
+                printError(ERROR_ILLEGAL_COMPARATOR, tunnel->token);
 
                 return SIGNAL_FAILURE;
         }
@@ -192,10 +218,13 @@ int classCondition(IOTunnel *tunnel, SymbolTable *table, int nestedDepth) {
             return SIGNAL_FAILURE;
         }
 
+        // Get the right half of the condition.
         if (classExpression(tunnel, table, 1, nestedDepth) == SIGNAL_FAILURE) {
             return SIGNAL_FAILURE;
         }
 
+        // Emit the appropriate comparison instruction, determined by the switch
+        // case above.
         if (emitInstruction(tunnel, instruction, nestedDepth) == SIGNAL_FAILURE) {
             return SIGNAL_FAILURE;
         }
@@ -216,8 +245,9 @@ int classExpression(IOTunnel *tunnel, SymbolTable *table, int registerPosition, 
         return SIGNAL_FAILURE;
     }
 
+    // Prevent attempts to use more registers than available.
     if (registerPosition >= REGISTER_COUNT) {
-        //printError(out of registers);
+        printError(ERROR_OUT_OF_REGISTERS);
         
         return SIGNAL_FAILURE;
     }
@@ -230,40 +260,43 @@ int classExpression(IOTunnel *tunnel, SymbolTable *table, int registerPosition, 
         }
     }
 
+    // Get the first term of the expression.
     if (classTerm(tunnel, table, registerPosition, nestedDepth) == SIGNAL_FAILURE) {
         return SIGNAL_FAILURE;
     }
 
-    setInstruction(&instruction, NEG, registerPosition, registerPosition, 0);
-    
     // Negate the term if there was a minus sign.
+    setInstruction(&instruction, NEG, registerPosition, registerPosition, 0);
     if (operation == LEX_MINUS) {
         if (emitInstruction(tunnel, instruction, nestedDepth) == SIGNAL_FAILURE) {
             return SIGNAL_FAILURE;
         }
     }
 
-    // Accept additional terms.
+    // Accept additional terms and save the operation at this point. It can be
+    // overwritten in the following recursive calls so it must be saved here.
     operation = tunnel->token;
     while (operation == LEX_PLUS || operation == LEX_MINUS) {
         if (loadToken(tunnel) == SIGNAL_FAILURE) {
             return SIGNAL_FAILURE;
         }
 
+        // Find the next term and save in the register adjacent the current register.
         if (classTerm(tunnel, table, registerPosition + 1, nestedDepth) == SIGNAL_FAILURE) {
             return SIGNAL_FAILURE;
         }
-       
+      
+        // Set up the instruction to add/subtract the adjacent register to the current one.
         setInstruction(&instruction,
                        (operation == LEX_PLUS) ? ADD : SUB,
                        registerPosition,
                        registerPosition,
                        registerPosition + 1);
-
         if (emitInstruction(tunnel, instruction, nestedDepth) == SIGNAL_FAILURE) {
             return SIGNAL_FAILURE;
         }
 
+        // Reset the operation.
         operation = tunnel->token;
     }
 
@@ -282,32 +315,37 @@ int classTerm(IOTunnel *tunnel, SymbolTable *table, int registerPosition, int ne
         return SIGNAL_FAILURE;
     }
    
+    // Prevent attempts to use more registers than available.
     if (registerPosition >= REGISTER_COUNT) {
-        //printError(out of registers);
+        printError(ERROR_OUT_OF_REGISTERS);
         
         return SIGNAL_FAILURE;
     }
 
+    // Get the factor of this term.
     if (classFactor(tunnel, table, registerPosition, nestedDepth) == SIGNAL_FAILURE) {
         return SIGNAL_FAILURE;
     }
-    
+   
+    // Absorb more factors.
     operation = tunnel->token;
     while (operation == LEX_MULTIPLY || operation == LEX_SLASH) {
         if (loadToken(tunnel) == SIGNAL_FAILURE) {
             return SIGNAL_FAILURE;
         }
 
+        // Get the next factor and save it into the next adjacent register.
         if (classFactor(tunnel, table, registerPosition + 1, nestedDepth) == SIGNAL_FAILURE) {
             return SIGNAL_FAILURE;
         }
 
+        // Add the instruction to either multiply or divide the adjacent register
+        // with the current one.
         setInstruction(&instruction,
                        (operation == LEX_MULTIPLY) ? MUL : DIV,
                        registerPosition,
                        registerPosition,
                        registerPosition + 1);
-        
         if (emitInstruction(tunnel, instruction, nestedDepth) == SIGNAL_FAILURE) {
             return SIGNAL_FAILURE;
         }
@@ -330,22 +368,25 @@ int classFactor(IOTunnel *tunnel, SymbolTable *table, int registerPosition, int 
         return SIGNAL_FAILURE;
     }
 
+    // Prevent attempts to use more registers than available.
     if (registerPosition >= REGISTER_COUNT) {
-        //printError(out of registers);
+        printError(ERROR_OUT_OF_REGISTERS);
         
         return SIGNAL_FAILURE;
     }
 
     // Factors can either be identifiers, numbers, or expressions.
     if (tunnel->token == LEX_IDENTIFIER) {
+
+        // If the identifier is not in the symbol table, then it is undeclared.
         if ((symbol = lookupSymbol(table, tunnel->tokenName)) == NULL) {
-            //printError(ERROR this identifer undeclared);
+            printError(ERROR_UNDECLARED_IDENTIFIER, tunnel->tokenName);
             
             return SIGNAL_FAILURE;
         }
-        
+       
+        // Load the value of the identifier into the current register.
         setInstruction(&instruction, LOD, registerPosition, 0, symbol->address);
-
         if (emitInstruction(tunnel, instruction, nestedDepth) == SIGNAL_FAILURE) {
             return SIGNAL_FAILURE;
         }
@@ -355,8 +396,9 @@ int classFactor(IOTunnel *tunnel, SymbolTable *table, int registerPosition, int 
         }
     }
     else if (tunnel->token == LEX_NUMBER) {
+
+        // Load a literal into the current register.
         setInstruction(&instruction, LIT, registerPosition, 0, tunnel->tokenValue);
-        
         if (emitInstruction(tunnel, instruction, nestedDepth) == SIGNAL_FAILURE) {
             return SIGNAL_FAILURE;
         }
@@ -370,10 +412,12 @@ int classFactor(IOTunnel *tunnel, SymbolTable *table, int registerPosition, int 
             return SIGNAL_FAILURE;
         }
 
+        // Call expression for the contents of the parenthetic expression.
         if (classExpression(tunnel, table, registerPosition, nestedDepth) == SIGNAL_FAILURE) {
             return SIGNAL_FAILURE;
         }
 
+        // There must be a closing parenthesis.
         if (tunnel->token != LEX_RIGHT_PARENTHESIS) {
             printError(ERROR_SYMBOL_EXPECTED, ')');
 
@@ -385,7 +429,7 @@ int classFactor(IOTunnel *tunnel, SymbolTable *table, int registerPosition, int 
         }
     }
     else {
-        printError(ERROR_INVALID_FACTOR);//
+        printError(ERROR_INVALID_FACTOR);
 
         return SIGNAL_FAILURE;
     }
@@ -411,6 +455,7 @@ int subclassConstDeclaration(IOTunnel *tunnel, SymbolTable *table) {
             return SIGNAL_FAILURE;
         }
 
+        // Expect an identifier first.
         if (tunnel->token != LEX_IDENTIFIER) {
             printError(ERROR_IDENTIFIER_EXPECTED);
 
@@ -424,17 +469,18 @@ int subclassConstDeclaration(IOTunnel *tunnel, SymbolTable *table) {
             return SIGNAL_FAILURE;
         }
 
+        // Next must be an equals sign.
         if (tunnel->token != LEX_EQUAL) {
             printError(ERROR_SYMBOL_EXPECTED, '=');
 
             return SIGNAL_FAILURE;
         }
         
-        // This final token is the numerical value of the constant.
         if (loadToken(tunnel) == SIGNAL_FAILURE) {
             return SIGNAL_FAILURE;
         }
 
+        // This final token is the numerical value of the constant.
         if (tunnel->token != LEX_NUMBER) {
             printError(ERROR_NUMBER_EXPECTED);
 
@@ -457,6 +503,7 @@ int subclassConstDeclaration(IOTunnel *tunnel, SymbolTable *table) {
     }
     while (tunnel->token == LEX_COMMA);
 
+    // The constant declarations line must terminate with a semicolon.
     if (tunnel->token != LEX_SEMICOLON) {
         printError(ERROR_SYMBOL_EXPECTED, ';');
 
@@ -485,6 +532,7 @@ int subclassVarDeclaration(IOTunnel *tunnel, SymbolTable *table) {
             return SIGNAL_FAILURE;
         }
 
+        // The first token must be an identifier.
         if (tunnel->token != LEX_IDENTIFIER) {
             printError(ERROR_IDENTIFIER_EXPECTED);
 
@@ -531,6 +579,7 @@ int subclassIdentifierStatement(IOTunnel *tunnel, SymbolTable *table, int nested
         return SIGNAL_FAILURE;
     }
 
+    // Identifier statements must have a := symbol after the identifier.
     if (tunnel->token != LEX_BECOME) {
         printError(ERROR_BECOME_EXPECTED);
 
@@ -541,6 +590,7 @@ int subclassIdentifierStatement(IOTunnel *tunnel, SymbolTable *table, int nested
         return SIGNAL_FAILURE;
     }
 
+    // Find the resulting expression for the identifier.
     return classExpression(tunnel, table, 0, nestedDepth);
 }
 
@@ -557,6 +607,7 @@ int subclassBeginStatement(IOTunnel *tunnel, SymbolTable *table, int nestedDepth
         return SIGNAL_FAILURE;
     }
 
+    // Begin multiline statements have at least one statement.
     if (classStatement(tunnel, table, nestedDepth) == SIGNAL_FAILURE) {
         return SIGNAL_FAILURE;
     }
@@ -572,6 +623,7 @@ int subclassBeginStatement(IOTunnel *tunnel, SymbolTable *table, int nestedDepth
         }
     }
 
+    // Begin multiline statements must end with the word "end."
     if (tunnel->token != LEX_END) {
         printError(ERROR_END_EXPECTED);
 
@@ -588,8 +640,9 @@ int subclassBeginStatement(IOTunnel *tunnel, SymbolTable *table, int nestedDepth
 // Subclass for if statements.
 // EBNF: "if" classCondition "then" classStatement.
 int subclassIfStatement(IOTunnel *tunnel, SymbolTable *table, int nestedDepth) {
-    Instruction instruction;
     QueueNode *insertionPoint;
+    Instruction instruction;
+    int jumpTarget;
 
     if (tunnel == NULL || table == NULL) {
         printError(ERROR_NULL_CHECK);
@@ -601,14 +654,20 @@ int subclassIfStatement(IOTunnel *tunnel, SymbolTable *table, int nestedDepth) {
         return SIGNAL_FAILURE;
     }
 
+    // Construct the condition for the if statement. This call increases the
+    // nested depth by one (thus insuring that any resulting instructions are 
+    // saved in the queue instead of printed to the file). Increasing the nestedDepth
+    // is also critical for nested if and while statements.
     if (classCondition(tunnel, table, nestedDepth + 1) == SIGNAL_FAILURE) {
         return SIGNAL_FAILURE;
     }
 
+    // Get the insertion point in the instruction queue for the eventual JPC instruction.
     if ((insertionPoint = getQueueTail(tunnel)) == NULL) {
         return SIGNAL_FAILURE;
     }
 
+    // The condition must be followed by the word "then."
     if (tunnel->token != LEX_THEN) {
         printError(ERROR_THEN_EXPECTED);
 
@@ -618,18 +677,20 @@ int subclassIfStatement(IOTunnel *tunnel, SymbolTable *table, int nestedDepth) {
     if (loadToken(tunnel) == SIGNAL_FAILURE) {
         return SIGNAL_FAILURE;
     }
-   
-
+  
+    // Get the if statement's statements.
     if (classStatement(tunnel, table, nestedDepth + 1) == SIGNAL_FAILURE) {
         return SIGNAL_FAILURE;
     }
 
-    setInstruction(&instruction, JPC, 0, 0,
-                   tunnel->programCounter + getQueueSize(tunnel->queue) + 1 + nestedDepth);
+    // Insert the JPC command at the insertionPoint in the instruction queue.
+    jumpTarget = tunnel->programCounter + getQueueSize(tunnel->queue) + nestedDepth + 1;
+    setInstruction(&instruction, JPC, 0, 0, jumpTarget);
     if (insertInstruction(tunnel->queue, instruction, insertionPoint) == SIGNAL_FAILURE) {
         return SIGNAL_FAILURE;
     }
-    
+   
+    // If we aren't nested anymore, emit all of the instructions in the instruction queue.
     if (nestedDepth <= 0) {
         emitInstructions(tunnel);
     }
@@ -640,9 +701,10 @@ int subclassIfStatement(IOTunnel *tunnel, SymbolTable *table, int nestedDepth) {
 // Subclass for while statements.
 // EBNF: "while" classCondition "do" classStatement.
 int subclassWhileStatement(IOTunnel *tunnel, SymbolTable *table, int nestedDepth) {
-    int returnPoint;
-    Instruction instruction;
     QueueNode *insertionPoint;
+    Instruction instruction;
+    int returnTarget;
+    int jumpTarget;
 
     if (tunnel == NULL || table == NULL) {
         printError(ERROR_NULL_CHECK);
@@ -654,16 +716,21 @@ int subclassWhileStatement(IOTunnel *tunnel, SymbolTable *table, int nestedDepth
         return SIGNAL_FAILURE;
     }
 
-    returnPoint = tunnel->programCounter + getQueueSize(tunnel->queue) + nestedDepth;
+    // Save the return target for the JMP command that will be inserted at the
+    // bottom of the while statement.
+    returnTarget = tunnel->programCounter + getQueueSize(tunnel->queue) + nestedDepth;
 
+    // Get the while statement's condition.
     if (classCondition(tunnel, table, nestedDepth + 1) == SIGNAL_FAILURE) {
         return SIGNAL_FAILURE;
     }
 
+    // Save the insertion point for the JPC command that controls the loop.
     if ((insertionPoint = getQueueTail(tunnel)) == NULL) {
         return SIGNAL_FAILURE;
     }
 
+    // A "do" keyword is expected after the condition.
     if (tunnel->token != LEX_DO) {
         printError(ERROR_DO_EXPECTED);
 
@@ -674,21 +741,26 @@ int subclassWhileStatement(IOTunnel *tunnel, SymbolTable *table, int nestedDepth
         return SIGNAL_FAILURE;
     }
 
+    // Get the while statement's statements.
     if (classStatement(tunnel, table, nestedDepth + 1) == SIGNAL_FAILURE) {
         return SIGNAL_FAILURE;
     }
 
-    setInstruction(&instruction, JMP, 0, 0, returnPoint);
+    // Add the jump instruction at the bottom of all the statements to go
+    // back to the top of the loop.
+    setInstruction(&instruction, JMP, 0, 0, returnTarget);
     if (emitInstruction(tunnel, instruction, nestedDepth + 1) == SIGNAL_FAILURE) {
         return SIGNAL_FAILURE;
     }
 
-    setInstruction(&instruction, JPC, 0, 0,
-                   tunnel->programCounter + getQueueSize(tunnel->queue) + 1 + nestedDepth);
+    // Insert the JPC command at the insertion point.
+    jumpTarget = tunnel->programCounter + getQueueSize(tunnel->queue) + nestedDepth + 1;
+    setInstruction(&instruction, JPC, 0, 0, jumpTarget);
     if (insertInstruction(tunnel->queue, instruction, insertionPoint) == SIGNAL_FAILURE) {
         return SIGNAL_FAILURE;
     }
     
+    // If we are not nested, emit all the instructions in the instruction queue.
     if (nestedDepth <= 0) {
         emitInstructions(tunnel);
     }
@@ -711,22 +783,28 @@ int subclassReadStatement(IOTunnel *tunnel, SymbolTable *table, int nestedDepth)
     if (loadToken(tunnel) == SIGNAL_FAILURE) {
         return SIGNAL_FAILURE;
     }
-    
+   
+    // Can only read into identifiers.
     if (tunnel->token != LEX_IDENTIFIER) {
         printError(ERROR_IDENTIFIER_EXPECTED);
         
         return SIGNAL_FAILURE;
     }
-   
+  
+    // If the symbol is not in the table, read cannot proceed.
     if ((symbol = lookupSymbol(table, tunnel->tokenName)) == NULL) {
+        printError(ERROR_UNDECLARED_IDENTIFIER, tunnel->tokenName);
+
         return SIGNAL_FAILURE;
     }
 
+    // Create the read system call.
     setInstruction(&instruction, SIO, 0, 0, 2);
     if (emitInstruction(tunnel, instruction, nestedDepth) == SIGNAL_FAILURE) {
         return SIGNAL_FAILURE;
     }
-    
+   
+    // Store the read value into the appropriate place in the stack.
     setInstruction(&instruction, STO, 0, 0, symbol->address);
     if (emitInstruction(tunnel, instruction, nestedDepth) == SIGNAL_FAILURE) {
         return SIGNAL_FAILURE;
@@ -755,21 +833,27 @@ int subclassWriteStatement(IOTunnel *tunnel, SymbolTable *table, int nestedDepth
         return SIGNAL_FAILURE;
     }
 
+    // Only identifiers can be written.
     if (tunnel->token != LEX_IDENTIFIER) {
         printError(ERROR_IDENTIFIER_EXPECTED);
         
         return SIGNAL_FAILURE;
     }
-    
+   
+    // If the symbol is not in the symbol table, throw an error.
     if ((symbol = lookupSymbol(table, tunnel->tokenName)) == NULL) {
+        printError(ERROR_UNDECLARED_IDENTIFIER);
+        
         return SIGNAL_FAILURE;
     }
 
+    // Load the correct identifier into register zero.
     setInstruction(&instruction, LOD, 0, 0, symbol->address);
     if (emitInstruction(tunnel, instruction, nestedDepth) == SIGNAL_FAILURE) {
         return SIGNAL_FAILURE;
     }
     
+    // Create the system call to print register zero.
     setInstruction(&instruction, SIO, 0, 0, 1);
     if (emitInstruction(tunnel, instruction, nestedDepth) == SIGNAL_FAILURE) {
         return SIGNAL_FAILURE;

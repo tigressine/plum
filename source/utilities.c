@@ -60,3 +60,15 @@ int isDigit(char character) {
 int isWhitespace(char character) {
     return (character == '\0' || character == ' ' || character == '\t' || character == '\n'); 
 }
+
+// Set a provided instruction in one line.
+void setInstruction(Instruction *instruction, int opCode, int RField, int LField, int MField) {
+    if (instruction == NULL) {
+        return;
+    }
+
+    instruction->opCode = opCode;
+    instruction->RField = RField;
+    instruction->LField = LField;
+    instruction->MField = MField;
+}

@@ -2,35 +2,31 @@
 
 #include "generator.h"
 
-void setInstruction(Instruction *instruction, int opCode, int RField, int LField, int MField) {
-    if (instruction == NULL) {
-        return;
-    }
-
-    instruction->opCode = opCode;
-    instruction->RField = RField;
-    instruction->LField = LField;
-    instruction->MField = MField;
-}
-
 // Compile lexemes from the lexemeFile into usable bytecode.
 int compileLexemes(char *lexemeFile, char *outFile, int options) {
-    int returnValue;
-    IOTunnel *tunnel;
     SymbolTable *table;
+    IOTunnel *tunnel;
+    int returnValue;
 
+    // Create the symbol table.
     if ((table = createSymbolTable()) == NULL) {
         return SIGNAL_FAILURE;
     }
     
+    // Create the input/output tunnel.
     if ((tunnel = createIOTunnel(lexemeFile, outFile)) == NULL) {
         return SIGNAL_FAILURE;
     }
 
+    // Call the program class.
     returnValue = classProgram(tunnel, table); 
 
-    printSymbolTable(table);
+    // Print the symbol table, if requested.
+    if (returnValue == SIGNAL_SUCCESS && checkOption(&options, OPTION_PRINT_SYMBOL_TABLE)) {
+        printSymbolTable(table);
+    }
 
+    // Stay memory safe.
     destroyIOTunnel(tunnel);
     destroySymbolTable(table);
 

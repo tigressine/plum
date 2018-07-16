@@ -3,16 +3,6 @@
 #include <stdlib.h>
 #include "generator.h"
 
-// Check if queue is empty.
-int isQueueEmpty(InstructionQueue *queue) {
-    return (queue == NULL || queue->head == NULL);
-}
-
-// Get length of queue.
-int getQueueSize(InstructionQueue *queue) {
-    return (queue == NULL) ? 0 : queue->length;
-}
-
 // Create a new instruction queue.
 InstructionQueue *createInstructionQueue(void) {
     InstructionQueue *new;
@@ -37,6 +27,16 @@ QueueNode *createQueueNode(Instruction instruction) {
     }
 
     return new;
+}
+
+// Check if queue is empty.
+int isQueueEmpty(InstructionQueue *queue) {
+    return (queue == NULL || queue->head == NULL);
+}
+
+// Get length of queue.
+int getQueueSize(InstructionQueue *queue) {
+    return (queue == NULL) ? 0 : queue->length;
 }
 
 // Add a new instruction to the end of the queue.
@@ -130,6 +130,7 @@ void destroyInstructionQueue(InstructionQueue *queue) {
         return;
     }
 
+    // Clear all the values and then free the container struct.
     clearInstructionQueue(queue);
     free(queue);
 }

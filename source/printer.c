@@ -14,7 +14,7 @@ void printError(int errorCode, ...) {
     // an enumeration defined in the plum.h header.
     char errors[][MAX_ERROR_LENGTH] = {
         "factor syntax incorrect",
-        "no relational token provided",
+        "illegal comparator token: %d",
         "expected do token",
         "expected then token",
         "expected end token",
@@ -55,7 +55,9 @@ void printError(int errorCode, ...) {
         "missing value for token: %d",
         "illegal format of lexemes: %d",
         "characters after period",
-        "unexpected end of file"
+        "unexpected end of file",
+        "out of registers",
+        "error writing to output file"
     };
 
     // Initialize the variadic argument list, starting after errorCode.

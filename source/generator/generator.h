@@ -61,7 +61,6 @@ typedef struct SymbolTable {
 } SymbolTable;
 
 // Generator functional prototypes.
-void setInstruction(Instruction*, int, int, int, int);
 int compileLexemes(char*, char*, int);
 
 // Tunnel functional prototypes.
@@ -105,10 +104,10 @@ void printSymbolTable(SymbolTable*);
 void printSymbolTableColumn(TableNode*);
 
 // Queue functional prototypes.
-int isQueueEmpty(InstructionQueue*);
-int getQueueSize(InstructionQueue*);
 InstructionQueue *createInstructionQueue(void);
 QueueNode *createQueueNode(Instruction);
+int isQueueEmpty(InstructionQueue*);
+int getQueueSize(InstructionQueue*);
 int enqueueInstruction(InstructionQueue*, Instruction);
 int insertInstruction(InstructionQueue*, Instruction, QueueNode*);
 void clearInstructionQueue(InstructionQueue*);

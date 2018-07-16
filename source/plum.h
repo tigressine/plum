@@ -76,7 +76,7 @@ enum Signals {
 // The full collection of errors that this program can throw.
 enum Errors {
     ERROR_INVALID_FACTOR,
-    ERROR_NO_RELATIONAL_TOKEN,
+    ERROR_ILLEGAL_COMPARATOR,
     ERROR_DO_EXPECTED,
     ERROR_THEN_EXPECTED,
     ERROR_END_EXPECTED,
@@ -117,7 +117,9 @@ enum Errors {
     ERROR_MISSING_TOKEN,
     ERROR_ILLEGAL_LEXEME_FORMAT,
     ERROR_TRAILING_CHARACTERS,
-    ERROR_END_OF_FILE
+    ERROR_END_OF_FILE,
+    ERROR_OUT_OF_REGISTERS,
+    ERROR_CANNOT_WRITE
 };
 
 // Available system calls.
@@ -135,7 +137,8 @@ enum Options {
     OPTION_SKIP_ERRORS,
     OPTION_PRINT_SOURCE,
     OPTION_PRINT_LEXEME_TABLE,
-    OPTION_PRINT_LEXEME_LIST
+    OPTION_PRINT_LEXEME_LIST,
+    OPTION_PRINT_SYMBOL_TABLE
 };
 
 // Different modes for the machine.
@@ -163,6 +166,7 @@ int isAlphanumeric(char);
 int isAlphabetic(char);
 int isDigit(char);
 int isWhitespace(char);
+void setInstruction(Instruction*, int, int, int, int);
 
 // Printer functional prototypes.
 void printError(int, ...);

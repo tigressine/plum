@@ -12,7 +12,10 @@ SymbolTable *createSymbolTable(void)  {
     if ((table = calloc(1, sizeof(SymbolTable))) == NULL) {
         printError(ERROR_OUT_OF_MEMORY);
     }
-    
+   
+    // This will be changed in the future. The offset was added to
+    // allow printing some values that aren't necessary in this implementation
+    // of a stack virtual machine.
     table->currentAddress = INT_OFFSET;
 
     return table;
@@ -42,6 +45,7 @@ TableNode *createTableNode(int type,
         return NULL;
     }
 
+    // Set all the members of the new node.
     new->next = next;
     new->symbol.type = type;
     new->symbol.value = value;
@@ -84,10 +88,11 @@ int insertSymbol(SymbolTable *table,
 
         return SIGNAL_FAILURE;
     }
+    
+    // Set the head of the table to be the new node. The table is saved in reverse
+    // order using this scheme (like a stack). The old head is not forgotten
+    // because it was set as new's next pointer in the call to createTableNode.
     else {
-        // Set the head of the table to be the new node. The table is saved in reverse
-        // order using this scheme (like a stack). The old head is not forgotten
-        // because it was set as new's next pointer in the call to createTableNode.
         table->head = new;
         table->symbols++;
     
@@ -107,14 +112,17 @@ Symbol *lookupSymbol(SymbolTable *table, char *name) {
 
     current = table->head;
     while (current != NULL) {
+        
         // Skip inactive entries if necessary.
         if (current->symbol.active == STATUS_INACTIVE) {
             current = current->next;
         }
+        
         // Return a pointer to the symbol if the name matches.
         else if (strcmp(current->symbol.name, name) == 0) {
             return &(current->symbol);
         }
+        
         // Go to the next column in the table.
         else {
             current = current->next;
@@ -141,6 +149,7 @@ void destroySymbolTable(SymbolTable *table) {
         return;
     }
 
+    // Delete all the nodes.
     current = table->head;
     while (current != NULL) {
         next = current->next;
