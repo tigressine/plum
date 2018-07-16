@@ -10,7 +10,7 @@ int startMachine(char *inFile, int options) {
     Instruction *instructions;
 
     if (inFile == NULL) {
-        printError(ERROR_NULL_CHECK);
+        printError(ERROR_NULL_POINTER);
 
         return SIGNAL_FAILURE;
     }
@@ -65,7 +65,7 @@ int countInstructions(char *filename) {
     char buffer;
 
     if (filename == NULL) {
-        printError(ERROR_NULL_CHECK);
+        printError(ERROR_NULL_POINTER);
         
         return SIGNAL_FAILURE;
     }
@@ -82,6 +82,7 @@ int countInstructions(char *filename) {
             if (count < MAX_LINES) {
                 count++;
             }
+
             // If the maximum number of lines has been reached, close the
             // file and return SIGNAL_FAILURE.
             else {
@@ -105,7 +106,7 @@ Instruction *loadInstructions(char *filename, int instructionCount) {
     Instruction *instructions;
 
     if (filename == NULL) {
-        printError(ERROR_NULL_CHECK);
+        printError(ERROR_NULL_POINTER);
         
         return NULL;
     }
@@ -148,7 +149,7 @@ int processInstructions(Instruction *instructions, int instructionCount, int opt
     RecordStack *stack;
 
     if (instructions == NULL || instructionCount == 0) {
-        printError(ERROR_NULL_CHECK);
+        printError(ERROR_NULL_POINTER);
 
         return SIGNAL_FAILURE;
     }
@@ -182,6 +183,7 @@ int processInstructions(Instruction *instructions, int instructionCount, int opt
     // until an error occurs or a SIGNAL_KILL system call is made.
     executeReturn = SIGNAL_SUCCESS;
     while (executeReturn != SIGNAL_KILL) {
+        
         // Check that fetchInstruction is successful.
         if (fetchInstruction(cpu, instructions) == SIGNAL_FAILURE) {
             destroyCPU(cpu);
@@ -214,7 +216,7 @@ int processInstructions(Instruction *instructions, int instructionCount, int opt
 // Fetch next instruction from instructions and place in the CPU instRegister.
 int fetchInstruction(CPU *cpu, Instruction *instructions) {
     if (cpu == NULL || instructions == NULL) {
-        printError(ERROR_NULL_CHECK);
+        printError(ERROR_NULL_POINTER);
         
         return SIGNAL_FAILURE;
     }
@@ -238,7 +240,7 @@ int fetchInstruction(CPU *cpu, Instruction *instructions) {
 // Execute instruction loaded into CPU.
 int executeInstruction(CPU *cpu, RecordStack *stack) {
     if (cpu == NULL || stack == NULL || stack->currentRecord == NULL) {
-        printError(ERROR_NULL_CHECK);
+        printError(ERROR_NULL_POINTER);
         
         return SIGNAL_FAILURE;
     }
@@ -270,7 +272,7 @@ int executeInstruction(CPU *cpu, RecordStack *stack) {
         case GEQ: return operationIsGreaterThanOrEqualTo(cpu);
         
         default:
-            printError(ERROR_ILLEGAL_OPCODE, cpu->instRegister.opCode);
+            printError(ERROR_ILLEGAL_OP_CODE, cpu->instRegister.opCode);
             
             return SIGNAL_FAILURE;
     }

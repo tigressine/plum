@@ -4,9 +4,9 @@
 
 // Compile lexemes from the lexemeFile into usable bytecode.
 int compileLexemes(char *lexemeFile, char *outFile, int options) {
-    SymbolTable *table;
-    IOTunnel *tunnel;
     int returnValue;
+    IOTunnel *tunnel;
+    SymbolTable *table;
 
     // Create the symbol table.
     if ((table = createSymbolTable()) == NULL) {
@@ -20,7 +20,7 @@ int compileLexemes(char *lexemeFile, char *outFile, int options) {
 
     // Call the program class.
     returnValue = classProgram(tunnel, table); 
-
+    
     // Print the symbol table, if requested.
     if (returnValue == SIGNAL_SUCCESS && checkOption(&options, OPTION_PRINT_SYMBOL_TABLE)) {
         printSymbolTable(table);

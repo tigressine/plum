@@ -6,7 +6,7 @@
 // Set an option flag to true in an options int.
 void setOption(int *options, int option) {
     if (options == NULL) {
-        printError(ERROR_NULL_CHECK);
+        printError(ERROR_NULL_POINTER);
 
         return;
     }
@@ -18,7 +18,7 @@ void setOption(int *options, int option) {
 // See if an option is enabled in an options int.
 int checkOption(int *options, int option) {
     if (options == NULL) {
-        printError(ERROR_NULL_CHECK);
+        printError(ERROR_NULL_POINTER);
         
         return SIGNAL_FAILURE;
     }

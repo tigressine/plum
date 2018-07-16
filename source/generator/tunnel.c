@@ -49,7 +49,7 @@ IOTunnel *createIOTunnel(char *lexemeFile, char *outFile) {
 // Send a given instruction either to file or into the queue.
 int emitInstruction(IOTunnel *tunnel, Instruction instruction, int nestedDepth) {
     if (tunnel == NULL || tunnel->queue == NULL) {
-        printError(ERROR_NULL_CHECK);
+        printError(ERROR_NULL_POINTER);
 
         return SIGNAL_FAILURE;
     }
@@ -68,7 +68,7 @@ int emitInstruction(IOTunnel *tunnel, Instruction instruction, int nestedDepth) 
                     instruction.RField,
                     instruction.LField,
                     instruction.MField) <= 0) {
-            printError(ERROR_CANNOT_WRITE);
+            printError(ERROR_WRITING_FILE_FAILED);
             
             return SIGNAL_FAILURE;
         }
@@ -85,11 +85,11 @@ int emitInstruction(IOTunnel *tunnel, Instruction instruction, int nestedDepth) 
 
 // Emit all of the instructions in the queue in order, until empty.
 int emitInstructions(IOTunnel *tunnel) {
-    QueueNode *current;
     int returnValue;
+    QueueNode *current;
 
     if (tunnel == NULL || tunnel->queue == NULL) {
-        printError(ERROR_NULL_CHECK);
+        printError(ERROR_NULL_POINTER);
 
         return SIGNAL_FAILURE;
     }
@@ -120,15 +120,15 @@ int emitInstructions(IOTunnel *tunnel) {
 
 // Emit instructions for all the constants in the symbol table.
 int setConstants(IOTunnel *tunnel, SymbolTable *table) {
-    Instruction instruction;
     TableNode *current;
+    Instruction instruction;
 
-    if (tunnel == NULL || table == NULL || table->head == NULL) {
-        printError(ERROR_NULL_CHECK);
+    if (tunnel == NULL || table == NULL) {
+        printError(ERROR_NULL_POINTER);
         
         return SIGNAL_FAILURE;
     }
-
+    
     current = table->head;
     while (current != NULL) {
 
@@ -136,12 +136,10 @@ int setConstants(IOTunnel *tunnel, SymbolTable *table) {
         if (current->symbol.type == LEX_CONST) {
             setInstruction(&instruction, LIT, 0, 0, current->symbol.value);
             if (emitInstruction(tunnel, instruction, 0) == SIGNAL_FAILURE) {
-
                 return SIGNAL_FAILURE;
             }
             setInstruction(&instruction, STO, 0, 0, current->symbol.address);
             if (emitInstruction(tunnel, instruction, 0) == SIGNAL_FAILURE) {
-
                 return SIGNAL_FAILURE;
             }
         }
@@ -159,18 +157,18 @@ QueueNode *getQueueTail(IOTunnel *tunnel) {
 
 // Load a token from the input stream.
 int loadToken(IOTunnel *tunnel) {
-    char buffer;
     int i;
+    char buffer;
     
     if (tunnel == NULL) {
-        printError(ERROR_NULL_CHECK);
+        printError(ERROR_NULL_POINTER);
         
         return SIGNAL_FAILURE;
     }
 
     // If the input tunnel is done, then we've reached the end of the file unexpectedly.
     if (tunnel->status == SIGNAL_EOF) {
-        printError(ERROR_END_OF_FILE);
+        printError(ERROR_UNEXPECTED_END_OF_FILE);
         tunnel->status = SIGNAL_FAILURE;
         
         return SIGNAL_FAILURE;
@@ -232,14 +230,14 @@ int handleIdentifier(IOTunnel *tunnel) {
     int i;
 
     if (tunnel == NULL) {
-        printError(ERROR_NULL_CHECK);
+        printError(ERROR_NULL_POINTER);
 
         return SIGNAL_FAILURE;
     }
 
     // If the input file is through, we've got a problem.
     if (tunnel->status == SIGNAL_EOF) {
-        printError(ERROR_MISSING_TOKEN, LEX_IDENTIFIER);
+        printError(ERROR_IDENTIFIER_EXPECTED);
         
         return SIGNAL_FAILURE;
     }
@@ -253,7 +251,7 @@ int handleIdentifier(IOTunnel *tunnel) {
 
             // If no tokens were added, then the tokenName is missing.
             if (i == 0) {
-                printError(ERROR_MISSING_TOKEN, LEX_IDENTIFIER);
+                printError(ERROR_IDENTIFIER_EXPECTED);
                 tunnel->status = SIGNAL_FAILURE;
                 
                 return SIGNAL_FAILURE;
@@ -276,7 +274,7 @@ int handleIdentifier(IOTunnel *tunnel) {
             }
             else {
                 if (i == 0) {
-                    printError(ERROR_MISSING_TOKEN, LEX_IDENTIFIER);
+                    printError(ERROR_IDENTIFIER_EXPECTED);
                     tunnel->status = SIGNAL_FAILURE;
 
                     return SIGNAL_FAILURE;
@@ -290,7 +288,7 @@ int handleIdentifier(IOTunnel *tunnel) {
     // If, after running out of characters in the loop, there's still more
     // alphanumeric characters, then the token is too long.
     if (fscanf(tunnel->fin, "%c", &buffer) != EOF && isAlphanumeric(buffer)) {
-        printError(ERROR_TOKEN_TOO_LONG, tunnel->tokenName);
+        printError(ERROR_IDENTIFIER_TOO_LARGE, tunnel->tokenName);
         tunnel->status = SIGNAL_FAILURE;
 
         return SIGNAL_FAILURE;
@@ -306,23 +304,22 @@ int handleIdentifier(IOTunnel *tunnel) {
 
 // Handle numbers in the lexeme list.
 int handleNumber(IOTunnel *tunnel) {
-   
     if (tunnel == NULL) {
-        printError(ERROR_NULL_CHECK);
+        printError(ERROR_NULL_POINTER);
 
         return SIGNAL_FAILURE;
     }
     
     // If the input file is through, we've got a problem.
     if (tunnel->status == SIGNAL_EOF) {
-        printError(ERROR_MISSING_TOKEN, LEX_IDENTIFIER);
+        printError(ERROR_NUMBER_EXPECTED);
         
         return SIGNAL_FAILURE;
     }
 
     // If the expected number isn't there, throw a missing token error.
     if (fscanf(tunnel->fin, " %d", &(tunnel->tokenValue)) == EOF) {
-       printError(ERROR_MISSING_TOKEN, LEX_NUMBER);
+        printError(ERROR_NUMBER_EXPECTED);
        tunnel->status = SIGNAL_FAILURE;
 
        return SIGNAL_FAILURE;

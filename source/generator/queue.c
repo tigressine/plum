@@ -44,7 +44,7 @@ int enqueueInstruction(InstructionQueue *queue, Instruction instruction) {
     QueueNode *new;
     
     if (queue == NULL) {
-        printError(ERROR_NULL_CHECK);
+        printError(ERROR_NULL_POINTER);
 
         return SIGNAL_FAILURE;
     } 
@@ -79,7 +79,7 @@ int insertInstruction(InstructionQueue *queue, Instruction instruction, QueueNod
     QueueNode *new;
 
     if (queue == NULL || node == NULL) {
-        printError(ERROR_NULL_CHECK);
+        printError(ERROR_NULL_POINTER);
 
         return SIGNAL_FAILURE;
     }
@@ -101,8 +101,8 @@ int insertInstruction(InstructionQueue *queue, Instruction instruction, QueueNod
 
 // Clear all instructions out of the queue.
 void clearInstructionQueue(InstructionQueue *queue) {
-    QueueNode *current;
     QueueNode *next;
+    QueueNode *current;
 
     if (queue == NULL) {
         return;

@@ -7,85 +7,88 @@
 
 // Print error associated with provided errorCode.
 void printError(int errorCode, ...) {
-    char error[MAX_ERROR_LENGTH];
     va_list arguments;
+    char error[MAX_ERROR_LENGTH];
 
     // All errors in this array map to the appropriate code in
     // an enumeration defined in the plum.h header.
     char errors[][MAX_ERROR_LENGTH] = {
-        "factor syntax incorrect",
-        "illegal comparator token: %d",
-        "expected do token",
-        "expected then token",
-        "expected end token",
-        "identifier already declared: %s",
-        "identifier expected",
-        "number expected",
-        "illegal identifier: %s...",
-        "token is too long: %s...",
-        "symbol expected: :=",//
+
+        // Formatting errors.
+        "symbol expected: %s",
         "symbol expected: %c",
-        "%s must be followed by %s",
-        "statement expected",
-        "missing bisecting semicolon between statements",
-        "identifier undeclared: %s",
-        "illegal assignment to constant or procedure",
-        "call of constant or variable is meaningless",
-        "expression must not contain a procedure identifier",
-        "%s cannot begin with %s",
-        "number too large: %s",//
-        "file not found: %s",//
-        "unknown character: %c",//
-        "argument missing for flag: %s",//
-        "unknown arguments passed to program",
-        "bad mode specified: %s",//
-        "no mode specified",//
-        "input file required as second argument",//
-        "attempted to dereference null",//
-        "program ran out of memory",
-        "register is out of bounds: %d",//
-        "static parent does not exist",//
-        "dynamic parent does not exist",//
-        "local index is out of bounds: %d",//
-        "illegal system call: %d",//
-        "attempted to divide by zero",//
-        "file too long: %s",//
-        "program counter out of bounds: %d",//
-        "illegal operation code: %d",//
-        "missing value for token: %d",
-        "illegal format of lexemes: %d",
+        "unknown character: %c",
+        "illegal factor syntax",
         "characters after period",
+        "missing value for token: %d",
+        "illegal comparator token: %d",
+        "illegal format of lexemes: %d",
+       
+        // Number and identifier errors.
+        "number expected",
+        "identifier expected",
+        "number too large: %s...",
+        "illegal identifier: %s...",
+        "identifier undeclared: %s",
+        "identifier is too long: %s...",
+        "identifier already declared: %s",
+        "illegal assignment to constant: %s",
+        
+        // User IO errors.
+        "no mode specified",
+        "bad mode specified: %s",
+        "argument missing for flag: %s",
+        "input file required as second argument",
+       
+        // Memory and bounds errors.
+        "program ran out of memory",
+        "static parent does not exist",
+        "dynamic parent does not exist",
+        "attempted to dereference null",
+        "register is out of bounds: %d",
+        "local index is out of bounds: %d",
+        "program counter out of bounds: %d",
+      
+        // File IO errors.
+        "file too long: %s",
+        "file not found: %s",
+        "error writing to file",
         "unexpected end of file",
-        "out of registers",
-        "error writing to output file"
+       
+        // Assembly operation errors.
+        "illegal system call: %d",
+        "illegal operation code: %d",
+        "attempted to divide by zero",
     };
 
     // Initialize the variadic argument list, starting after errorCode.
     va_start(arguments, errorCode);
 
     switch (errorCode) {
-        // Errors that must be formatted first.
-        case ERROR_BAD_MODE:
-        case ERROR_FILE_TOO_LONG:
-        case ERROR_MISSING_TOKEN:
-        case ERROR_ILLEGAL_OPCODE:
-        case ERROR_TOKEN_TOO_LONG:
-        case ERROR_FILE_NOT_FOUND:
-        case ERROR_SYMBOL_EXPECTED:
-        case ERROR_NUMBER_TOO_LARGE:
-        case ERROR_MISSING_ARGUMENT:
-        case ERROR_INVALID_REGISTER:
+        
+        // Errors that must be formatted first. Calls a safe version of sprintf
+        // that also handles variadic lists.
+        case ERROR_SYMBOL_EXPECTED_STRING:
+        case ERROR_SYMBOL_EXPECTED_CHAR:
         case ERROR_UNKNOWN_CHARACTER:
-        case ERROR_ILLEGAL_IDENTIFIER:
-        case ERROR_ILLEGAL_TOKEN_START:
-        case ERROR_LOCAL_OUT_OF_BOUNDS:
-        case ERROR_ILLEGAL_SYSTEM_CALL:
-        case ERROR_ILLEGAL_FOLLOW_TOKEN:
-        case ERROR_UNDECLARED_IDENTIFIER:
+        case ERROR_NO_VALUE_FOR_TOKEN:
+        case ERROR_ILLEGAL_COMPARATOR:
         case ERROR_ILLEGAL_LEXEME_FORMAT:
+        case ERROR_NUMBER_TOO_LARGE:
+        case ERROR_ILLEGAL_IDENTIFIER:
+        case ERROR_UNDECLARED_IDENTIFIER:
+        case ERROR_IDENTIFIER_TOO_LARGE:
         case ERROR_IDENTIFIER_ALREADY_DECLARED:
+        case ERROR_ASSIGNMENT_TO_CONSTANT:
+        case ERROR_BAD_MODE:
+        case ERROR_ARGUMENT_MISSING:
+        case ERROR_REGISTER_OUT_OF_BOUNDS:
+        case ERROR_LOCAL_INDEX_OUT_OF_BOUNDS:
         case ERROR_PROGRAM_COUNTER_OUT_OF_BOUNDS:
-            // Call a safe version of sprintf that also handles variadic lists.
+        case ERROR_FILE_TOO_LONG:
+        case ERROR_FILE_NOT_FOUND:
+        case ERROR_ILLEGAL_SYSTEM_CALL:
+        case ERROR_ILLEGAL_OP_CODE:
             vsnprintf(error, MAX_ERROR_LENGTH, errors[errorCode], arguments);
             break;
 
@@ -127,4 +130,3 @@ void printFile(char *filename, char *header) {
     // Don't leave your files open like a monkey.
     fclose(f);
 }
-

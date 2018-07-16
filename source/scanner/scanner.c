@@ -16,15 +16,15 @@ int scanSource(char *sourceFile, char *outFile, int options) {
     const int directMappedSymbolsCount = 9;
 
     SymbolValuePair directMappedSymbols[] = {
-        { '+',LEX_PLUS },
-        { '-',LEX_MINUS },
-        { '*',LEX_MULTIPLY },
-        { '(',LEX_LEFT_PARENTHESIS },
-        { ')',LEX_RIGHT_PARENTHESIS },
-        { ',',LEX_COMMA },
-        { '.',LEX_PERIOD },
-        { ';',LEX_SEMICOLON },
-        { '=',LEX_EQUAL }
+        { '+', LEX_PLUS },
+        { '-', LEX_MINUS },
+        { '*', LEX_MULTIPLY },
+        { '(', LEX_LEFT_PARENTHESIS },
+        { ')', LEX_RIGHT_PARENTHESIS },
+        { ',', LEX_COMMA },
+        { '.', LEX_PERIOD },
+        { ';', LEX_SEMICOLON },
+        { '=', LEX_EQUAL }
     };
 
     SymbolSymbolPair pairedSymbols[] = {
@@ -65,6 +65,7 @@ int scanSource(char *sourceFile, char *outFile, int options) {
                     break;
                 }
             }
+
             // If the loop didn't terminate early (i.e. the buffer was not
             // a direct-mapped symbol), loop through the paired symbols.
             if (i == directMappedSymbolsCount) {
@@ -74,6 +75,7 @@ int scanSource(char *sourceFile, char *outFile, int options) {
                         break;
                     } 
                 }
+
                 // If this loop also didn't terminate early, give up.
                 if (i == pairedSymbolsCount) {
                    printError(ERROR_UNKNOWN_CHARACTER, buffer);

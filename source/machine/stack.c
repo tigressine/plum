@@ -13,7 +13,7 @@ int pushRecord(CPU *cpu, RecordStack *stack) {
     RecordStackItem *new;
     
     if (cpu == NULL || stack == NULL) {
-        printError(ERROR_NULL_CHECK);
+        printError(ERROR_NULL_POINTER);
 
         return SIGNAL_FAILURE;
     }
@@ -43,11 +43,11 @@ int pushRecord(CPU *cpu, RecordStack *stack) {
 
 // Remove the top record from the stack and free any associated dynamic memory.
 int popRecord(RecordStack *stack) {
-    RecordStackItem *next;
     int returnValue;
+    RecordStackItem *next;
 
     if (stack == NULL || stack->currentRecord == NULL) {
-        printError(ERROR_NULL_CHECK);
+        printError(ERROR_NULL_POINTER);
         
         return SIGNAL_FAILURE;
     }
@@ -72,7 +72,7 @@ RecordStackItem *peekRecord(RecordStack *stack) {
 // Allocate the locals array in the given record.
 int allocateLocals(RecordStackItem *record, int localCount) {
     if (record == NULL || record->locals != NULL) {
-        printError(ERROR_NULL_CHECK);
+        printError(ERROR_NULL_POINTER);
         
         return SIGNAL_FAILURE;
     }
@@ -83,6 +83,7 @@ int allocateLocals(RecordStackItem *record, int localCount) {
     if (localCount < 1) {
         record->locals = NULL;
     }
+    
     // Else make a new locals array in the record.
     else if ((record->locals = calloc(1, sizeof(int) * localCount)) == NULL) {
         record->localCount = 0;
@@ -99,7 +100,7 @@ RecordStackItem *getDynamicParent(RecordStack *stack, int levels) {
     RecordStackItem *desired;
 
     if (stack == NULL) {
-        printError(ERROR_NULL_CHECK);
+        printError(ERROR_NULL_POINTER);
         
         return NULL;
     }
@@ -121,7 +122,7 @@ RecordStackItem *getStaticParent(RecordStack *stack, int levels) {
     RecordStackItem *desired;
 
     if (stack == NULL) {
-        printError(ERROR_NULL_CHECK);
+        printError(ERROR_NULL_POINTER);
         
         return NULL;
     }
@@ -145,6 +146,7 @@ int isEmpty(RecordStack *stack) {
 
 // Destroy the record stack.
 RecordStack *destroyRecordStack(RecordStack *stack) {
+    
     // Pop all records out of the stack.
     while (!isEmpty(stack)) {
         popRecord(stack);

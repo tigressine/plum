@@ -29,7 +29,7 @@ void printStackTraceHeader(int options) {
 // Print out all associated objects with the program.
 void printStackTraceLine(CPU *cpu, RecordStack *stack, int options) {
     if (cpu == NULL || stack == NULL) {
-        printError(ERROR_NULL_CHECK);
+        printError(ERROR_NULL_POINTER);
         
         return;
     }
@@ -49,7 +49,7 @@ void printRegisters(CPU *cpu) {
     int i;
     
     if (cpu == NULL) {
-        printError(ERROR_NULL_CHECK);
+        printError(ERROR_NULL_POINTER);
         
         return;
     }
@@ -62,7 +62,7 @@ void printRegisters(CPU *cpu) {
 // Print CPU instruction and program counter.
 void printCPU(CPU *cpu) {
     if (cpu == NULL) {
-        printError(ERROR_NULL_CHECK);
+        printError(ERROR_NULL_POINTER);
         
         return;
     }

@@ -7,7 +7,7 @@
 // Return the validity of a particular register.
 int invalidRegister(int index) {
     if (index < 0 || index >= REGISTER_COUNT) {
-        printError(ERROR_INVALID_REGISTER, index);
+        printError(ERROR_REGISTER_OUT_OF_BOUNDS, index);
 
         return SIGNAL_TRUE;
     }
@@ -19,7 +19,7 @@ int invalidRegister(int index) {
 // Return validity of CPU.
 int invalidCPUState(CPU *cpu, int registerCheck) {
     if (cpu == NULL) {
-        printError(ERROR_NULL_CHECK);
+        printError(ERROR_NULL_POINTER);
 
         return SIGNAL_TRUE;
     }
@@ -61,7 +61,7 @@ int operationReturn(CPU *cpu, RecordStack *stack) {
     }
     
     if (stack == NULL) {
-        printError(ERROR_NULL_CHECK);
+        printError(ERROR_NULL_POINTER);
 
         return SIGNAL_FAILURE;
     }
@@ -73,32 +73,33 @@ int operationReturn(CPU *cpu, RecordStack *stack) {
 
 // Load a value from an activation record into a register.
 int operationLoad(CPU *cpu, RecordStack *stack) {
-    RecordStackItem *desiredRecord;
     int index;
+    RecordStackItem *desiredRecord;
     
     if (invalidCPUState(cpu, 1)) {
         return SIGNAL_FAILURE;
     }
 
     if (stack == NULL) {
-        printError(ERROR_NULL_CHECK);
+        printError(ERROR_NULL_POINTER);
 
         return SIGNAL_FAILURE;
     }
 
     // Get the static parent of the top level record, L levels down.
     if ((desiredRecord = getStaticParent(stack, cpu->instRegister.LField)) == NULL) {
-        printError(ERROR_INVALID_STATIC_PARENT);
+        printError(ERROR_NO_STATIC_PARENT);
         
         return SIGNAL_FAILURE;
     }
 
-    index = cpu->instRegister.MField;
     // If index is zero, desired value is returnValue.
+    index = cpu->instRegister.MField;
     if (index == 0) {
         cpu->registers[cpu->instRegister.RField] = desiredRecord->returnValue;
     }
     else {
+    
         // Adjust index by the number of static space in each activation record.
         index -= INT_OFFSET;
         
@@ -106,9 +107,10 @@ int operationLoad(CPU *cpu, RecordStack *stack) {
         if (index >= 0 && index < desiredRecord->localCount) {
             cpu->registers[cpu->instRegister.RField] = desiredRecord->locals[index];
         }
+       
         // Otherwise value is bad, so operation fails.
         else {
-            printError(ERROR_LOCAL_OUT_OF_BOUNDS, index);
+            printError(ERROR_LOCAL_INDEX_OUT_OF_BOUNDS, index);
 
             return SIGNAL_FAILURE;
         }
@@ -119,22 +121,22 @@ int operationLoad(CPU *cpu, RecordStack *stack) {
 
 // Load a value from a register into an activation record in the stack.
 int operationStore(CPU *cpu, RecordStack *stack) {
-    RecordStackItem *desiredRecord;
     int index;
+    RecordStackItem *desiredRecord;
 
     if (invalidCPUState(cpu, 1)) {
         return SIGNAL_FAILURE;
     }
     
     if (stack == NULL) {
-        printError(ERROR_NULL_CHECK);
+        printError(ERROR_NULL_POINTER);
 
         return SIGNAL_FAILURE;
     }
 
     // Get the static parent of the top level record, L levels down.
     if ((desiredRecord = getStaticParent(stack, cpu->instRegister.LField)) == NULL) {
-        printError(ERROR_INVALID_STATIC_PARENT);
+        printError(ERROR_NO_STATIC_PARENT);
         
         return SIGNAL_FAILURE;
     }
@@ -149,11 +151,12 @@ int operationStore(CPU *cpu, RecordStack *stack) {
         if (index >= 0 && index < desiredRecord->localCount) {
             desiredRecord->locals[index] = cpu->registers[cpu->instRegister.RField];
         }
+
         // The index is either out of bounds of the locals array, or the user is
         // trying to override some of the other activation record fields (like the
         // dynamic link) and this isn't allowed.
         else {
-            printError(ERROR_LOCAL_OUT_OF_BOUNDS, index);
+            printError(ERROR_LOCAL_INDEX_OUT_OF_BOUNDS, index);
 
             return SIGNAL_FAILURE;
         }
@@ -169,7 +172,7 @@ int operationCall(CPU *cpu, RecordStack *stack) {
     }
 
     if (stack == NULL) {
-        printError(ERROR_NULL_CHECK);
+        printError(ERROR_NULL_POINTER);
 
         return SIGNAL_FAILURE;
     }
@@ -189,7 +192,7 @@ int operationAllocate(CPU *cpu, RecordStack *stack) {
     }
 
     if (stack == NULL) {
-        printError(ERROR_NULL_CHECK);
+        printError(ERROR_NULL_POINTER);
 
         return SIGNAL_FAILURE;
     }

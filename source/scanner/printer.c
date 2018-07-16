@@ -48,12 +48,14 @@ void printLexemeTable(char *filename) {
 
     // For each integer in the file, print the relevant symbol and lexeme value.
     while (fscanf(f, "%d", &buffer) != EOF) {
+
         // If the buffer is for an identifier or number, read the next
         // string in the file and then print.
         if (buffer == LEX_IDENTIFIER || buffer == LEX_NUMBER) {
             fscanf(f, "%12s", word); // magic number
             printLexemeTableLine(word, buffer);
         }
+
         // Else print the lexeme from the lexemes array, with an offset of
         // four to account for the first four values in the enumeration not
         // being included.

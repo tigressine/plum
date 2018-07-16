@@ -9,7 +9,7 @@ int skipComment(FILE *f) {
     char buffer;
 
     if (f == NULL) {
-        printError(ERROR_NULL_CHECK);
+        printError(ERROR_NULL_POINTER);
 
         return SIGNAL_FAILURE;
     }
@@ -34,12 +34,13 @@ void eatCharacters(FILE *fin, int lexemeValue) {
     char buffer;
 
     if (fin == NULL) {
-        printError(ERROR_NULL_CHECK);
+        printError(ERROR_NULL_POINTER);
 
         return;
     }
 
     while (fscanf(fin, "%c", &buffer) != EOF) {
+
         // Once a non-token character is detected, rewind and break.
         if (!isAlphanumeric(buffer)) {
             fseek(fin, -1, SEEK_CUR);
@@ -53,23 +54,23 @@ int checkKeywords(FILE *fout, char *word) {
     int i;
    
     KeywordValuePair keywords[] = {
-        { "begin",LEX_BEGIN },
-        { "call",LEX_CALL },
-        { "const",LEX_CONST },
-        { "do",LEX_DO },
-        { "else",LEX_ELSE },
-        { "end",LEX_END },
-        { "if",LEX_IF },
-        { "procedure",LEX_PROCEDURE },
-        { "then",LEX_THEN },
-        { "read",LEX_READ },
-        { "var",LEX_VAR },
-        { "while",LEX_WHILE },
-        { "write",LEX_WRITE }
+        { "begin", LEX_BEGIN },
+        { "call", LEX_CALL },
+        { "const", LEX_CONST },
+        { "do", LEX_DO },
+        { "else", LEX_ELSE },
+        { "end", LEX_END },
+        { "if", LEX_IF },
+        { "procedure", LEX_PROCEDURE },
+        { "then", LEX_THEN },
+        { "read", LEX_READ },
+        { "var", LEX_VAR },
+        { "while", LEX_WHILE },
+        { "write", LEX_WRITE }
     };
    
     if (fout == NULL || word == NULL) {
-        printError(ERROR_NULL_CHECK);
+        printError(ERROR_NULL_POINTER);
 
         return SIGNAL_FAILURE;
     }
@@ -89,7 +90,7 @@ int checkKeywords(FILE *fout, char *word) {
 // Send a directly-mapped symbol's lexeme value to the output file.
 int handleDirectMappedSymbol(FILE *fout, int lexemeValue) {
     if (fout == NULL) {
-        printError(ERROR_NULL_CHECK);
+        printError(ERROR_NULL_POINTER);
         
         return SIGNAL_FAILURE;
     }
@@ -102,16 +103,17 @@ int handleDirectMappedSymbol(FILE *fout, int lexemeValue) {
 // Print appropriate lexeme value to output file, based on presence of pair
 // in the input file.
 int handlePair(FILE *fin, FILE *fout, SymbolSymbolPair pair) {
-    char buffer;
     int i;
+    char buffer;
     
     if (fin == NULL || fout == NULL) {
-        printError(ERROR_NULL_CHECK);
+        printError(ERROR_NULL_POINTER);
         
         return SIGNAL_FAILURE;
     }
     
     if (fscanf(fin, "%c", &buffer) != EOF) {
+
         // Check all expected follow characters for pairs.
         for (i = 0; i < pair.pairs; i++) {
             if (buffer == pair.follows[i]) {
@@ -125,6 +127,7 @@ int handlePair(FILE *fin, FILE *fout, SymbolSymbolPair pair) {
                 return SIGNAL_SUCCESS;
             }
         }
+    
         // Else the next character was something else. Rewind the file pointer.
         fseek(fin, -1, SEEK_CUR);
     }
@@ -150,7 +153,7 @@ int handleLongToken(FILE *fin, FILE *fout, char first, int lexemeValue, int len)
     char token[len + 1];
     
     if (fin == NULL || fout == NULL) {
-        printError(ERROR_NULL_CHECK);
+        printError(ERROR_NULL_POINTER);
         
         return SIGNAL_FAILURE;
     }
@@ -160,6 +163,7 @@ int handleLongToken(FILE *fin, FILE *fout, char first, int lexemeValue, int len)
 
     // Eat up more characters!
     while (index < len && fscanf(fin, "%c", &buffer) != EOF) {
+       
         // If we are building an identifier and the buffer is alphanumeric
         // or if we are building a number and the buffer is a digit,
         // add to the token array.
@@ -168,6 +172,7 @@ int handleLongToken(FILE *fin, FILE *fout, char first, int lexemeValue, int len)
             
             token[index++] = buffer;
         }
+       
         // Else rewind the file because the end of the
         // token has been reached.
         else {
@@ -189,10 +194,14 @@ int handleLongToken(FILE *fin, FILE *fout, char first, int lexemeValue, int len)
             if (lexemeValue == LEX_NUMBER && isAlphabetic(buffer)) {
                 printError(ERROR_ILLEGAL_IDENTIFIER, token);
             }
+       
             // Else we either have a number that's too long or an
             // identifier that's too long.
+            else if (lexemeValue == LEX_NUMBER) {
+                printError(ERROR_NUMBER_TOO_LARGE, token);
+            }
             else {
-                printError(ERROR_TOKEN_TOO_LONG, token);
+                printError(ERROR_IDENTIFIER_TOO_LARGE, token);
             }
 
             // Explode.
@@ -204,6 +213,7 @@ int handleLongToken(FILE *fin, FILE *fout, char first, int lexemeValue, int len)
     token[index] = '\0';
 
     if (lexemeValue == LEX_IDENTIFIER) {
+
         // If the word doesn't match any keywords,
         // print into the output file as an identifier.
         if (checkKeywords(fout, token) == SIGNAL_FAILURE) {

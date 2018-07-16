@@ -33,7 +33,7 @@ TableNode *createTableNode(int type,
 
     // If the name is too long, return nothing.
     if (strlen(name) > IDENTIFIER_LEN) {
-        printError(ERROR_TOKEN_TOO_LONG, name);
+        printError(ERROR_IDENTIFIER_TOO_LARGE, name);
         
         return NULL;
     }
@@ -67,7 +67,7 @@ int insertSymbol(SymbolTable *table,
     TableNode *new;
 
     if (table == NULL) {
-        printError(ERROR_NULL_CHECK);
+        printError(ERROR_NULL_POINTER);
         
         return SIGNAL_FAILURE;
     }
@@ -105,7 +105,7 @@ Symbol *lookupSymbol(SymbolTable *table, char *name) {
     TableNode *current;
 
     if (table == NULL) {
-        printError(ERROR_NULL_CHECK);
+        printError(ERROR_NULL_POINTER);
         
         return NULL;
     }
@@ -140,11 +140,11 @@ int getTableSize(SymbolTable *table) {
 
 // Free all memory associated with the table.
 void destroySymbolTable(SymbolTable *table) {
-    TableNode *current;
     TableNode *next;
+    TableNode *current;
 
     if (table == NULL) {
-        printError(ERROR_NULL_CHECK);
+        printError(ERROR_NULL_POINTER);
         
         return;
     }

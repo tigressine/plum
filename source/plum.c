@@ -38,8 +38,8 @@ int getMode(char *mode) {
 
 // Process all arguments and flags for the program.
 int getOptions(int argCount, char **argsVector) {
-    int argIndex;
     int options;
+    int argIndex;
 
     options = 0;
 
@@ -115,7 +115,7 @@ int getOutFile(int argCount, char **argsVector) {
                 return argIndex + 1;
             }
             else {
-                printError(ERROR_MISSING_ARGUMENT, argsVector[argIndex]);
+                printError(ERROR_ARGUMENT_MISSING, argsVector[argIndex]);
                 
                 return SIGNAL_FAILURE;
             }
@@ -150,7 +150,7 @@ int main(int argCount, char **argsVector) {
     // If there aren't enough arguments passed to contain an input file,
     // scream about it.
     if (argCount < 3) {
-        printError(ERROR_NO_SOURCE);
+        printError(ERROR_INPUT_FILE_MISSING);
 
         return 0;
     }
@@ -171,10 +171,12 @@ int main(int argCount, char **argsVector) {
     if ((outFileIndex = getOutFile(argCount, argsVector)) == SIGNAL_FAILURE) {
         return 0;
     }
+
     // If there was no output flag, set outFile to a default.
     else if (outFileIndex == SIGNAL_RECOVERY) {
         outFile = DEFAULT_OUTPUT_FILE;
     }
+
     // Set outFile to the array in the vector at the provided index.
     else {
         outFile = argsVector[outFileIndex];
