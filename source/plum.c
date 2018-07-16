@@ -51,8 +51,10 @@ int getOptions(int argCount, char **argsVector) {
         }
         else if (strcmp(argsVector[argIndex], "--print-all") == 0) {
             setOption(&options, OPTION_PRINT_SOURCE);
-            setOption(&options, OPTION_PRINT_LEXEME_TABLE);
             setOption(&options, OPTION_PRINT_LEXEME_LIST);
+            setOption(&options, OPTION_PRINT_LEXEME_TABLE);
+            setOption(&options, OPTION_PRINT_SYMBOL_TABLE);
+            setOption(&options, OPTION_PRINT_ASSEMBLY);
         }
         else if (strcmp(argsVector[argIndex], "--print-source") == 0) {
             setOption(&options, OPTION_PRINT_SOURCE);
@@ -62,6 +64,12 @@ int getOptions(int argCount, char **argsVector) {
         }
         else if (strcmp(argsVector[argIndex], "--print-lexeme-list") == 0) {
             setOption(&options, OPTION_PRINT_LEXEME_LIST);
+        }
+        else if (strcmp(argsVector[argIndex], "--print-symbol-table") == 0) {
+            setOption(&options, OPTION_PRINT_SYMBOL_TABLE);
+        }
+        else if (strcmp(argsVector[argIndex], "--print-assembly") == 0) {
+            setOption(&options, OPTION_PRINT_ASSEMBLY);
         }
         else if (strcmp(argsVector[argIndex], "--trace-all") == 0) {
             setOption(&options, OPTION_TRACE_CPU);
@@ -75,6 +83,17 @@ int getOptions(int argCount, char **argsVector) {
             setOption(&options, OPTION_TRACE_RECORDS);
         }
         else if (strcmp(argsVector[argIndex], "--trace-registers") == 0) {
+            setOption(&options, OPTION_TRACE_REGISTERS);
+        }
+        else if (strcmp(argsVector[argIndex], "-l") == 0) {
+            setOption(&options, OPTION_PRINT_LEXEME_LIST);
+        }
+        else if (strcmp(argsVector[argIndex], "-a") == 0) {
+            setOption(&options, OPTION_PRINT_ASSEMBLY);
+        }
+        else if (strcmp(argsVector[argIndex], "-v") == 0) {
+            setOption(&options, OPTION_TRACE_CPU);
+            setOption(&options, OPTION_TRACE_RECORDS);
             setOption(&options, OPTION_TRACE_REGISTERS);
         }
     }
@@ -165,6 +184,9 @@ int main(int argCount, char **argsVector) {
         case MODE_RUN:
             if (scanSource(inFile, INTERMEDIATE_FILE, options) == SIGNAL_SUCCESS) {
                 if (compileLexemes(INTERMEDIATE_FILE, outFile, options) == SIGNAL_SUCCESS) {
+                    if (checkOption(&options, OPTION_PRINT_ASSEMBLY)) {
+                        printAssembly(outFile);
+                    }
                     startMachine(outFile, options);
                 }
             }
@@ -177,18 +199,29 @@ int main(int argCount, char **argsVector) {
             break;
 
         case MODE_PARSE:
-            compileLexemes(inFile, outFile, options);
+            if (compileLexemes(inFile, outFile, options) == SIGNAL_SUCCESS) {
+                if (checkOption(&options, OPTION_PRINT_ASSEMBLY)) {
+                    printAssembly(outFile);
+                }
+            }
             break;
 
         case MODE_COMPILE:
             if (scanSource(inFile, INTERMEDIATE_FILE, options) == SIGNAL_SUCCESS) {
-                compileLexemes(INTERMEDIATE_FILE, outFile, options);
+                if (compileLexemes(INTERMEDIATE_FILE, outFile, options)) {
+                    if (checkOption(&options, OPTION_PRINT_ASSEMBLY)) {
+                        printAssembly(outFile);
+                    }
+                }
             }
             
             remove(INTERMEDIATE_FILE);
             break;
 
         case MODE_EXECUTE:
+            if (checkOption(&options, OPTION_PRINT_ASSEMBLY)) {
+                printAssembly(inFile);
+            }
             startMachine(inFile, options);
             break;
     }

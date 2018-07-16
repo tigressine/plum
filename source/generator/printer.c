@@ -17,6 +17,7 @@ void printSymbolTable(SymbolTable *table) {
    
     // Recursively call print on the head of the table.
     printSymbolTableColumn(table->head);
+    printf("\n");
 }
 
 // Print a column in the symbol table.

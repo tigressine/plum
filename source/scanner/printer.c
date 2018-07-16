@@ -12,28 +12,7 @@ void printSource(char *filename) {
 // Call printFile for a lexeme file.
 void printLexemeList(char *filename) {
     printFile(filename, "Lexeme List:\n------------\n");
-    printf("\n");
-}
-
-// Print the contents of the file, as well as a header label.
-void printFile(char *filename, char *header) {
-    FILE *f;
-    char buffer;
-
-    if ((f = fopen(filename, "r")) == NULL) {
-        printError(ERROR_FILE_NOT_FOUND, filename);
-        
-        return;
-    }
-
-    // Print every character in the file.
-    printf("%s", header);
-    while (fscanf(f, "%c", &buffer) != EOF) {
-        printf("%c", buffer);
-    }
-
-    // Don't leave your files open like a monkey.
-    fclose(f);
+    printf("\n\n");
 }
 
 // Standardizing function to print line in lexeme table.

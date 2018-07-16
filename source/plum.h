@@ -138,7 +138,8 @@ enum Options {
     OPTION_PRINT_SOURCE,
     OPTION_PRINT_LEXEME_TABLE,
     OPTION_PRINT_LEXEME_LIST,
-    OPTION_PRINT_SYMBOL_TABLE
+    OPTION_PRINT_SYMBOL_TABLE,
+    OPTION_PRINT_ASSEMBLY
 };
 
 // Different modes for the machine.
@@ -170,5 +171,7 @@ void setInstruction(Instruction*, int, int, int, int);
 
 // Printer functional prototypes.
 void printError(int, ...);
+void printAssembly(char*);
+void printFile(char*, char*);
 
 #endif

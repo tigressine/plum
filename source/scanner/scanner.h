@@ -42,6 +42,5 @@ int handleLongToken(FILE*, FILE*, char, int, int);
 // Printer functional prototypes.
 void printSource(char*);
 void printLexemeList(char*);
-void printFile(char*, char*);
 void printLexemeTableLine(char*, int);
 void printLexemeTable(char*);
