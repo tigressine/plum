@@ -1,21 +1,19 @@
-plomachine
+plum
 ----------
-NOTE: This readme is out of date and has not been updated with the most current information.
-
-This project is a PL/0 virtual machine and compiler. It's being built for class but it's such an interesting project that I felt it was worthy of a repository. The only component available is the virtual machine at the moment, but this will change as the semester progresses.
+This project is a PL/0 interpreter that is capable of scanning, parsing, and then executing PL/0 on an included virtual machine. The interpreter is modal and a great deal of effort has gone into making its command interface intuitive and clear. What follows is an explanation of all modes, flags, and setup instructions.
 
 setup
 -----
 To download and setup for use, clone the repository and build from the source files using the following commands. Note that you will need ``git`` and ``gcc`` installed to download and build the program. It's possible that this project could be built with a different C compiler but I haven't tried it.
 ::
-  git clone https://www.github.com/tgsachse/plomachine.git && cd plomachine
-  ./Build.sh
+  git clone https://www.github.com/tgsachse/plum.git && cd plum
+  ./build.sh
 
-This produces an executable named ``plomachine`` that can then be used to run PL/0 btyecode. See below!
+This produces an executable named ``plum`` that can then be used to run PL/0. Note that the name "plum" is derived from "plvm", an acronym for **P**\ rogramming **L**\ anguage/0 **V**\ irtual **M**\ achine (the name was thought up before the project became a full-fledged interpreter).
 
 usage
 -----
-Using plomachine is easy! Simply pass your bytecode to the machine as the first argument and the machine will execute that code. This is the command:
+Using plum is easy! Simply pass your bytecode to the machine as the first argument and the machine will execute that code. This is the command:
 ::
   ./plomachine yourbytecode.plc
 
