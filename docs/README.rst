@@ -9,11 +9,18 @@ To download and setup for use, clone the repository and build from the source fi
   git clone https://www.github.com/tgsachse/plum.git && cd plum
   ./build.sh
 
-This produces an executable named ``plum`` that can then be used to run PL/0. Note that the name "plum" is derived from "plvm", an acronym for **P**\ rogramming **L**\ anguage/0 **V**\ irtual **M**\ achine (the name was thought up before the project became a full-fledged interpreter).
+This produces an executable named ``plum`` that can then be used to run PL/0. Note that the name "plum" is derived from "plvm", an acronym for **PL**/0 **V**\ irtual **M**\ achine (the name was thought up before the project became a full-fledged interpreter).
 
 usage
 -----
-Using plum is easy! Simply pass your bytecode to the machine as the first argument and the machine will execute that code. This is the command:
+Plum presently has five modes of operation. These modes are as follows:
+  - run
+  - scan
+  - parse
+  - execute
+  - compile
+  
+To run a 
 ::
   ./plomachine yourbytecode.plc
 
