@@ -1,6 +1,6 @@
 plum
 ----------
-This project is a PL/0 interpreter that is capable of scanning, parsing, and then executing PL/0 on an included virtual machine. The interpreter is modal and a great deal of effort has gone into making its command interface intuitive and clear. What follows is an explanation of all modes, flags, and setup instructions.
+This project is a PL/0 interpreter that is capable of scanning, parsing, and executing PL/0 on an included virtual machine. The interpreter is modal and a great deal of effort has gone into making its command interface intuitive and clear. What follows is an explanation of all modes, flags, and setup instructions.
 
 setup
 -----
@@ -13,14 +13,15 @@ This produces an executable named ``plum`` that can then be used to run PL/0. No
 
 usage
 -----
-Plum presently has five modes of operation. These modes are as follows:
+Plum presently has five modes of operation. The modes are as follows:
   - run
   - scan
   - parse
   - execute
   - compile
   
-To run a 
+To run a program:q
+
 ::
   ./plomachine yourbytecode.plc
 

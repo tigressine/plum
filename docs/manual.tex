@@ -1,0 +1,124 @@
+% By Tiger Sachse
+% This is my first Latex document ever, so forgive the inevitable bad practices.
+
+\documentclass{article}
+
+\usepackage[margin=1.0in]{geometry}
+\usepackage[utf8]{inputenc}
+\usepackage{xcolor}
+\usepackage{listings}
+\usepackage[english]{babel}
+\usepackage[hidelinks]{hyperref}
+
+\setlength{\parskip}{1em}
+
+\hypersetup{
+    colorlinks,
+    urlcolor=blue
+}
+
+\begin{document}
+
+\begin{center}
+{\Huge
+    PL/0 User Manual
+}
+
+{\Large 
+    Written by Tiger Sachse
+
+    2018
+}
+\end{center}
+
+\pagebreak
+Here be a table of contents
+
+- what is pl/0?
+
+- how to setup/compile the program
+
+- modes/flags
+
+- Language specification
+
+- language explanation
+
+- Example programs
+
+\pagebreak
+
+\section*{What is PL/0?}
+PL/0 is a simple, educational programming language meant to be used to teach compiler
+design. It was invented in 1976 by Niklaus Wirth and it stands for
+\textit{Programming Language Zero}. It has a limited number of features which make
+it an impractical language to write real programs in, however its small size helps
+allow student-designed compilers to remain small and \textit{relatively} simple.
+
+\section*{What is Plum?}
+Plum is an interpreter designed to run PL/0. It is modal, and is capable of parsing,
+scanning, compiling, assembling, and executing PL/0 in sequence or separately. This means
+that Plum is capable not only of compiling source into bytecode, but also of executing
+that bytecode on an included, stack-based virtual machine. A description of each of Plum's
+modes, as well as additional options, is presented later in this document.
+
+Plum is derived from PLVM, an acronym for PL/0 Virtual Machine.
+The name is no longer fully descriptive, as this program has evolved from a virtual machine into a
+full-fledged interpreter, however it's cool, so it stays!
+
+\section*{Plum Installation}
+Plum is designed to be easy to install and use! The program can be found 
+\href{https://www.github.com/tgsachse/plum}{at this link}. Plum can be downloaded from
+the repository manually, or it can be cloned using \emph{git} like so:
+\begin{lstlisting}[language=bash]
+    $ git clone https://www.github.com/tgsachse/plum.git
+\end{lstlisting}
+To build, use the provided build script like this:
+\begin{lstlisting}[language=bash]
+    $ ./build.sh
+\end{lstlisting}
+This will produce an executable program named \emph{plum} in the same folder as
+the build script. This executable is the entire interpreter and can be used to run
+your PL/0 files! See the next couple sections for an explanation of the interpreter's
+modes and options.
+
+\pagebreak
+
+\section*{Modes of Operation}
+
+Plum is a modal program, meaning it has several modes of operation. What follows
+is a list of Plum's modes, as well as brief descriptions of what each mode does.
+\begin{itemize}
+    \item run
+
+        This mode takes a PL/0 source program as input, scans it, parses it, and then
+        executes it on the virtual machine. This is the primary command of the interpreter
+        that "does it all."
+
+    \item scan
+
+        This mode takes a PL/0 source program as input and produces a list of lexemes
+        (tokenizations of the source code) as output. These lexemes can be translated
+        into executable bytecode in the parse mode.
+
+    \item parse
+        
+        This mode takes a list of PL/0 lexemes as input and produces executable bytecode
+        for the virtual machine. This bytecode is "machine language," a sequence of numbers
+        that the virtual machine understands as instructions.
+
+    \item compile
+
+        This mode takes a PL/0 source program as input and produces executable bytecode
+        as output. It is functionally the same as passing a source program into the scan
+        mode, and then parsing the results.
+
+    \item execute
+
+        This mode takes PL/0 bytecode as input and executes that bytecode on the virtual
+        machine.
+\end{itemize}
+
+
+
+\end{document}
