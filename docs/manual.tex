@@ -9,9 +9,15 @@
 \usepackage{listings}
 \usepackage[english]{babel}
 \usepackage[hidelinks]{hyperref}
+\usepackage{titlesec}
+
+\titleformat*{\section}{\LARGE\bfseries}
+\titleformat*{\subsection}{\large\bfseries}
+
+\lstset{xleftmargin=.4in}
 
 \setlength{\parskip}{1em}
-
+\parindent 0pt
 \hypersetup{
     colorlinks,
     urlcolor=blue
@@ -55,6 +61,177 @@ design. It was invented in 1976 by Niklaus Wirth and it stands for
 it an impractical language to write real programs in, however its small size helps
 allow student-designed compilers to remain small and \textit{relatively} simple.
 
+\section*{PL/0 Syntax}
+The syntax for PL/0 is described using Extended Backus-Naur Form (EBNF), which is simply
+a fancy way to display syntax. EBNF follows these rules:
+\begin{itemize}
+    \item {[}items in brackets{]} are optional
+    \item \{items in braces\} are repeated zero or more times
+    \item "literal symbols/words" are enclosed in quotation marks
+    \item ranges are defined with an ellipsis...
+    \item items can be grouped (in parentheses)
+    \item a period is used to indicate the end of a class.
+\end{itemize}
+With these rules in mind, here is the EBNF for PL/0:
+\begin{lstlisting}[escapeinside={(*}{*)}]
+PROGRAM -> BLOCK ".".
+BLOCK -> CONSTANT VARIABLE PROCEDURE STATEMENT.
+CONSTANT -> ["const" IDENTIFIER "=" NUMBER {"," IDENTIFIER "=" NUMBER} ";"].
+VARIABLE -> ["var" IDENTIFIER {"," IDENTIFIER} ";"].
+PROCEDURE -> {"procedure" IDENTIFIER ";" BLOCK ";"}.
+STATEMENT -> [IDENTIFIER ":=" EXPRESSION
+             | "call" IDENTIFIER
+             | "begin" STATEMENT {";" STATEMENT} "end"
+             | "if" CONDITION "then" STATEMENT ["else" STATEMENT]
+             | "while" CONDITION "do" STATEMENT
+             | "read" IDENTIFIER
+             | "write" EXPRESSION
+             | (*$\epsilon$*)].
+CONDITION -> "odd" EXPRESSION | EXPRESSION RELATION EXPRESSION.
+RELATION -> "=" | "<>" | "<" | "<=" | ">" | ">=".
+EXPRESSION -> ["+" | "-"] TERM {("+" | "-") TERM}.
+TERM -> FACTOR {("*" | "/") FACTOR}.
+FACTOR -> IDENTIFIER | NUMBER | "(" EXPRESSION ")".
+NUMBER -> DIGIT{DIGIT}.
+IDENTIFIER -> LETTER{LETTER | DIGIT}.
+DIGIT -> "0"..."9"
+LETTER -> "a"..."z" | "A"..."Z"
+\end{lstlisting}
+That text wall is quite intimidating! Don't worry, the next section will walk
+through actually writing a program in PL/0, piece by piece.
+
+\pagebreak
+
+\section*{Writing in PL/0}
+This section contains all of the pieces of a complete PL/0 program, from variables to loops!
+
+\subsection*{Variables and Constants}
+In programming in general and PL/0 in specific, numbers can be stored in memory to be
+manipulated by the program. These numbers can be stored as either variables (which can
+change as the program executes) or constants (which cannot change during execution). All
+variables and constants must be declared at the top of every block of code (e.g. at the
+beginning of the program, and at the beginning of every procedure (discussed later)).
+
+Here's a program that defines a variable named \emph{x} and a constant named \emph{y}:
+\begin{lstlisting}
+var x;
+const y = 100;
+.
+\end{lstlisting}
+Notice that constants must be assigned a value when they are declared, but variables cannot
+be assigned at declaration! Also, every valid program in PL/0 needs a period at the end, but
+not every program needs statements (although without statements, the program would do nothing).
+
+In this program, constant \emph{a}, constant \emph{b}, and variable \emph{c} are declared.
+The variable \emph is then assigned a value in a \emph{statement}.
+\begin{lstlisting}
+var c;
+const a = 500, b = 300;
+c := a + b;
+.
+\end{lstlisting}
+All typical operators are supported (subtraction, multiplication, etc) and the order of
+operations is followed. Parentheses can be used to enforce order in expressions.
+
+\subsection*{Input/Output}
+Programs can be interactive (they can take input and produce output during execution). To
+produce output, the \emph{write} keyword is used. To accept input, the \emph{read} keyword
+comes in handy.
+
+The following program reads in two values from the user. The first is assigned to \emph{user1}
+and the second is assigned to \emph{user2}. These values are multiplied together and
+the \emph{result} is printed to the screen:
+\begin{lstlisting}
+var user1, user2, result;
+begin
+    read user1;
+    read user2;
+    result := user1 * user2;
+    write result;
+end.
+\end{lstlisting}
+Notice that this program uses the \emph{begin} and \emph{end} keywords. These must be used
+to "wrap" multi-statement blocks (e.g. if you have more than one statement in a block, the
+statements must be wrapped with these keywords and each statement must end with a semicolon).
+
+\subsection*{Boolean Logic and Conditions}
+PL/0 supports if/else statements based on conditions. An if/else statement takes this
+general form:
+\begin{lstlisting}[escapeinside={(*}{*)}]
+if (*\emph{condition}*) then
+    (*\emph{statement1}*)
+else
+    (*\emph{statement2}*)
+\end{lstlisting}
+In the above psuedocode, if the \emph{condition} is true, then \emph{statement1}
+will execute. Otherwise the \emph{condition} must have been false and \emph{statement2}
+will execute.
+
+Here's an example of boolean logic and conditions in action in code.
+\begin{lstlisting}
+var x, y;
+begin
+    x := 25;
+    y := 30;
+    if x >= 100 then
+        x := 50;
+    else
+        x := 0;
+
+    if y < 100 then
+        y := 0;
+end.
+\end{lstlisting}
+In the above code, \emph{x} is set to equal 25, and \emph{y} is set to equal 30. The
+next statement asks the question: \emph{is x greater than or equal to 100}? It is not,
+so the \emph{else} statement is executed and \emph{x} now equals 0. Next, the program
+asks: \emph{is y less than 100}? It is, so the \emph{if} statement is executed, and \emph{y}
+is set equal to 0.
+
+\subsection*{While Loops}
+Sometimes, you may want your program to execute a statement several times. For example, if you
+wanted to print every number from 1 to 100, that would require an awful lot of \emph{write}
+statements. Loops alleviate this problem by allowing statements to be executed over and over
+again until some condition becomes false. The psuedocode for these loops, called \emph{while
+loops}, is as follows:
+\begin{lstlisting}[escapeinside={(*}{*)}]
+while (*\emph{condition}*) do
+    (*\emph{statement}*)
+\end{lstlisting}
+The following program will keep a variable, \emph{count}, and print that variable to the screen.
+Each time \emph{count} is printed, it will be increased by 1 (or incremented). This will
+continue until \emph{count} has increased above the number 20.
+\begin{lstlisting}
+var count;
+begin
+    count := 1;
+    while count < 100 do
+    begin
+        write count;
+        count := count + 1;
+    end;
+end.
+\end{lstlisting}
+The above while loop continues to execute the statements within until its condition is
+no longer true. Loops and conditions can also be nested (placed inside of each other).
+A small modification can be made to this program to only print odd numbers:
+\begin{lstlisting}
+var count;
+begin
+    count := 1;
+    while count < 100 do
+    begin
+        if odd count then
+            write count;
+        count := count + 1;
+    end;
+end.
+\end{lstlisting}
+The \emph{odd} keyword is special here: it determines if \emph{count} is odd. If it is,
+the program prints \emph{count} to the screen, else the write statement is skipped.
+
+\pagebreak
+
 \section*{What is Plum?}
 Plum is an interpreter designed to run PL/0. It is modal, and is capable of parsing,
 scanning, compiling, assembling, and executing PL/0 in sequence or separately. This means
@@ -71,54 +248,106 @@ Plum is designed to be easy to install and use! The program can be found
 \href{https://www.github.com/tgsachse/plum}{at this link}. Plum can be downloaded from
 the repository manually, or it can be cloned using \emph{git} like so:
 \begin{lstlisting}[language=bash]
-    $ git clone https://www.github.com/tgsachse/plum.git
+$ git clone https://www.github.com/tgsachse/plum.git
 \end{lstlisting}
 To build, use the provided build script like this:
 \begin{lstlisting}[language=bash]
-    $ ./build.sh
+$ ./build.sh
 \end{lstlisting}
 This will produce an executable program named \emph{plum} in the same folder as
 the build script. This executable is the entire interpreter and can be used to run
-your PL/0 files! See the next couple sections for an explanation of the interpreter's
-modes and options.
-
-\pagebreak
+your PL/0 files!
 
 \section*{Modes of Operation}
-
 Plum is a modal program, meaning it has several modes of operation. What follows
 is a list of Plum's modes, as well as brief descriptions of what each mode does.
 \begin{itemize}
-    \item run
+    \item \emph{RUN}
 
         This mode takes a PL/0 source program as input, scans it, parses it, and then
         executes it on the virtual machine. This is the primary command of the interpreter
         that "does it all."
 
-    \item scan
+    \item \emph{SCAN}
 
         This mode takes a PL/0 source program as input and produces a list of lexemes
         (tokenizations of the source code) as output. These lexemes can be translated
         into executable bytecode in the parse mode.
 
-    \item parse
+    \item \emph{PARSE}
         
         This mode takes a list of PL/0 lexemes as input and produces executable bytecode
         for the virtual machine. This bytecode is "machine language," a sequence of numbers
         that the virtual machine understands as instructions.
 
-    \item compile
+    \item \emph{COMPILE}
 
         This mode takes a PL/0 source program as input and produces executable bytecode
         as output. It is functionally the same as passing a source program into the scan
         mode, and then parsing the results.
 
-    \item execute
+    \item \emph{EXECUTE}
 
         This mode takes PL/0 bytecode as input and executes that bytecode on the virtual
         machine.
 \end{itemize}
 
+\pagebreak
+
+\section*{Flags/Options}
+Plum supports a good deal of flags/options to aid developers in finding bugs in their code.
+What follows is a list of Plum's flags and a brief description of what each flag does.
+\begin{itemize}
+    \item \textbf{{-}{-}skip-errors}
+
+        Skip any detected errors in scan mode.
+
+    \item \textbf{{-}{-}print-source}
+
+        Print the provided source code.
+
+    \item \textbf{{-}{-}print-lexeme-table}
+        
+        Print a table of lexemes and their values.
+
+    \item \textbf{-l / {-}{-}print-lexeme-list}
+
+        Print the list of lexemes produced by the scan mode.
+
+    \item \textbf{{-}{-}print-symbol-table}
+
+        Print the symbol table created during parsing.
+
+    \item \textbf{-a / {-}{-}print-assembly}
+    
+        Print the machine language bytecode provided/generated.
+
+    \item \textbf{{-}{-}print-all}
+        
+        Print everything listed above (i.e. include all the print flags).
+
+    \item \textbf{{-}{-}trace-cpu}
+    
+        Trace the status of the CPU of the virtual machine for each instruction.
+
+    \item \textbf{{-}{-}trace-records}
+
+        Trace the activation record stack of the virtual machine for each instruction.
+
+    \item \textbf{{-}{-}trace-registers}
+
+        Trace the registers of the virtual machine for each instruction.
+
+    \item \textbf{-v / {-}{-}trace-all}
+
+        Trace everything listed above (i.e. include all of the trace flags).
+
+    \item \textbf{-o \emph{filename} / {-}{-}outfile \emph{filename}}
+
+        Set the output of the machine to write to a new location, specified in place
+        of \emph{filename}.
+
+\end{itemize}
 
 
 \end{document}
