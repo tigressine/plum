@@ -1,0 +1,10 @@
+var x, y;
+begin
+    x := 25;
+    y := 30;
+    if x < 27 then
+        x := x * 1000;
+
+    if y < 27 then
+        y := y * 1000;
+end.

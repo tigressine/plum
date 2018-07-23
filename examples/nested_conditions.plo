@@ -1,4 +1,4 @@
-/* Heavily nested conditionals. */
+/* Heavily nested conditions. */
 const A = 100, B = 200;
 var x, y, z, yy, zz;
 begin

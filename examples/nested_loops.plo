@@ -1,4 +1,4 @@
-/* Nested while loop check. */
+/* Nested while loops. */
 var x, y, z;
 begin
     x := 1;

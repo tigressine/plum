@@ -1,0 +1,15 @@
+var x, y;
+begin
+    x := 100;
+    y := 200;
+    
+    if x > 0 then
+    begin
+        x := x / 10;
+        y := y / 10;
+        if y <> 0 then
+        begin
+            y := y / 10;
+        end;
+    end;
+end.
