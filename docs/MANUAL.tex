@@ -63,7 +63,7 @@ on a provided stack-based virtual machine. A description of each of Plum's modes
 as additional options, is presented later in this document.
 
 Plum is derived from PLVM, an acronym for PL/0 Virtual Machine. The name is a bit of a
-misnomer, as Plum is no longer only a virtual machine... but the name is cool, so it stays!
+misnomer, as Plum is no longer only a virtual machine... it's cool, so it stays!
 
 \section*{What is PL/0?}
 PL/0 is a simple, educational programming language meant to assist in teaching compiler
@@ -185,7 +185,7 @@ Plum's syntax looks like this:
 \begin{lstlisting}[escapeinside={(*}{*)}]
 $ ./plum <mode> <filename> <(*{-}{-}*)options>
 \end{lstlisting}
-The mode and filename are required. 0 or more options can be included but must trail
+The mode and filename are required. Zero or more options can be included but must trail
 the filename and mode as shown above. Here are a few example commands to get you started:
 \begin{lstlisting}[escapeinside={(*}{*)}]
 $ ./plum run program1.plo
@@ -319,8 +319,8 @@ end.
 
 \pagebreak
 
-The code on the previous page will multiply \emph{x} by 1000, but will not multiply
-\emph{y} by 1000. Note that begin-end can be used in if statements, and if statements
+The code on the previous page will multiply \emph{x} by one thousand, but will not multiply
+\emph{y} by one thousand. Note that begin-end can be used in if statements, and if statements
 can be nested. Here's a more complicated program (example 6):
 \begin{lstlisting}
 var x, y;
@@ -342,17 +342,17 @@ end.
 
 \subsection*{While Loops}
 Often, you may find yourself wanting to execute a statement several times. For example,
-if you wanted to print every number from 1 to 100, you'd need an awful lot of \emph{write}
-statements. Loops solve this problem by allowing statements to be executed over and over
-again until some \emph{condition} becomes false. The psuedocode for loops in PL/0,
+if you wanted to print every number from one to one hundred, you'd need an awful lot of
+\emph{write} statements. Loops solve this problem by allowing statements to be executed
+over and over again until some \emph{condition} becomes false. The psuedocode for loops in PL/0,
 called \emph{while} loops, is as follows:
 \begin{lstlisting}[escapeinside={(*}{*)}]
 while (*\emph{condition}*) do
     (*\emph{statement}*)
 \end{lstlisting}
 The following program will keep a variable, \emph{count}, and print that variable to the screen.
-Each time \emph{count} is printed, it will be incremented (increased by 1). This will
-continue until \emph{count} is greater than or equal to 20 (example 7):
+Each time \emph{count} is printed, it will be incremented (increased by one). This will
+continue until \emph{count} is greater than or equal to twenty (example 7):
 \begin{lstlisting}
 var count;
 begin
@@ -401,7 +401,7 @@ end.
 \subsubsection*{FizzBuzz}
 \begin{lstlisting}
 /* Because I can't print strings, numbers will have to do.
-   I will unfortunately have to keep counters for 3's and 5's
+   I will unfortunately have to keep counters for threes and fives
    as well because this implementation has no modulus operator. */
 const fizz = 10000, buzz = 20000;
 var num, threes, fives;
@@ -410,7 +410,7 @@ begin
     fives := 0;
     threes := 0;
     
-    /* Run FizzBuzz from 1 to 100. */
+    /* Run FizzBuzz from one to one hundred. */
     while num < 100 do
     begin
 
@@ -421,14 +421,14 @@ begin
     
         write num;
 
-        /* If the number is divisible by 3, print fizz. */
+        /* If the number is divisible by three, print fizz. */
         if threes = 3 then
         begin
             write fizz;
             threes := 0;
         end;
 
-        /* If the number is divisible by 5, print buzz. */
+        /* If the number is divisible by five, print buzz. */
         if fives = 5 then
         begin
             write buzz;

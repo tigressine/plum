@@ -6,7 +6,7 @@ on a provided stack-based virtual machine. Check out `the manual`_ for a full de
 Plum's modes and flags.
 
 Plum is derived from PLVM, an acronym for PL/0 Virtual Machine. The name is a bit of a
-misnomer, as Plum is no longer only a virtual machine... but the name is cool, so it stays!
+misnomer, as Plum is no longer only a virtual machine... it's cool, so it stays!
 
 setup
 -----
@@ -25,7 +25,7 @@ Plum's syntax looks like this:
 ::
     ./plum <mode> <filename> <--options>
 
-The mode and filename are required. 0 or more options can be included but must trail
+The mode and filename are required. Zero or more options can be included but must trail
 the filename and mode as shown above. Here are a few example commands to get you started:
 ::
     ./plum run program1.plo
@@ -36,7 +36,7 @@ the filename and mode as shown above. Here are a few example commands to get you
 
 bugs
 ----
-Please file an `issue report`_ if you find any bugs. My goal is  make this software extremely memory-safe and highly stable.
+Please file an `issue report`_ if you find any bugs.
 
 .. _`the manual`: https://github.com/tgsachse/plum/blob/master/docs/MANUAL.pdf
 .. _`issue report`: https://github.com/tgsachse/plomachine/issues
