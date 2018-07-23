@@ -1,6 +1,0 @@
-/* All possible, valid tokens. */
-hello goodbye 100 + - *
-/ odd = < <= > >= () ,
-; . := begin end if then while
-do call const var procedure write
-read else /* */

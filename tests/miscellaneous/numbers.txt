@@ -1,8 +1,0 @@
-/* Some valid and invalid numbers. */
-100
-200
-4
-.04
-12345
-123456
-123456789
