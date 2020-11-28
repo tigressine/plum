@@ -38,5 +38,5 @@ bugs
 ----
 Please file an `issue report`_ if you find any bugs.
 
-.. _`the manual`: https://github.com/tgsachse/plum/blob/master/docs/MANUAL.pdf
-.. _`issue report`: https://github.com/tgsachse/plomachine/issues
+.. _`the manual`: https://github.com/tgsachse/plum/blob/mainline/docs/MANUAL.pdf
+.. _`issue report`: https://github.com/tgsachse/plum/issues
